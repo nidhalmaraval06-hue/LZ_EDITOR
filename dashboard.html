@@ -1,0 +1,1090 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#090711">
+<meta name="description" content="LZ EDITORS - Creative Community Dashboard">
+<title>LZ EDITORS | Creative Hub</title>
+<link rel="icon" href="logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<style>
+:root {
+  --bg:#090711;
+  --panel:#131020;
+  --panel2:#19132a;
+  --purple:#9b5cff;
+  --purple2:#7138e6;
+  --pink:#d16aff;
+  --gold:#f1cb78;
+  --text:#f8f4ff;
+  --muted:#958ba9;
+  --border:rgba(178,129,255,.16);
+  --green:#5de3a0;
+  --red:#ff6988;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  min-height:100vh;
+  background:
+    radial-gradient(ellipse at 80% 0%,rgba(115,57,218,.17),transparent 38%),
+    radial-gradient(ellipse at 0% 80%,rgba(209,106,255,.07),transparent 35%),
+    var(--bg);
+  color:var(--text);
+  font-family:'Cairo',sans-serif;
+  overflow-x:hidden
+}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+a{color:inherit;text-decoration:none}
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--pink);outline-offset:3px}
+.ambient{position:fixed;width:300px;height:300px;border-radius:50%;filter:blur(100px);pointer-events:none;z-index:-1}
+.ambient.a{background:#7138e6;opacity:.1;top:10%;right:-140px}
+.ambient.b{background:#d16aff;opacity:.07;bottom:-140px;left:10%}
+.app{display:grid;grid-template-columns:255px minmax(0,1fr);min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{
+  position:sticky;top:0;height:100vh;overflow-y:auto;
+  padding:23px 16px;background:rgba(10,8,17,.91);
+  border-left:1px solid var(--border);backdrop-filter:blur(22px);
+  display:flex;flex-direction:column;z-index:50
+}
+.brand{display:flex;align-items:center;gap:11px;padding:0 7px 24px;border-bottom:1px solid var(--border)}
+.logo-wrap{
+  width:48px;height:48px;border-radius:15px;flex-shrink:0;
+  display:grid;place-items:center;overflow:hidden;
+  background:linear-gradient(140deg,rgba(155,92,255,.24),rgba(209,106,255,.05));
+  border:1px solid rgba(181,131,255,.36);
+  box-shadow:0 0 22px rgba(155,92,255,.12)
+}
+.logo-wrap img{width:100%;height:100%;object-fit:contain;padding:4px;animation:glow 3s ease-in-out infinite alternate}
+@keyframes glow{to{filter:drop-shadow(0 0 9px #9b5cff)}}
+.brand-name{font:800 15px 'Orbitron',sans-serif;direction:ltr;letter-spacing:.4px}
+.brand-sub{font-size:9px;color:var(--muted);direction:ltr;letter-spacing:1.5px;margin-top:5px}
+.nav-label{font-size:9px;color:#746b84;font-weight:800;letter-spacing:1.5px;padding:23px 12px 9px}
+.nav{display:flex;flex-direction:column;gap:5px}
+.nav button{
+  display:flex;align-items:center;gap:11px;width:100%;
+  text-align:right;padding:11px 12px;border-radius:11px;
+  background:transparent;border:1px solid transparent;
+  color:var(--muted);font-size:11px;font-weight:700;transition:.2s
+}
+.nav button i{width:18px;text-align:center;font-size:13px}
+.nav button:hover{background:rgba(155,92,255,.08);color:white}
+.nav button.active{
+  color:white;border-color:rgba(155,92,255,.23);
+  background:linear-gradient(100deg,rgba(113,56,230,.25),rgba(155,92,255,.06));
+  box-shadow:inset -3px 0 var(--purple)
+}
+.nav button.active i{color:#d0aaff}
+.sidebar-bottom{margin-top:auto;padding-top:25px}
+.community-card{
+  padding:14px;border-radius:15px;
+  border:1px solid var(--border);
+  background:linear-gradient(145deg,rgba(155,92,255,.12),rgba(20,15,31,.8))
+}
+.community-icon{width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:rgba(155,92,255,.15);color:#d0aaff;margin-bottom:10px}
+.community-card strong{font-size:11px}
+.community-card p{font-size:9px;color:var(--muted);line-height:1.9;margin-top:5px}
+.connection{display:flex;align-items:center;gap:7px;margin:13px 4px 0;font-size:9px;color:var(--muted)}
+.connection-dot{width:7px;height:7px;background:#e8b75f;border-radius:50%}
+
+/* MAIN */
+.main{min-width:0;padding:25px 28px 35px}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:27px}
+.mobile-brand{display:none;align-items:center;gap:7px;font:700 12px 'Orbitron',sans-serif;direction:ltr}
+.mobile-brand img{width:32px;height:32px;object-fit:contain}
+.page-title{font-size:22px;font-weight:900}
+.page-subtitle{font-size:10px;color:var(--muted);margin-top:4px}
+.top-actions{display:flex;align-items:center;gap:9px}
+.icon-button{
+  width:39px;height:39px;display:grid;place-items:center;
+  background:rgba(22,17,36,.85);border:1px solid var(--border);
+  border-radius:12px;color:#d5c8e8;transition:.2s
+}
+.icon-button:hover{border-color:var(--purple);color:white}
+.profile{display:flex;align-items:center;gap:9px;padding:4px 10px 4px 5px;border:1px solid var(--border);border-radius:13px;background:rgba(22,17,36,.85)}
+.avatar{width:32px;height:32px;display:grid;place-items:center;border-radius:10px;background:linear-gradient(135deg,#9b5cff,#5124a5);font-weight:900;font-size:12px}
+.profile-name{font-size:10px;font-weight:800}
+.profile-role{font-size:8px;color:var(--muted)}
+.page{display:none;animation:appear .28s ease}
+.page.active{display:block}
+@keyframes appear{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+
+/* HERO */
+.hero{
+  position:relative;overflow:hidden;min-height:225px;
+  padding:31px;border-radius:23px;
+  border:1px solid rgba(175,123,255,.23);
+  background:
+    radial-gradient(ellipse at 5% 5%,rgba(209,106,255,.18),transparent 40%),
+    linear-gradient(110deg,#1b1230,#100b1d 65%,#1b1030);
+  margin-bottom:22px
+}
+.hero:after{
+  content:'LZ';position:absolute;left:20px;top:-40px;
+  font:900 190px 'Orbitron',sans-serif;letter-spacing:-15px;
+  color:rgba(195,151,255,.04);pointer-events:none
+}
+.hero-content{position:relative;z-index:1;max-width:650px}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid rgba(155,92,255,.26);background:rgba(155,92,255,.1);border-radius:30px;color:#d6baff;font-size:9px;font-weight:800;margin-bottom:13px}
+.eyebrow span{width:6px;height:6px;border-radius:50%;background:var(--purple);box-shadow:0 0 9px var(--purple)}
+.hero h2{font-size:clamp(23px,3vw,34px);font-weight:900;line-height:1.5}
+.hero h2 b{color:#c59cff;text-shadow:0 0 22px rgba(155,92,255,.24)}
+.hero p{font-size:11px;color:#aaa0bd;line-height:2;margin-top:7px;max-width:490px}
+.hero-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:18px}
+.btn{display:inline-flex;justify-content:center;align-items:center;gap:8px;padding:10px 15px;border-radius:10px;border:1px solid var(--border);font-size:10px;font-weight:800;transition:.2s}
+.btn-primary{color:white;background:linear-gradient(110deg,#8b4af0,#6533ce);border-color:rgba(197,156,255,.4);box-shadow:0 6px 20px rgba(108,54,232,.17)}
+.btn-primary:hover{transform:translateY(-2px)}
+.btn-secondary{background:rgba(255,255,255,.025);color:#d8cde9}
+.btn-secondary:hover{background:rgba(155,92,255,.1)}
+.btn-danger{background:rgba(255,101,134,.08);color:#ff9bb0;border-color:rgba(255,101,134,.18)}
+.btn-small{padding:6px 9px;font-size:9px}
+.section-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:26px 0 13px}
+.section-heading h3{font-size:14px;font-weight:900}
+.section-heading p{font-size:9px;color:var(--muted);margin-top:4px}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border-radius:30px;font-size:9px;font-weight:800;white-space:nowrap}
+.badge-purple{color:#d3b4ff;background:rgba(155,92,255,.12);border:1px solid rgba(155,92,255,.18)}
+.badge-gold{color:#f4d99a;background:rgba(241,203,120,.1);border:1px solid rgba(241,203,120,.23)}
+.badge-green{color:#82e8b3;background:rgba(93,227,160,.08);border:1px solid rgba(93,227,160,.14)}
+.badge-pink{color:#f2b4ff;background:rgba(209,106,255,.09);border:1px solid rgba(209,106,255,.16)}
+.badge-muted{color:#aaa0bd;background:rgba(255,255,255,.04);border:1px solid var(--border)}
+
+/* PANELS / STATS */
+.panel,.stat-card{background:linear-gradient(145deg,rgba(24,18,39,.88),rgba(14,11,23,.94));border:1px solid var(--border);border-radius:18px;min-width:0}
+.panel{padding:19px}
+.panel-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:16px}
+.panel-head h3{font-size:12px;font-weight:900}
+.panel-head span{font-size:9px;color:var(--muted)}
+.stats-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.stat-card{padding:16px;transition:.2s}
+.stat-card:hover{transform:translateY(-3px);border-color:rgba(155,92,255,.35)}
+.stat-top{display:flex;justify-content:space-between;align-items:center;gap:7px}
+.stat-icon{width:36px;height:36px;display:grid;place-items:center;border-radius:11px;background:rgba(155,92,255,.12);border:1px solid rgba(155,92,255,.15);color:#c59cff}
+.stat-value{font:800 24px 'Orbitron',sans-serif;margin-top:15px;direction:ltr;text-align:right}
+.stat-label{font-size:10px;color:var(--muted);margin-top:4px}
+.content-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(260px,1fr);gap:15px}
+.quick-list{display:flex;flex-direction:column;gap:9px}
+.quick-action{width:100%;display:flex;align-items:center;gap:11px;padding:12px;color:var(--text);text-align:right;background:rgba(255,255,255,.018);border:1px solid rgba(181,130,255,.1);border-radius:12px;transition:.2s}
+.quick-action:hover{background:rgba(155,92,255,.07);border-color:rgba(155,92,255,.25)}
+.quick-action>i:first-child{color:#bd94ff;width:19px;text-align:center}
+.quick-action strong{display:block;font-size:10px}
+.quick-action small{display:block;font-size:9px;color:var(--muted);margin-top:3px}
+.quick-action .arrow{margin-right:auto;color:#736b83;font-size:9px}
+
+/* SEARCH / INPUTS */
+.toolbar{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:15px}
+.search-box{position:relative;flex:1;min-width:170px}
+.search-box i{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:#847a98}
+.field{width:100%;color:white;outline:none;padding:10px 36px 10px 11px;background:rgba(18,14,29,.9);border:1px solid var(--border);border-radius:10px;font-size:10px}
+.field:focus{border-color:rgba(155,92,255,.55)}
+.field::placeholder{color:#746b83}
+select.field{padding-right:11px}
+select.field option{background:#151020}
+textarea.field{resize:vertical;min-height:80px}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group label{font-size:10px;color:#cfc3e0;font-weight:700}
+.form-group.full{grid-column:1/-1}
+.form-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:15px}
+
+/* DESIGNER CARDS */
+.card-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.designer-card{
+  position:relative;overflow:hidden;padding:18px;text-align:center;
+  background:linear-gradient(155deg,rgba(28,20,44,.95),rgba(15,11,24,.98));
+  border:1px solid var(--border);border-radius:19px;transition:.25s
+}
+.designer-card:hover{transform:translateY(-4px);border-color:rgba(155,92,255,.4);box-shadow:0 14px 35px rgba(0,0,0,.16)}
+.designer-card:before{content:'';position:absolute;top:0;right:0;left:0;height:2px;background:linear-gradient(90deg,transparent,#9b5cff,#d16aff,transparent);opacity:.7}
+.designer-avatar{width:76px;height:76px;object-fit:cover;border-radius:23px;border:2px solid rgba(181,131,255,.4);padding:3px;background:#171027;margin:0 auto 11px;display:block}
+.designer-fallback{width:76px;height:76px;margin:0 auto 11px;border-radius:23px;display:grid;place-items:center;background:linear-gradient(135deg,#9b5cff,#5124a5);font:800 24px 'Orbitron',sans-serif}
+.designer-card h3{font-size:13px;font-weight:900}
+.designer-specialty{font-size:10px;color:var(--muted);margin-top:4px}
+.designer-badges{display:flex;justify-content:center;flex-wrap:wrap;gap:5px;margin:11px 0}
+.social-links{display:flex;justify-content:center;gap:8px;margin:13px 0}
+.social-link{width:34px;height:34px;display:grid;place-items:center;border:1px solid var(--border);border-radius:10px;background:rgba(255,255,255,.025);color:#d3b4ff;transition:.2s}
+.social-link:hover{background:rgba(155,92,255,.15);border-color:var(--purple)}
+.designer-description{font-size:10px;line-height:1.9;color:var(--muted);min-height:38px;overflow-wrap:anywhere}
+.card-actions{display:flex;justify-content:center;flex-wrap:wrap;gap:6px;margin-top:13px}
+
+/* AWARDS */
+.awards-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.award-card{
+  position:relative;overflow:hidden;min-height:280px;padding:21px 16px;
+  text-align:center;border-radius:20px;
+  background:radial-gradient(ellipse at 50% 0%,rgba(155,92,255,.2),transparent 65%),linear-gradient(145deg,#1b132c,#100c1b);
+  border:1px solid rgba(178,129,255,.2)
+}
+.award-card.gold{background:radial-gradient(ellipse at 50% 0%,rgba(241,203,120,.16),transparent 65%),linear-gradient(145deg,#211b26,#100c1b);border-color:rgba(241,203,120,.25)}
+.award-symbol{width:76px;height:76px;display:grid;place-items:center;border-radius:25px;margin:5px auto 15px;font-size:31px;color:#d3b4ff;background:rgba(155,92,255,.11);border:1px solid rgba(155,92,255,.25);box-shadow:0 0 35px rgba(155,92,255,.08)}
+.gold .award-symbol{color:var(--gold);background:rgba(241,203,120,.08);border-color:rgba(241,203,120,.25)}
+.award-card h3{font-size:13px;font-weight:900}
+.award-card p{font-size:10px;line-height:1.9;color:var(--muted);margin-top:7px}
+.winner-name{font-size:12px;font-weight:800;margin-top:12px;color:#e0c9ff}
+.gold .winner-name{color:var(--gold)}
+.award-period{font:9px 'Orbitron',sans-serif;letter-spacing:1px;color:#8f83a4;margin-top:7px;direction:ltr}
+.winner-avatar{width:53px;height:53px;object-fit:cover;border-radius:18px;border:1px solid rgba(241,203,120,.5);margin:0 auto 9px;display:block}
+.winner-empty{color:#80748f;font-size:10px;margin-top:15px}
+
+/* WORKS */
+.work-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.work-card{overflow:hidden;border:1px solid var(--border);border-radius:17px;background:rgba(20,15,32,.9);transition:.2s}
+.work-card:hover{transform:translateY(-3px);border-color:rgba(155,92,255,.35)}
+.work-thumb{width:100%;aspect-ratio:16/10;object-fit:cover;background:linear-gradient(135deg,#29174a,#100c1b);display:grid;place-items:center;color:#bfa1ff;font-size:30px}
+.work-body{padding:14px}
+.work-body h3{font-size:11px}
+.work-body p{font-size:9px;color:var(--muted);line-height:1.8;margin-top:5px;overflow-wrap:anywhere}
+.work-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:12px}
+
+/* GIVEAWAY */
+.giveaway-banner{position:relative;overflow:hidden;padding:25px;border-radius:20px;border:1px solid rgba(209,106,255,.23);background:radial-gradient(ellipse at 10% 10%,rgba(209,106,255,.16),transparent 40%),linear-gradient(120deg,#1c1230,#110c1e)}
+.giveaway-banner h3{font-size:20px;margin-top:10px}
+.giveaway-banner p{font-size:10px;line-height:2;color:#b1a5c3;margin-top:7px}
+.giveaway-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,.8fr);gap:15px}
+.giveaway-list{display:flex;flex-direction:column;gap:11px}
+.giveaway-item{display:flex;gap:13px;padding:13px;border-radius:14px;background:rgba(255,255,255,.02);border:1px solid var(--border)}
+.giveaway-item-icon{width:43px;height:43px;flex-shrink:0;display:grid;place-items:center;border-radius:13px;color:var(--gold);background:rgba(241,203,120,.08);font-size:17px}
+.giveaway-item h4{font-size:11px}
+.giveaway-item p{font-size:9px;line-height:1.8;color:var(--muted);margin-top:4px;overflow-wrap:anywhere}
+.giveaway-item .card-actions{justify-content:flex-start}
+
+/* TABLE / EMPTY */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:500px}
+th{color:#9287a6;font-size:10px;text-align:right;font-weight:700;padding:12px 10px;border-bottom:1px solid var(--border)}
+td{padding:13px 10px;border-bottom:1px solid rgba(181,130,255,.08);font-size:10px;color:#d8d0e5}
+tbody tr:last-child td{border-bottom:none}
+.empty-state{text-align:center;padding:37px 16px}
+.empty-icon{width:55px;height:55px;margin:0 auto 13px;display:grid;place-items:center;border-radius:17px;color:#bd94ff;background:rgba(155,92,255,.1);border:1px solid rgba(155,92,255,.15);font-size:19px}
+.empty-state h3{font-size:12px}
+.empty-state p{max-width:420px;margin:7px auto 0;color:var(--muted);font-size:10px;line-height:2}
+.setting-note{padding:12px;margin-top:13px;border-radius:11px;background:rgba(242,206,139,.05);border:1px solid rgba(242,206,139,.13);color:#dfc58f;font-size:10px;line-height:2}
+.footer{display:flex;justify-content:space-between;gap:10px;margin-top:28px;padding-top:17px;border-top:1px solid var(--border);color:#6f667d;font-size:9px}
+.footer span:last-child{direction:ltr;font-family:'Orbitron',sans-serif}
+.toast{position:fixed;bottom:20px;left:20px;max-width:calc(100vw - 40px);padding:12px 16px;border:1px solid rgba(155,92,255,.3);border-radius:12px;background:#191128;color:white;font-size:11px;box-shadow:0 15px 40px #0005;opacity:0;transform:translateY(10px);pointer-events:none;transition:.25s;z-index:100}
+.toast.show{opacity:1;transform:translateY(0)}
+.mobile-menu{display:none}
+
+@media(max-width:1150px){
+  .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .card-grid,.work-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .awards-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .main{padding:22px 19px}
+}
+@media(max-width:850px){
+  .app{grid-template-columns:1fr}
+  .sidebar{position:fixed;right:0;top:0;width:270px;max-width:85vw;transform:translateX(105%);transition:transform .25s;box-shadow:-20px 0 60px #0007}
+  .sidebar.open{transform:translateX(0)}
+  .mobile-menu{display:grid}
+  .mobile-brand{display:flex}
+  .topbar-title{display:none}
+  .content-grid,.giveaway-grid{grid-template-columns:1fr}
+}
+@media(max-width:540px){
+  .main{padding:14px 12px 24px}
+  .topbar{gap:7px;margin-bottom:20px}
+  .mobile-brand{font-size:10px}
+  .mobile-brand img{width:28px;height:28px}
+  .top-actions{gap:5px}
+  .icon-button{width:35px;height:35px}
+  .profile{padding:3px}
+  .profile-info{display:none}
+  .profile .avatar{width:28px;height:28px}
+  .hero{padding:21px 16px;border-radius:17px}
+  .hero h2{font-size:23px}
+  .hero:after{font-size:125px;top:0}
+  .stats-grid{gap:8px}
+  .stat-card{padding:12px;border-radius:14px}
+  .stat-icon{width:31px;height:31px}
+  .stat-value{font-size:20px;margin-top:12px}
+  .stat-label{font-size:9px}
+  .card-grid,.work-grid,.awards-grid{grid-template-columns:1fr}
+  .form-grid{grid-template-columns:1fr}
+  .form-group.full{grid-column:auto}
+  .panel{padding:14px}
+  .footer{flex-direction:column}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+</style>
+</head>
+
+<body style="visibility:hidden">
+<div id="authLoading" style="position:fixed;inset:0;z-index:9999;background:#090711;color:#d3b4ff;display:grid;place-items:center;font:700 17px Cairo,sans-serif;visibility:visible">جاري التحقق من صلاحية الإدارة...</div>
+<div class="ambient a"></div>
+<div class="ambient b"></div>
+
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="logo-wrap">
+        <img src="logo.png" alt="LZ EDITORS" onerror="this.style.display='none';this.parentElement.innerHTML='<span style=&quot;font-family:Orbitron;color:#c59cff;font-weight:900&quot;>LZ</span>'">
+      </div>
+      <div>
+        <div class="brand-name">LZ EDITORS</div>
+        <div class="brand-sub">CREATIVE COMMUNITY</div>
+      </div>
+    </div>
+
+    <div class="nav-label">CREATIVE HUB</div>
+    <nav class="nav">
+      <button class="active" data-page="overview"><i class="fa-solid fa-border-all"></i> الرئيسية</button>
+      <button data-page="designers"><i class="fa-solid fa-users"></i> المصممون</button>
+      <button data-page="works"><i class="fa-solid fa-images"></i> أعمال المصممين</button>
+      <button data-page="awards"><i class="fa-solid fa-trophy"></i> الجوائز والشارات</button>
+      <button data-page="giveaway"><i class="fa-solid fa-gift"></i> Giveaway</button>
+      <button data-page="winners"><i class="fa-solid fa-medal"></i> أرشيف الفائزين</button>
+    </nav>
+
+    <div class="nav-label">ADMINISTRATION</div>
+    <nav class="nav">
+      <button data-page="manage"><i class="fa-solid fa-sliders"></i> إدارة المحتوى</button>
+      <button data-page="settings"><i class="fa-solid fa-gear"></i> الإعدادات</button>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="community-card">
+        <div class="community-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+        <strong>LZ Creative Space</strong>
+        <p>مجتمع للمصممين والمبدعين، لعرض الأعمال والاحتفاء بالمواهب.</p>
+      </div>
+      <div class="connection"><span class="connection-dot"></span><span>واجهة محلية — غير مربوطة بالخادم</span></div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <button class="icon-button mobile-menu" id="menuBtn" aria-label="فتح القائمة"><i class="fa-solid fa-bars"></i></button>
+      <div class="mobile-brand"><img src="logo.png" alt="LZ"><span>LZ EDITORS</span></div>
+      <div class="topbar-title">
+        <h1 class="page-title" id="topTitle">الرئيسية</h1>
+        <p class="page-subtitle">مركز المبدعين في LZ EDITORS</p>
+      </div>
+      <div class="top-actions">
+        <button class="icon-button" id="helpBtn" title="معلومات"><i class="fa-regular fa-circle-question"></i></button>
+        <div class="profile"><div class="avatar">LZ</div><div class="profile-info"><div class="profile-name">مدير المنصة</div><div class="profile-role">DEMO MODE</div></div></div>
+      </div>
+    </header>
+
+    <!-- HOME -->
+    <section class="page active" id="page-overview">
+      <div class="hero">
+        <div class="hero-content">
+          <div class="eyebrow"><span></span> THE CREATOR EXPERIENCE</div>
+          <h2>الإبداع له مكان في <b>LZ EDITORS</b></h2>
+          <p>اكتشف المصممين، شاهد أعمالهم، تابع أفضل فيديوهات الأسبوع والشهر، واحتفل بالمبدعين من خلال الجوائز والشارات والمسابقات.</p>
+          <div class="hero-actions">
+            <button class="btn btn-primary" data-goto="designers"><i class="fa-solid fa-users"></i> اكتشف المصممين</button>
+            <button class="btn btn-secondary" data-goto="awards"><i class="fa-solid fa-trophy"></i> اكتشف الجوائز</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-heading">
+        <div><h3>مركز المجتمع</h3><p>الأقسام الرئيسية للمنصة</p></div>
+        <span class="badge badge-purple">LZ CREATIVE</span>
+      </div>
+      <div class="stats-grid">
+        <article class="stat-card"><div class="stat-top"><div class="stat-icon"><i class="fa-solid fa-users"></i></div><span class="badge badge-muted">جاهز للربط</span></div><div class="stat-value" id="statDesigners">0</div><div class="stat-label">المصممون المضافون محلياً</div></article>
+        <article class="stat-card"><div class="stat-top"><div class="stat-icon"><i class="fa-solid fa-images"></i></div><span class="badge badge-muted">جاهز للربط</span></div><div class="stat-value" id="statWorks">0</div><div class="stat-label">الأعمال المضافة محلياً</div></article>
+        <article class="stat-card"><div class="stat-top"><div class="stat-icon"><i class="fa-solid fa-trophy"></i></div><span class="badge badge-muted">جوائز</span></div><div class="stat-value" id="statAwards">0</div><div class="stat-label">الفائزون المسجلون محلياً</div></article>
+        <article class="stat-card"><div class="stat-top"><div class="stat-icon"><i class="fa-solid fa-gift"></i></div><span class="badge badge-muted">مسابقات</span></div><div class="stat-value" id="statGiveaways">0</div><div class="stat-label">المسابقات المضافة محلياً</div></article>
+      </div>
+
+      <div class="content-grid">
+        <div>
+          <div class="section-heading"><div><h3>الجوائز الرئيسية</h3><p>تكريم المبدعين أسبوعياً وشهرياً</p></div><button class="btn btn-secondary btn-small" data-goto="awards">عرض الكل <i class="fa-solid fa-arrow-left"></i></button></div>
+          <div class="awards-grid" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+            <article class="award-card gold"><div class="award-symbol"><i class="fa-solid fa-crown"></i></div><h3>أفضل مصمم في الشهر</h3><p>تكريم مصمم متميز وإبراز ملفه وأعماله.</p><div class="winner-name">لم يتم اختيار الفائز بعد</div><div class="award-period">DESIGNER OF THE MONTH</div></article>
+            <article class="award-card"><div class="award-symbol"><i class="fa-solid fa-play"></i></div><h3>أفضل فيديو في الأسبوع</h3><p>عرض الفيديو المختار مع اسم صاحبه ورابط المشاهدة.</p><div class="winner-name">لم يتم اختيار الفائز بعد</div><div class="award-period">VIDEO OF THE WEEK</div></article>
+          </div>
+        </div>
+        <div>
+          <div class="section-heading"><div><h3>اختصارات</h3><p>إدارة مساحة المبدعين</p></div></div>
+          <div class="panel">
+            <div class="quick-list">
+              <button class="quick-action" data-goto="giveaway"><i class="fa-solid fa-gift"></i><span><strong>إضافة Giveaway</strong><small>الجائزة والموعد ورابط المشاركة</small></span><i class="fa-solid fa-chevron-left arrow"></i></button>
+              <button class="quick-action" data-goto="manage"><i class="fa-solid fa-wand-magic-sparkles"></i><span><strong>إدارة المحتوى</strong><small>إدارة الجوائز والمسابقات</small></span><i class="fa-solid fa-chevron-left arrow"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="section-heading"><div><h3><i class="fa-solid fa-comments" style="color:#bd94ff;margin-left:7px"></i> روابط محادثة المجتمع</h3><p>الروابط التي يشاركها الأعضاء في الشات، مع اسم وصورة حساب Discord.</p></div><button class="btn btn-secondary btn-small" id="refreshChatLinks" type="button"><i class="fa-solid fa-rotate"></i> تحديث</button></div>
+      <div class="panel" style="margin-bottom:18px">
+        <div id="chatLinksStatus" style="font-size:10px;color:var(--muted);margin-bottom:9px" role="status">جاري جلب الروابط من المحادثة...</div>
+        <div id="chatLinksList" class="quick-list"></div>
+      </div>
+      <div class="setting-note"><i class="fa-solid fa-circle-info"></i> هذه النسخة تحفظ البيانات محلياً في المتصفح فقط على نفس الجهاز. ليست قاعدة بيانات مشتركة ولا تسجيل دخول آمن؛ سنربطها بالخادم في المرحلة التالية.</div>
+    </section>
+
+    <!-- DESIGNERS -->
+    <section class="page" id="page-designers">
+      <div class="section-heading"><div><h3>المصممون</h3><p>ملفات المصممين وحساباتهم وروابط قنواتهم.</p></div></div>
+      <div class="toolbar">
+        <div class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input class="field" id="designerSearch" placeholder="ابحث بالاسم أو التخصص..." autocomplete="off"></div>
+        <select class="field" id="designerFilter" style="max-width:180px"><option value="all">كل التخصصات</option><option value="تصميم">تصميم</option><option value="مونتاج">مونتاج</option><option value="3D">3D</option><option value="أخرى">أخرى</option></select>
+      </div>
+      <div class="card-grid" id="designerGrid"></div>
+      <div class="setting-note">الصلاحيات هنا للتجربة المحلية فقط؛ لا تمنح وصولاً فعلياً للإدارة حتى يتم ربط تسجيل الدخول والتحقق من المدير في Supabase.</div>
+      <div class="panel empty-state" id="designerEmpty"><div class="empty-icon"><i class="fa-solid fa-users"></i></div><h3>ما زال ما ضفنا حتى مصمم</h3><p>ستظهر هنا حسابات المصممين الموجودة في البيانات الحالية.</p></div>
+    </section>
+
+    <!-- WORKS -->
+    <section class="page" id="page-works">
+      <div class="section-heading"><div><h3>أعمال المصممين</h3><p>معرض لأعمال التصميم والمونتاج وروابط المشاهدة.</p></div></div>
+      <div class="toolbar"><div class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input class="field" id="workSearch" placeholder="ابحث عن تصميم..." autocomplete="off"></div><select class="field" id="workFilter" style="max-width:180px"><option value="all">كل الأعمال</option><option value="تصميم">تصميم</option><option value="فيديو">فيديو</option><option value="3D">3D</option><option value="أخرى">أخرى</option></select></div>
+      <div class="work-grid" id="workGrid"></div>
+      <div class="panel empty-state" id="workEmpty"><div class="empty-icon"><i class="fa-solid fa-images"></i></div><h3>معرض الأعمال فارغ</h3><p>ستظهر هنا الأعمال الموجودة في البيانات الحالية.</p></div>
+    </section>
+
+    <!-- AWARDS -->
+    <section class="page" id="page-awards">
+      <div class="section-heading"><div><h3>الجوائز والشارات</h3><p>تكريم المصممين وأفضل الفيديوهات.</p></div><button class="btn btn-primary" data-goto="manage"><i class="fa-solid fa-trophy"></i> تعيين فائز</button></div>
+      <div class="awards-grid">
+        <article class="award-card gold"><div class="award-symbol"><i class="fa-solid fa-crown"></i></div><h3>أفضل مصمم في الشهر</h3><p>صاحب أفضل إبداع ومساهمة خلال الشهر.</p><div class="winner-name" id="winnerDesignerMonth">لم يتم اختيار الفائز بعد</div><div class="award-period">DESIGNER OF THE MONTH</div><div id="winnerDesignerMonthLink"></div></article>
+        <article class="award-card"><div class="award-symbol"><i class="fa-solid fa-play"></i></div><h3>أفضل فيديو في الأسبوع</h3><p>فيديو مميز يتم اختياره كل أسبوع.</p><div class="winner-name" id="winnerVideoWeek">لم يتم اختيار الفائز بعد</div><div class="award-period">VIDEO OF THE WEEK</div><div id="winnerVideoWeekLink"></div></article>
+        <article class="award-card gold"><div class="award-symbol"><i class="fa-solid fa-star"></i></div><h3>أفضل فيديو في الشهر</h3><p>تكريم أفضل فيديو خلال الشهر.</p><div class="winner-name" id="winnerVideoMonth">لم يتم اختيار الفائز بعد</div><div class="award-period">VIDEO OF THE MONTH</div><div id="winnerVideoMonthLink"></div></article>
+      </div>
+      <div class="section-heading"><div><h3>معاني الشارات</h3><p>تظهر بجانب اسم المصمم بعد منحها له.</p></div></div>
+      <div class="panel">
+        <div class="table-wrap"><table><thead><tr><th>الشارة</th><th>الاسم</th><th>المعنى</th></tr></thead><tbody>
+          <tr><td>🏆</td><td>مصمم الشهر</td><td>الفائز بجائزة أفضل مصمم شهرياً</td></tr>
+          <tr><td>🎬</td><td>فيديو الأسبوع</td><td>صاحب الفيديو الفائز للأسبوع</td></tr>
+          <tr><td>🌟</td><td>فيديو الشهر</td><td>صاحب الفيديو الفائز للشهر</td></tr>
+          <tr><td>💎</td><td>عضو مميز</td><td>شارة تقديرية يحددها فريق الإدارة</td></tr>
+        </tbody></table></div>
+      </div>
+      <div class="setting-note"><i class="fa-solid fa-circle-info"></i> اختيار الفائزين في هذه النسخة يدوي من الإدارة. لا يوجد تصويت أو ترتيب تلقائي حالياً.</div>
+    </section>
+
+    <!-- GIVEAWAY -->
+    <section class="page" id="page-giveaway">
+      <div class="giveaway-banner">
+        <span class="badge badge-gold"><i class="fa-solid fa-gift"></i> LZ GIVEAWAY</span>
+        <h3>المسابقات والهدايا</h3>
+        <p>اكتشف المسابقات الحالية، الجوائز، موعد النهاية وصورة المسابقة وتفاصيلها.</p>
+        <div class="hero-actions"><button class="btn btn-primary" data-goto="manage"><i class="fa-solid fa-plus"></i> إضافة مسابقة</button></div>
+      </div>
+      <div class="section-heading"><div><h3>المسابقات</h3><p>المسابقات التي أُضيفت من لوحة الإدارة المحلية.</p></div></div>
+      <div class="giveaway-list" id="giveawayList"></div>
+      <div class="panel empty-state" id="giveawayEmpty"><div class="empty-icon"><i class="fa-solid fa-gift"></i></div><h3>ما كاين حتى Giveaway حالياً</h3><p>أضف مسابقة فيها اسم الجائزة، وصفها، تاريخ النهاية وصورتها.</p><button class="btn btn-primary" style="margin-top:14px" data-goto="manage"><i class="fa-solid fa-plus"></i> إنشاء Giveaway</button></div>
+    </section>
+
+    <!-- WINNERS ARCHIVE -->
+    <section class="page" id="page-winners">
+      <div class="section-heading"><div><h3>أرشيف الفائزين</h3><p>سجل الجوائز التي تعيّنها من لوحة الإدارة.</p></div><span class="badge badge-gold"><i class="fa-solid fa-medal"></i> HALL OF FAME</span></div>
+      <div class="panel">
+        <div class="table-wrap"><table><thead><tr><th>الجائزة</th><th>الفائز</th><th>الفترة</th><th>رابط العمل</th></tr></thead><tbody id="winnerHistory"></tbody></table></div>
+        <div class="empty-state" id="winnerEmpty"><div class="empty-icon"><i class="fa-solid fa-medal"></i></div><h3>الأرشيف ما زال فارغاً</h3><p>كلما عيّنت فائزاً جديداً، سيُسجّل هنا في هذا المتصفح.</p></div>
+      </div>
+    </section>
+
+    <!-- CONTENT MANAGEMENT -->
+    <section class="page" id="page-manage">
+      <div class="section-heading"><div><h3>إدارة المحتوى</h3><p>إدارة الجوائز والمسابقات.</p></div><span class="badge badge-yellow"><i class="fa-solid fa-flask"></i> LOCAL DEMO</span></div>
+
+      <div class="panel" style="margin-top:15px">
+        <div class="panel-head"><h3><i class="fa-solid fa-trophy" style="color:var(--gold);margin-left:7px"></i> تعيين فائز بجائزة</h3><span>AWARD WINNER</span></div>
+        <form id="awardForm">
+          <div class="form-grid">
+            <div class="form-group"><label for="aType">نوع الجائزة *</label><select class="field" id="aType" required><option value="designerMonth">أفضل مصمم في الشهر</option><option value="videoWeek">أفضل فيديو في الأسبوع</option><option value="videoMonth">أفضل فيديو في الشهر</option></select></div>
+            <div class="form-group"><label for="aDesigner">المصمم الفائز *</label><select class="field" id="aDesigner" required><option value="">أضف مصمماً أولاً</option></select></div>
+            <div class="form-group"><label for="aPeriod">الفترة</label><input class="field" id="aPeriod" maxlength="60" placeholder="مثال: أكتوبر 2026"></div>
+            <div class="form-group"><label for="aWork">رابط العمل الفائز (اختياري)</label><select class="field" id="aWork"><option value="">بدون رابط عمل</option></select></div>
+          </div>
+          <div class="form-actions"><button class="btn btn-primary" type="submit"><i class="fa-solid fa-medal"></i> تعيين الفائز</button></div>
+        </form>
+      </div>
+
+      <div class="panel" style="margin-top:15px">
+        <div class="panel-head"><h3><i class="fa-solid fa-gift" style="color:var(--gold);margin-left:7px"></i> إنشاء Giveaway</h3><span>COMMUNITY GIVEAWAY</span></div>
+        <form id="giveawayForm">
+          <div class="form-grid">
+            <div class="form-group"><label for="gTitle">اسم المسابقة *</label><input class="field" id="gTitle" required maxlength="100" placeholder="LZ Giveaway #1"></div>
+            <div class="form-group"><label for="gPrize">الجائزة *</label><input class="field" id="gPrize" required maxlength="100" placeholder="مثال: تصميم شعار مجاني"></div>
+            <div class="form-group"><label for="gEnd">تاريخ النهاية</label><input class="field" id="gEnd" type="date"></div>
+            <div class="form-group"><label for="gImage">صورة المسابقة من الجهاز</label><input class="field" id="gImage" type="file" accept="image/png,image/jpeg,image/webp,image/gif"><small style="color:var(--muted)">اختار صورة من الهاتف أو الكمبيوتر (حتى 8MB، تتضغط قبل الحفظ).</small></div>
+            <div class="form-group full"><label for="gDescription">الشروط والوصف</label><textarea class="field" id="gDescription" maxlength="500" placeholder="شروط المشاركة وكيفية الفوز..."></textarea></div>
+          </div>
+          <div class="form-actions"><button class="btn btn-primary" type="submit"><i class="fa-solid fa-gift"></i> إضافة المسابقة</button><button class="btn btn-secondary" type="reset">مسح الحقول</button></div>
+        </form>
+      </div>
+
+      <div class="setting-note"><i class="fa-solid fa-triangle-exclamation"></i> البيانات تُحفظ في LocalStorage داخل المتصفح فقط. إذا مسحت بيانات المتصفح أو فتحت الموقع على جهاز آخر، قد لا تظهر البيانات. هذه ليست قاعدة بيانات مشتركة، وليست نظام صلاحيات آمناً.</div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="page" id="page-settings">
+      <div class="section-heading"><div><h3>إعدادات الواجهة</h3><p>معلومات النسخة الحالية.</p></div></div>
+      <div class="panel">
+        <div class="panel-head"><h3>حالة النظام</h3><span>BUILD 1.0</span></div>
+        <div class="table-wrap"><table><tbody>
+          <tr><td>اسم المنصة</td><td>LZ EDITORS</td></tr>
+          <tr><td>الواجهة</td><td><span class="badge badge-green">جاهزة للعرض</span></td></tr>
+          <tr><td>تخزين البيانات</td><td><span class="badge badge-yellow">محلي في المتصفح</span></td></tr>
+          <tr><td>قاعدة بيانات مشتركة</td><td><span class="badge badge-muted">غير مربوطة</span></td></tr>
+          <tr><td>تسجيل الدخول عبر Discord</td><td><span class="badge badge-muted">غير مفعّل</span></td></tr>
+          <tr><td>إدارة صلاحيات آمنة</td><td><span class="badge badge-muted">تحتاج Backend</span></td></tr>
+        </tbody></table></div>
+        <div class="setting-note">لا تضع مفاتيح سرية أو رموز Discord داخل HTML. الربط الآمن يكون من خلال الخادم.</div>
+        <div class="form-actions"><button class="btn btn-danger" id="clearData"><i class="fa-solid fa-trash"></i> حذف بيانات التجربة من هذا المتصفح</button></div>
+      </div>
+    </section>
+
+    <footer class="footer"><span>© LZ EDITORS — Creative Community</span><span>CREATIVE HUB 1.0</span></footer>
+  </main>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<dialog id="permissionsDialog" aria-labelledby="permissionsTitle" style="margin:auto;max-width:min(430px,92vw);width:100%;padding:22px;background:#171126;color:var(--text);border:1px solid var(--border);border-radius:18px;box-shadow:0 25px 70px #0009">
+  <form id="permissionsForm">
+    <h3 id="permissionsTitle" style="margin-bottom:9px">صلاحيات المصمم</h3>
+    <p id="permissionsName" style="font-size:12px;color:var(--muted);margin-bottom:15px"></p>
+    <label for="permissionsRole" style="display:block;font-size:11px;margin-bottom:7px">اختر الرتبة</label>
+    <select id="permissionsRole" class="field" style="margin-bottom:12px"><option value="member">عضو</option><option value="co_owner">💎 LZ | Co Owner</option><option value="developer">🔧 LZ | Developer dis.</option><option value="head_admin">🛠️ LZ | Head Admin</option><option value="admin">🛡️ LZ | Admin</option><option value="moderator">⭐ LZ | Moderator</option><option value="helper">✧ LZ | Helper</option><option value="top_1">🥇 LZ | TOP 1</option><option value="top_2">🥈 LZ | TOP 2</option></select>
+    <p style="font-size:10px;color:var(--muted);line-height:1.9">الرتب تحفظ في Supabase عبر السيرفر. دخول الداشبورد للمالك ونائبه فقط.</p>
+    <div class="form-actions"><button class="btn btn-primary" type="submit">حفظ الرتبة</button><button class="btn btn-secondary" type="button" id="permissionsCancel">إلغاء</button></div>
+  </form>
+</dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+(() => {
+  'use strict';
+
+  const roleLabels = {member:'عضو', owner:'LZ | Owner', co_owner:'💎 LZ | Co Owner', developer:'🔧 LZ | Developer dis.', head_admin:'🛠️ LZ | Head Admin', admin:'🛡️ LZ | Admin', moderator:'⭐ LZ | Moderator', helper:'✧ LZ | Helper', top_1:'🥇 LZ | TOP 1', top_2:'🥈 LZ | TOP 2', content_manager:'مسؤول محتوى'};
+  let editingRoleId = null;
+  const API = 'https://lz-e.onrender.com';
+  const SB_URL = 'https://gotgssqdkercujjzisdm.supabase.co';
+  const SB_KEY = 'sb_publishable_4NyoLY_J46KA6Lt2T4PNBg_Bzy8bT3r';
+  const sb = window.supabase?.createClient(SB_URL, SB_KEY);
+  let currentRole = null;
+  let remoteDesigners = [];
+  const allowedRoles = ['member','co_owner','developer','head_admin','admin','moderator','helper','top_1','top_2'];
+  async function apiRequest(path, options = {}) {
+    const {data:{session}} = await sb.auth.getSession();
+    if (!session?.access_token) throw new Error('انتهت الجلسة، سجّل الدخول مجددًا');
+    const response = await fetch(API + path, {
+      ...options,
+      headers: {'Authorization':'Bearer '+session.access_token,
+        ...(options.body ? {'Content-Type':'application/json'} : {}), ...(options.headers || {})}
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.error || `HTTP ${response.status}`);
+    return body;
+  }
+  async function loadRemoteDesigners() {
+    const response = await fetch(API + '/api/designers');
+    if (!response.ok) throw new Error('تعذر جلب المصممين من السيرفر');
+    const profiles = await response.json();
+    remoteDesigners = profiles.map(p => ({
+      id:p.id, name:p.discord_username || 'Discord member',
+      image:p.discord_avatar_url || '', tiktok:p.tiktok_url || '',
+      role:p.role || 'member', specialty:'تصميم', description:'مصمم ضمن مجتمع LZ EDITORS',
+      remote:true
+    }));
+    data.designers = remoteDesigners;
+    renderAll();
+  }
+  async function initializeDashboard() {
+    try {
+      if (!sb) throw new Error('مكتبة Supabase ما تحملتش');
+      const me = await apiRequest('/api/me');
+      if (!['owner','co_owner'].includes(me.role)) {
+        document.getElementById('authLoading').textContent = 'ممنوع الدخول: الداشبورد للمالك ونائبه فقط';
+        return;
+      }
+      currentRole = me.role;
+      document.body.style.visibility = 'visible';
+      document.getElementById('authLoading').remove();
+      document.querySelector('.profile-name').textContent = me.profile?.discord_username || 'الإدارة';
+      document.querySelector('.profile-role').textContent = me.role.toUpperCase();
+      await loadRemoteDesigners();
+    } catch (error) {
+      console.error('Dashboard authentication:', error);
+      document.getElementById('authLoading').textContent = 'تعذر التحقق من الدخول: ' + error.message;
+      // Keep dashboard hidden until backend verifies the session.
+    }
+  }
+
+  const STORAGE_KEY = 'lz_editors_dashboard_v1';
+  const titles = {
+    overview:'الرئيسية',
+    designers:'المصممون',
+    works:'أعمال المصممين',
+    awards:'الجوائز والشارات',
+    giveaway:'Giveaway',
+    winners:'أرشيف الفائزين',
+    manage:'إدارة المحتوى',
+    settings:'الإعدادات'
+  };
+
+  const $ = id => document.getElementById(id);
+  const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, char => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+  })[char]);
+
+  function safeURL(value) {
+    try {
+      const url = new URL(String(value || ''));
+      return ['http:', 'https:'].includes(url.protocol) ? url.href : '';
+    } catch {
+      return '';
+    }
+  }
+
+  function linkHTML(value, label, icon) {
+    const url = safeURL(value);
+    if (!url) return '';
+    return `<a class="social-link" href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHTML(label)}" title="${escapeHTML(label)}"><i class="${icon}"></i></a>`;
+  }
+
+  function defaultData() {
+    return { designers: [], works: [], awards: [], giveaways: [] };
+  }
+
+  function loadData() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+      if (!parsed || typeof parsed !== 'object') return defaultData();
+      return {
+        designers: Array.isArray(parsed.designers) ? parsed.designers : [],
+        works: Array.isArray(parsed.works) ? parsed.works : [],
+        awards: Array.isArray(parsed.awards) ? parsed.awards : [],
+        giveaways: Array.isArray(parsed.giveaways) ? parsed.giveaways : []
+      };
+    } catch {
+      return defaultData();
+    }
+  }
+
+  let data = loadData();
+  const awardInfo = {
+    designerMonth: { label:'أفضل مصمم في الشهر', badge:'🏆 مصمم الشهر', id:'winnerDesignerMonth', linkId:'winnerDesignerMonthLink' },
+    videoWeek: { label:'أفضل فيديو في الأسبوع', badge:'🎬 فيديو الأسبوع', id:'winnerVideoWeek', linkId:'winnerVideoWeekLink' },
+    videoMonth: { label:'أفضل فيديو في الشهر', badge:'🌟 فيديو الشهر', id:'winnerVideoMonth', linkId:'winnerVideoMonthLink' }
+  };
+
+  let toastTimer;
+  function toast(message) {
+    $('toast').textContent = message;
+    $('toast').classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => $('toast').classList.remove('show'), 2800);
+  }
+
+  function saveData() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      renderAll();
+      return true;
+    } catch (error) {
+      toast('تعذر الحفظ. قد تكون مساحة تخزين المتصفح ممتلئة.');
+      return false;
+    }
+  }
+
+  function openPage(name) {
+    if (!titles[name]) return;
+    document.querySelectorAll('.page').forEach(page => {
+      page.classList.toggle('active', page.id === 'page-' + name);
+    });
+    document.querySelectorAll('.nav [data-page]').forEach(button => {
+      button.classList.toggle('active', button.dataset.page === name);
+    });
+    $('topTitle').textContent = titles[name];
+    $('sidebar').classList.remove('open');
+    window.scrollTo({ top:0, behavior:'smooth' });
+  }
+
+  document.querySelectorAll('.nav [data-page]').forEach(button => {
+    button.addEventListener('click', () => openPage(button.dataset.page));
+  });
+
+  document.querySelectorAll('[data-goto]').forEach(button => {
+    button.addEventListener('click', () => openPage(button.dataset.goto));
+  });
+
+  $('menuBtn').addEventListener('click', () => $('sidebar').classList.toggle('open'));
+  $('helpBtn').addEventListener('click', () => toast('النسخة الحالية تحفظ البيانات في هذا المتصفح فقط، ولا تتصل بخادم أو Discord.'));
+
+  document.addEventListener('click', event => {
+    if (window.innerWidth <= 850 &&
+        $('sidebar').classList.contains('open') &&
+        !$('sidebar').contains(event.target) &&
+        !event.target.closest('#menuBtn')) {
+      $('sidebar').classList.remove('open');
+    }
+  });
+
+  function renderStats() {
+    $('statDesigners').textContent = data.designers.length;
+    $('statWorks').textContent = data.works.length;
+    $('statAwards').textContent = data.awards.length;
+    $('statGiveaways').textContent = data.giveaways.length;
+  }
+
+  function renderDesignerOptions() {
+    const options = data.designers.map(d =>
+      `<option value="${escapeHTML(d.id)}">${escapeHTML(d.name)}</option>`
+    ).join('');
+
+    $('aDesigner').innerHTML = '<option value="">اختر الفائز</option>' + options;
+
+    $('aWork').innerHTML = '<option value="">بدون رابط عمل</option>' +
+      data.works.map(w =>
+        `<option value="${escapeHTML(w.id)}">${escapeHTML(w.title)}</option>`
+      ).join('');
+  }
+
+  function renderDesigners() {
+    const query = $('designerSearch').value.trim().toLowerCase();
+    const filter = $('designerFilter').value;
+
+    const filtered = data.designers.filter(d => {
+      const text = `${d.name} ${d.specialty} ${d.description}`.toLowerCase();
+      return text.includes(query) && (filter === 'all' || d.specialty === filter);
+    });
+
+    $('designerGrid').innerHTML = filtered.map(d => {
+      const image = safeURL(d.image);
+      const avatar = image
+        ? `<img class="designer-avatar" src="${escapeHTML(image)}" alt="${escapeHTML(d.name)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'"><div class="designer-fallback" style="display:none">${escapeHTML(d.name.slice(0,2))}</div>`
+        : `<div class="designer-fallback">${escapeHTML(d.name.slice(0,2))}</div>`;
+
+      return `<article class="designer-card">
+        ${avatar}
+        <h3>${escapeHTML(d.name)}</h3>
+        <div class="designer-specialty">${escapeHTML(d.specialty)}</div>
+        <div class="designer-badges">${d.badge ? `<span class="badge badge-gold">${escapeHTML(d.badge)}</span>` : '<span class="badge badge-muted">مصمم LZ</span>'} <span class="badge badge-purple">${escapeHTML(roleLabels[d.role] || 'عضو')}</span></div>
+        <div class="social-links">
+          ${linkHTML(d.tiktok, 'TikTok', 'fa-brands fa-tiktok')}
+          ${linkHTML(d.channel, 'القناة', 'fa-brands fa-youtube')}
+        </div>
+        <div class="designer-description">${escapeHTML(d.description || 'مصمم ضمن مجتمع LZ EDITORS.')}</div>
+        <div class="card-actions">
+          <button class="btn btn-secondary btn-small" data-role-designer="${escapeHTML(d.id)}"><i class="fa-solid fa-user-shield"></i> الصلاحيات</button>
+          ${d.remote ? '' : `<button class="btn btn-danger btn-small" data-delete-designer="${escapeHTML(d.id)}"><i class="fa-solid fa-trash"></i> حذف</button>`}
+        </div>
+      </article>`;
+    }).join('');
+
+    $('designerEmpty').style.display = filtered.length ? 'none' : 'block';
+  }
+
+  function renderWorks() {
+    const query = $('workSearch').value.trim().toLowerCase();
+    const filter = $('workFilter').value;
+
+    const filtered = data.works.filter(w =>
+      (`${w.title} ${w.description} ${w.designerName}`.toLowerCase().includes(query)) &&
+      (filter === 'all' || w.type === filter)
+    );
+
+    $('workGrid').innerHTML = filtered.map(w => {
+      const image = safeURL(w.image);
+      const url = safeURL(w.link);
+      const thumbnail = image
+        ? `<img class="work-thumb" src="${escapeHTML(image)}" alt="${escapeHTML(w.title)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.outerHTML='<div class=&quot;work-thumb&quot;><i class=&quot;fa-solid fa-palette&quot;></i></div>'">`
+        : `<div class="work-thumb"><i class="fa-solid ${w.type === 'فيديو' ? 'fa-play' : 'fa-palette'}"></i></div>`;
+
+      return `<article class="work-card">
+        ${thumbnail}
+        <div class="work-body">
+          <h3>${escapeHTML(w.title)}</h3>
+          <p>بواسطة: ${escapeHTML(w.designerName)} · ${escapeHTML(w.type)}</p>
+          <p>${escapeHTML(w.description || 'عمل من أعمال مجتمع LZ EDITORS.')}</p>
+          <div class="work-meta">
+            <span class="badge badge-purple">${escapeHTML(w.type)}</span>
+            ${url ? `<a class="btn btn-secondary btn-small" href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer">مشاهدة <i class="fa-solid fa-arrow-up-left-from-square"></i></a>` : ''}
+          </div>
+          <div class="card-actions"><button class="btn btn-danger btn-small" data-delete-work="${escapeHTML(w.id)}"><i class="fa-solid fa-trash"></i> حذف العمل</button></div>
+        </div>
+      </article>`;
+    }).join('');
+
+    $('workEmpty').style.display = filtered.length ? 'none' : 'block';
+  }
+
+  function latestAward(type) {
+    return [...data.awards].reverse().find(a => a.type === type);
+  }
+
+  function renderAwards() {
+    Object.entries(awardInfo).forEach(([type, info]) => {
+      const award = latestAward(type);
+      $(info.id).textContent = award ? award.designerName : 'لم يتم اختيار الفائز بعد';
+      $(info.linkId).innerHTML = award && safeURL(award.workLink)
+        ? `<a class="btn btn-secondary btn-small" style="margin-top:12px" href="${escapeHTML(safeURL(award.workLink))}" target="_blank" rel="noopener noreferrer">مشاهدة العمل <i class="fa-solid fa-arrow-up-left-from-square"></i></a>`
+        : '';
+    });
+
+    $('winnerHistory').innerHTML = [...data.awards].reverse().map(a => {
+      const info = awardInfo[a.type];
+      const url = safeURL(a.workLink);
+      return `<tr><td>${escapeHTML(info ? info.label : 'جائزة')}</td><td>${escapeHTML(a.designerName)}</td><td>${escapeHTML(a.period || 'غير محددة')}</td><td>${url ? `<a class="btn btn-secondary btn-small" href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer">فتح العمل</a>` : '—'}</td></tr>`;
+    }).join('');
+
+    $('winnerEmpty').style.display = data.awards.length ? 'none' : 'block';
+  }
+
+  function renderGiveaways() {
+    $('giveawayList').innerHTML = [...data.giveaways].reverse().map(g => {
+      const url = safeURL(g.link);
+      const expired = g.end && g.end < new Date().toISOString().slice(0,10);
+      const image = typeof g.image === 'string' && /^data:image\/(jpeg|png|webp);base64,[a-z0-9+/=]+$/i.test(g.image) ? g.image : '';
+      return `<article class="giveaway-item">
+        ${image ? `<img src="${image}" alt="صورة ${escapeHTML(g.title)}" style="width:105px;height:105px;max-width:32%;object-fit:cover;border-radius:13px;flex-shrink:0">` : '<div class="giveaway-item-icon"><i class="fa-solid fa-gift"></i></div>'}
+        <div style="flex:1;min-width:0">
+          <h4>${escapeHTML(g.title)}</h4>
+          <p><strong style="color:#e6d4ff">الجائزة:</strong> ${escapeHTML(g.prize)}</p>
+          <p>${escapeHTML(g.description || 'مسابقة مجتمع LZ EDITORS.')}</p>
+          <p>تاريخ النهاية: ${escapeHTML(g.end || 'غير محدد')}</p>
+          <div class="card-actions">
+            ${url ? `<a class="btn btn-primary btn-small" href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer">فتح الرابط القديم <i class="fa-solid fa-arrow-up-left-from-square"></i></a>` : ''}
+            <span class="badge ${expired ? 'badge-muted' : 'badge-green'}">${expired ? 'انتهت حسب التاريخ' : 'مسابقة مضافة'}</span>
+            <button class="btn btn-danger btn-small" data-delete-giveaway="${escapeHTML(g.id)}">حذف</button>
+          </div>
+        </div>
+      </article>`;
+    }).join('');
+    $('giveawayEmpty').style.display = data.giveaways.length ? 'none' : 'block';
+  }
+
+  function renderAll() {
+    renderStats();
+    renderDesignerOptions();
+    renderDesigners();
+    renderWorks();
+    renderAwards();
+    renderGiveaways();
+  }
+
+  function makeId() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+  }
+
+  function validOptionalURL(id) {
+    const raw = $(id).value.trim();
+    if (!raw) return '';
+    const url = safeURL(raw);
+    if (!url) throw new Error('أحد الروابط غير صحيح. استعمل رابطاً يبدأ بـ https://');
+    return url;
+  }
+
+  $('awardForm').addEventListener('submit', event => {
+    event.preventDefault();
+    const designer = data.designers.find(d => d.id === $('aDesigner').value);
+    if (!designer) return toast('أضف مصمماً واختره أولاً.');
+
+    const type = $('aType').value;
+    const info = awardInfo[type];
+    if (!info) return toast('نوع الجائزة غير معروف.');
+
+    const selectedWork = data.works.find(w => w.id === $('aWork').value);
+    const workLink = selectedWork ? selectedWork.link : '';
+
+    data.awards.push({
+      id: makeId(),
+      type,
+      designerId: designer.id,
+      designerName: designer.name,
+      period: $('aPeriod').value.trim() || 'فترة غير محددة',
+      workLink,
+      createdAt: new Date().toISOString()
+    });
+
+    if (saveData()) {
+      event.target.reset();
+      toast('تم تسجيل الفائز في أرشيف هذا المتصفح.');
+      openPage('awards');
+    }
+  });
+
+  async function optimizeImage(file) {
+    if (!file) return '';
+    if (!['image/jpeg','image/png','image/webp','image/gif'].includes(file.type) || file.size > 8 * 1024 * 1024) throw new Error('اختار صورة JPG أو PNG أو WebP أو GIF أقل من 8MB.');
+    const objectURL = URL.createObjectURL(file);
+    try {
+      const img = new Image();
+      img.src = objectURL;
+      await img.decode();
+      const scale = Math.min(1, 900 / Math.max(img.naturalWidth, img.naturalHeight));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
+      canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      const result = canvas.toDataURL('image/jpeg', .75);
+      if (result.length > 850000) throw new Error('الصورة كبيرة على التخزين المحلي، اختار صورة أصغر.');
+      return result;
+    } finally { URL.revokeObjectURL(objectURL); }
+  }
+
+  $('giveawayForm').addEventListener('submit', async event => {
+    event.preventDefault();
+    const button = event.target.querySelector('[type="submit"]');
+    button.disabled = true;
+    try {
+      const image = await optimizeImage($('gImage').files[0]);
+      const giveaway = {
+        id: makeId(), title: $('gTitle').value.trim(), prize: $('gPrize').value.trim(),
+        end: $('gEnd').value, image, description: $('gDescription').value.trim(),
+        createdAt: new Date().toISOString()
+      };
+      data.giveaways.push(giveaway);
+      if (saveData()) {
+        event.target.reset();
+        toast('تمت إضافة المسابقة وصورتها محلياً.');
+        openPage('giveaway');
+      } else data.giveaways.pop();
+    } catch (error) { toast(error.message || 'تعذرت إضافة المسابقة.'); }
+    finally { button.disabled = false; }
+  });
+
+  $('permissionsCancel').addEventListener('click', () => $('permissionsDialog').close());
+  $('permissionsForm').addEventListener('submit', async event => {
+    event.preventDefault();
+    const designer = remoteDesigners.find(d => d.id === editingRoleId);
+    const role = $('permissionsRole').value;
+    if (!designer || !allowedRoles.includes(role)) return toast('رتبة غير مسموحة');
+    if (designer.role === 'owner') return toast('لا يمكن تعديل رتبة المالك');
+    if (role === 'co_owner' && currentRole !== 'owner') return toast('المالك فقط يمنح رتبة نائب المالك');
+    const submit = event.target.querySelector('[type="submit"]');
+    submit.disabled = true;
+    try {
+      await apiRequest('/api/roles/' + encodeURIComponent(designer.id), {
+        method:'PUT', body:JSON.stringify({role})
+      });
+      $('permissionsDialog').close();
+      await loadRemoteDesigners();
+      toast('تم حفظ الرتبة في Supabase بنجاح');
+    } catch (error) { toast('فشل تغيير الرتبة: ' + error.message); }
+    finally { submit.disabled = false; }
+  });
+
+  document.addEventListener('click', event => {
+    const roleDesigner = event.target.closest('[data-role-designer]');
+    if (roleDesigner) {
+      const designer = remoteDesigners.find(d => d.id === roleDesigner.dataset.roleDesigner);
+      if (designer) {
+        if (designer.role === 'owner') return toast('رتبة المالك ثابتة');
+        editingRoleId = designer.id;
+        $('permissionsName').textContent = designer.name;
+        $('permissionsRole').value = roleLabels[designer.role] ? designer.role : 'member';
+        $('permissionsDialog').showModal();
+      }
+      return;
+    }
+    const deleteDesigner = event.target.closest('[data-delete-designer]');
+    const deleteWork = event.target.closest('[data-delete-work]');
+    const deleteGiveaway = event.target.closest('[data-delete-giveaway]');
+
+    if (deleteDesigner) {
+      const id = deleteDesigner.dataset.deleteDesigner;
+      const designer = data.designers.find(d => d.id === id);
+      if (!designer || !confirm(`هل تريد حذف المصمم "${designer.name}"؟ سيتم حذف أعماله أيضاً.`)) return;
+      data.designers = data.designers.filter(d => d.id !== id);
+      data.works = data.works.filter(w => w.designerId !== id);
+      data.awards = data.awards.filter(a => a.designerId !== id);
+      if (saveData()) toast('تم الحذف من البيانات المحلية.');
+    }
+
+    if (deleteWork) {
+      const id = deleteWork.dataset.deleteWork;
+      if (!confirm('هل تريد حذف هذا العمل؟')) return;
+      const removed = data.works.find(w => w.id === id);
+      data.works = data.works.filter(w => w.id !== id);
+      if (removed) data.awards.forEach(a => {
+        if (a.workLink === removed.link) a.workLink = '';
+      });
+      if (saveData()) toast('تم حذف العمل.');
+    }
+
+    if (deleteGiveaway) {
+      const id = deleteGiveaway.dataset.deleteGiveaway;
+      if (!confirm('هل تريد حذف هذه المسابقة؟')) return;
+      data.giveaways = data.giveaways.filter(g => g.id !== id);
+      if (saveData()) toast('تم حذف المسابقة.');
+    }
+  });
+
+  $('designerSearch').addEventListener('input', renderDesigners);
+  $('designerFilter').addEventListener('change', renderDesigners);
+  $('workSearch').addEventListener('input', renderWorks);
+  $('workFilter').addEventListener('change', renderWorks);
+
+  $('clearData').addEventListener('click', () => {
+    if (!confirm('تحذير: هذا يمسح كل بيانات LZ EDITORS التجريبية المحفوظة في هذا المتصفح فقط. هل تريد المتابعة؟')) return;
+    data = defaultData();
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+      renderAll();
+      toast('تم مسح بيانات التجربة من هذا المتصفح.');
+    } catch {
+      toast('تعذر مسح البيانات من المتصفح.');
+    }
+  });
+
+  // Read-only public chat feed: shared links appear on the dashboard.
+  const CHAT_API = 'https://gotgssqdkercujjzisdm.supabase.co/rest/v1/community_messages';
+  const CHAT_PUBLIC_KEY = 'sb_publishable_4NyoLY_J46KA6Lt2T4PNBg_Bzy8bT3r';
+  let chatLinksBusy = false;
+  async function loadDashboardChatLinks() {
+    if (chatLinksBusy) return;
+    chatLinksBusy = true;
+    $('refreshChatLinks').disabled = true;
+    $('chatLinksStatus').textContent = 'جاري تحديث روابط المحادثة...';
+    try {
+      const response = await fetch(CHAT_API + '?select=id,author_name,author_avatar,text,created_at&order=created_at.desc&limit=100', {
+        headers: { apikey: CHAT_PUBLIC_KEY, Accept: 'application/json' },
+        cache: 'no-store'
+      });
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      const messages = await response.json();
+      if (!Array.isArray(messages)) throw new Error('Invalid response');
+      const links = messages.flatMap(message => {
+        const matches = String(message.text || '').match(/https?:\/\/[^\s<>"']+/gi) || [];
+        return matches.map(raw => ({ message, url: safeURL(raw.replace(/[),،.؛!?]+$/g, '')) }))
+          .filter(entry => entry.url);
+      });
+      $('chatLinksStatus').textContent = links.length ? `${links.length} رابط من آخر ${messages.length} رسالة` : 'ما كاين حتى رابط في آخر رسائل المحادثة.';
+      $('chatLinksList').innerHTML = links.map(({message, url}) => {
+        const name = String(message.author_name || 'عضو LZ');
+        const avatar = safeURL(message.author_avatar);
+        const when = message.created_at && !Number.isNaN(Date.parse(message.created_at))
+          ? new Date(message.created_at).toLocaleString('ar-DZ') : '';
+        return `<article class="quick-action" style="cursor:default;align-items:flex-start;overflow:hidden">
+          ${avatar ? `<img src="${escapeHTML(avatar)}" alt="" loading="lazy" referrerpolicy="no-referrer" style="width:36px;height:36px;border-radius:11px;object-fit:cover;flex-shrink:0">` : '<i class="fa-brands fa-discord" style="font-size:25px"></i>'}
+          <div style="flex:1;min-width:0"><strong>${escapeHTML(name)}</strong><small>${escapeHTML(when)}</small><a href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer" style="display:block;direction:ltr;text-align:left;color:#cbaaff;overflow-wrap:anywhere;font-size:10px;margin-top:7px">${escapeHTML(url)}</a></div>
+          <a class="btn btn-secondary btn-small" href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer" aria-label="فتح الرابط"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+        </article>`;
+      }).join('');
+    } catch (error) {
+      $('chatLinksStatus').textContent = 'تعذّر جلب الروابط. تأكد من وجود جدول community_messages وسماح RLS بالقراءة العامة.';
+      $('chatLinksList').innerHTML = '';
+      console.warn('Community chat feed:', error);
+    } finally {
+      chatLinksBusy = false;
+      $('refreshChatLinks').disabled = false;
+    }
+  }
+  $('refreshChatLinks').addEventListener('click', loadDashboardChatLinks);
+  document.querySelectorAll('[data-page="overview"]').forEach(btn => btn.addEventListener('click', loadDashboardChatLinks));
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && $('page-overview').classList.contains('active')) loadDashboardChatLinks(); });
+  setInterval(() => { if (!document.hidden && $('page-overview').classList.contains('active')) loadDashboardChatLinks(); }, 30000);
+  loadDashboardChatLinks();
+
+  renderAll();
+  initializeDashboard();
+})();
+</script>
+</body>
+</html>

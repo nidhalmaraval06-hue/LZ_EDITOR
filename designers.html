@@ -1,0 +1,2565 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#090711">
+<meta name="description" content="LZ EDITORS - Creative Community">
+<title>LZ EDITORS | Creative Community</title>
+
+<link rel="icon" href="logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<style>
+:root {
+  --bg:#090711;
+  --panel:#131020;
+  --panel2:#19132a;
+  --purple:#9b5cff;
+  --purple2:#7138e6;
+  --pink:#d16aff;
+  --gold:#f1cb78;
+  --text:#f8f4ff;
+  --muted:#958ba9;
+  --border:rgba(178,129,255,.16);
+  --green:#5de3a0;
+  --red:#ff6988;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+  min-height:100vh;
+  background:
+    radial-gradient(ellipse at 80% 0%,rgba(115,57,218,.17),transparent 38%),
+    radial-gradient(ellipse at 0% 80%,rgba(209,106,255,.07),transparent 35%),
+    var(--bg);
+  color:var(--text);
+  font-family:'Cairo',sans-serif;
+  overflow-x:hidden;
+}
+
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+a{color:inherit;text-decoration:none}
+
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{
+  outline:2px solid var(--pink);
+  outline-offset:3px
+}
+
+.ambient{
+  position:fixed;
+  width:300px;
+  height:300px;
+  border-radius:50%;
+  filter:blur(100px);
+  pointer-events:none;
+  z-index:-1
+}
+
+.ambient.a{background:#7138e6;opacity:.1;top:10%;right:-140px}
+.ambient.b{background:#d16aff;opacity:.07;bottom:-140px;left:10%}
+
+.app{
+  display:grid;
+  grid-template-columns:255px minmax(0,1fr);
+  min-height:100vh
+}
+
+/* SIDEBAR */
+
+.sidebar{
+  position:sticky;
+  top:0;
+  height:100vh;
+  overflow-y:auto;
+  padding:23px 16px;
+  background:rgba(10,8,17,.91);
+  border-left:1px solid var(--border);
+  backdrop-filter:blur(22px);
+  display:flex;
+  flex-direction:column;
+  z-index:50
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  padding:0 7px 24px;
+  border-bottom:1px solid var(--border)
+}
+
+.logo-wrap{
+  width:48px;
+  height:48px;
+  border-radius:15px;
+  flex-shrink:0;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+  background:linear-gradient(140deg,rgba(155,92,255,.24),rgba(209,106,255,.05));
+  border:1px solid rgba(181,131,255,.36);
+  box-shadow:0 0 22px rgba(155,92,255,.12)
+}
+
+.logo-wrap img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  padding:4px;
+  animation:glow 3s ease-in-out infinite alternate
+}
+
+@keyframes glow{
+  to{filter:drop-shadow(0 0 9px #9b5cff)}
+}
+
+.brand-name{
+  font:800 15px 'Orbitron',sans-serif;
+  direction:ltr;
+  letter-spacing:.4px
+}
+
+.brand-sub{
+  font-size:9px;
+  color:var(--muted);
+  direction:ltr;
+  letter-spacing:1.5px;
+  margin-top:5px
+}
+
+.nav-label{
+  font-size:9px;
+  color:#746b84;
+  font-weight:800;
+  letter-spacing:1.5px;
+  padding:23px 12px 9px
+}
+
+.nav{
+  display:flex;
+  flex-direction:column;
+  gap:5px
+}
+
+.nav a{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  width:100%;
+  text-align:right;
+  padding:11px 12px;
+  border-radius:11px;
+  background:transparent;
+  border:1px solid transparent;
+  color:var(--muted);
+  font-size:11px;
+  font-weight:700;
+  transition:.2s
+}
+
+.nav a i{
+  width:18px;
+  text-align:center;
+  font-size:13px
+}
+
+.nav a:hover{
+  background:rgba(155,92,255,.08);
+  color:white
+}
+
+.nav a.active{
+  color:white;
+  border-color:rgba(155,92,255,.23);
+  background:linear-gradient(100deg,rgba(113,56,230,.25),rgba(155,92,255,.06));
+  box-shadow:inset -3px 0 var(--purple)
+}
+
+.nav a.active i{color:#d0aaff}
+
+.sidebar-bottom{
+  margin-top:auto;
+  padding-top:25px
+}
+
+.community-card{
+  padding:14px;
+  border-radius:15px;
+  border:1px solid var(--border);
+  background:linear-gradient(145deg,rgba(155,92,255,.12),rgba(20,15,31,.8))
+}
+
+.community-icon{
+  width:34px;
+  height:34px;
+  display:grid;
+  place-items:center;
+  border-radius:10px;
+  background:rgba(155,92,255,.15);
+  color:#d0aaff;
+  margin-bottom:10px
+}
+
+.community-card strong{font-size:11px}
+
+.community-card p{
+  font-size:9px;
+  color:var(--muted);
+  line-height:1.9;
+  margin-top:5px
+}
+
+.connection{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  margin:13px 4px 0;
+  font-size:9px;
+  color:var(--muted)
+}
+
+.connection-dot{
+  width:7px;
+  height:7px;
+  background:#e8b75f;
+  border-radius:50%
+}
+
+/* MAIN */
+
+.main{
+  min-width:0;
+  padding:25px 28px 35px
+}
+
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:14px;
+  margin-bottom:27px
+}
+
+.mobile-brand{
+  display:none;
+  align-items:center;
+  gap:7px;
+  font:700 12px 'Orbitron',sans-serif;
+  direction:ltr
+}
+
+.mobile-brand img{
+  width:32px;
+  height:32px;
+  object-fit:contain
+}
+
+.page-title{font-size:22px;font-weight:900}
+
+.page-subtitle{
+  font-size:10px;
+  color:var(--muted);
+  margin-top:4px
+}
+
+.top-actions{
+  display:flex;
+  align-items:center;
+  gap:9px
+}
+
+.icon-button{
+  width:39px;
+  height:39px;
+  display:grid;
+  place-items:center;
+  background:rgba(22,17,36,.85);
+  border:1px solid var(--border);
+  border-radius:12px;
+  color:#d5c8e8;
+  transition:.2s
+}
+
+.icon-button:hover{
+  border-color:var(--purple);
+  color:white
+}
+
+.profile{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  padding:4px 10px 4px 5px;
+  border:1px solid var(--border);
+  border-radius:13px;
+  background:rgba(22,17,36,.85)
+}
+
+.avatar{
+  width:32px;
+  height:32px;
+  display:grid;
+  place-items:center;
+  border-radius:10px;
+  background:linear-gradient(135deg,#9b5cff,#5124a5);
+  font-weight:900;
+  font-size:12px
+}
+
+.profile-name{font-size:10px;font-weight:800}
+.profile-role{font-size:8px;color:var(--muted)}
+
+/* HEADER */
+
+.hero{
+  position:relative;
+  overflow:hidden;
+  min-height:205px;
+  padding:29px;
+  border-radius:23px;
+  border:1px solid rgba(175,123,255,.23);
+  background:
+    radial-gradient(ellipse at 5% 5%,rgba(209,106,255,.18),transparent 40%),
+    linear-gradient(110deg,#1b1230,#100b1d 65%,#1b1030);
+  margin-bottom:22px
+}
+
+.hero:after{
+  content:'LZ';
+  position:absolute;
+  left:20px;
+  top:-40px;
+  font:900 190px 'Orbitron',sans-serif;
+  letter-spacing:-15px;
+  color:rgba(195,151,255,.04);
+  pointer-events:none
+}
+
+.hero-content{
+  position:relative;
+  z-index:1;
+  max-width:650px
+}
+
+.eyebrow{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:6px 10px;
+  border:1px solid rgba(155,92,255,.26);
+  background:rgba(155,92,255,.1);
+  border-radius:30px;
+  color:#d6baff;
+  font-size:9px;
+  font-weight:800;
+  margin-bottom:13px
+}
+
+.eyebrow span{
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:var(--purple);
+  box-shadow:0 0 9px var(--purple)
+}
+
+.hero h2{
+  font-size:clamp(23px,3vw,34px);
+  font-weight:900;
+  line-height:1.5
+}
+
+.hero h2 b{
+  color:#c59cff;
+  text-shadow:0 0 22px rgba(155,92,255,.24)
+}
+
+.hero p{
+  font-size:11px;
+  color:#aaa0bd;
+  line-height:2;
+  margin-top:7px;
+  max-width:490px
+}
+
+/* STATS */
+
+.stats-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+  margin-bottom:25px
+}
+
+.stat-card{
+  padding:16px;
+  background:linear-gradient(145deg,rgba(24,18,39,.88),rgba(14,11,23,.94));
+  border:1px solid var(--border);
+  border-radius:18px;
+  transition:.2s
+}
+
+.stat-card:hover{
+  transform:translateY(-3px);
+  border-color:rgba(155,92,255,.35)
+}
+
+.stat-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:7px
+}
+
+.stat-icon{
+  width:36px;
+  height:36px;
+  display:grid;
+  place-items:center;
+  border-radius:11px;
+  background:rgba(155,92,255,.12);
+  border:1px solid rgba(155,92,255,.15);
+  color:#c59cff
+}
+
+.stat-value{
+  font:800 24px 'Orbitron',sans-serif;
+  margin-top:15px;
+  direction:ltr;
+  text-align:right
+}
+
+.stat-label{
+  font-size:10px;
+  color:var(--muted);
+  margin-top:4px
+}
+
+/* SECTION */
+
+.section-heading{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  margin:25px 0 13px
+}
+
+.section-heading h3{
+  font-size:14px;
+  font-weight:900
+}
+
+.section-heading p{
+  font-size:9px;
+  color:var(--muted);
+  margin-top:4px
+}
+
+.badge{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  padding:5px 9px;
+  border-radius:30px;
+  font-size:9px;
+  font-weight:800;
+  white-space:nowrap
+}
+
+.badge-purple{
+  color:#d3b4ff;
+  background:rgba(155,92,255,.12);
+  border:1px solid rgba(155,92,255,.18)
+}
+
+.badge-gold{
+  color:#f4d99a;
+  background:rgba(241,203,120,.1);
+  border:1px solid rgba(241,203,120,.23)
+}
+
+.badge-green{
+  color:#82e8b3;
+  background:rgba(93,227,160,.08);
+  border:1px solid rgba(93,227,160,.14)
+}
+
+.badge-muted{
+  color:#aaa0bd;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--border)
+}
+
+/* TOOLBAR */
+
+.toolbar{
+  display:flex;
+  flex-wrap:wrap;
+  gap:9px;
+  margin-bottom:15px
+}
+
+.search-box{
+  position:relative;
+  flex:1;
+  min-width:170px
+}
+
+.search-box i{
+  position:absolute;
+  right:12px;
+  top:50%;
+  transform:translateY(-50%);
+  color:#847a98
+}
+
+.field{
+  width:100%;
+  color:white;
+  outline:none;
+  padding:10px 36px 10px 11px;
+  background:rgba(18,14,29,.9);
+  border:1px solid var(--border);
+  border-radius:10px;
+  font-size:10px
+}
+
+.field:focus{border-color:rgba(155,92,255,.55)}
+.field::placeholder{color:#746b83}
+
+select.field{
+  padding-right:11px;
+  max-width:190px
+}
+
+select.field option{background:#151020}
+
+/* DESIGNERS */
+
+.card-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:14px
+}
+
+.designer-card{
+  position:relative;
+  overflow:hidden;
+  padding:19px;
+  text-align:center;
+  background:linear-gradient(155deg,rgba(28,20,44,.95),rgba(15,11,24,.98));
+  border:1px solid var(--border);
+  border-radius:19px;
+  transition:.25s
+}
+
+.designer-card:hover{
+  transform:translateY(-4px);
+  border-color:rgba(155,92,255,.4);
+  box-shadow:0 14px 35px rgba(0,0,0,.16)
+}
+
+.designer-card:before{
+  content:'';
+  position:absolute;
+  top:0;
+  right:0;
+  left:0;
+  height:2px;
+  background:linear-gradient(90deg,transparent,#9b5cff,#d16aff,transparent);
+  opacity:.7
+}
+
+.designer-avatar{
+  width:82px;
+  height:82px;
+  object-fit:cover;
+  border-radius:24px;
+  border:2px solid rgba(181,131,255,.4);
+  padding:3px;
+  background:#171027;
+  margin:0 auto 12px;
+  display:block
+}
+
+.designer-fallback{
+  width:82px;
+  height:82px;
+  margin:0 auto 12px;
+  border-radius:24px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(135deg,#9b5cff,#5124a5);
+  font:800 24px 'Orbitron',sans-serif
+}
+
+.designer-card h3{
+  font-size:14px;
+  font-weight:900
+}
+
+.designer-specialty{
+  font-size:10px;
+  color:var(--muted);
+  margin-top:5px
+}
+
+.designer-badges{
+  display:flex;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:5px;
+  margin:11px 0
+}
+
+.social-links{
+  display:flex;
+  justify-content:center;
+  gap:8px;
+  margin:13px 0
+}
+
+.social-link{
+  width:36px;
+  height:36px;
+  display:grid;
+  place-items:center;
+  border:1px solid var(--border);
+  border-radius:11px;
+  background:rgba(255,255,255,.025);
+  color:#d3b4ff;
+  transition:.2s
+}
+
+.social-link:hover{
+  background:rgba(155,92,255,.15);
+  border-color:var(--purple);
+  color:white
+}
+
+.designer-description{
+  font-size:10px;
+  line-height:1.9;
+  color:var(--muted);
+  min-height:38px;
+  overflow-wrap:anywhere
+}
+
+/* VIDEO LINK - NEW */
+
+.video-submit{
+  margin-top:15px;
+  padding-top:13px;
+  border-top:1px solid var(--border);
+  text-align:right
+}
+
+.video-submit-label{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  color:#d3b4ff;
+  font-size:10px;
+  font-weight:800;
+  margin-bottom:9px
+}
+
+.video-input{
+  width:100%;
+  min-width:0;
+  padding:10px 11px;
+  direction:ltr;
+  text-align:left;
+  color:white;
+  background:rgba(8,6,15,.75);
+  border:1px solid var(--border);
+  border-radius:9px;
+  font-size:10px;
+  outline:none
+}
+
+.video-input:focus{
+  border-color:var(--purple);
+  box-shadow:0 0 0 3px rgba(155,92,255,.08)
+}
+
+.video-input::placeholder{
+  color:#746b83
+}
+
+.video-save{
+  width:100%;
+  margin-top:8px;
+  padding:9px 12px;
+  border:1px solid rgba(197,156,255,.35);
+  border-radius:9px;
+  color:white;
+  background:linear-gradient(110deg,#8b4af0,#6533ce);
+  font-size:10px;
+  font-weight:800;
+  transition:.2s
+}
+
+.video-save:hover{
+  transform:translateY(-2px);
+  box-shadow:0 6px 18px rgba(108,54,232,.2)
+}
+
+.video-result{
+  margin-top:10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  flex-wrap:wrap
+}
+
+.video-result a{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  width:100%;
+  padding:9px;
+  border-radius:9px;
+  color:#e5d3ff;
+  background:rgba(155,92,255,.1);
+  border:1px solid rgba(155,92,255,.23);
+  font-size:10px;
+  font-weight:800;
+  transition:.2s
+}
+
+.video-result a:hover{
+  color:white;
+  background:rgba(155,92,255,.2);
+  border-color:var(--purple)
+}
+
+.video-remove{
+  border:0;
+  background:transparent;
+  color:#ff8299;
+  font-size:9px;
+  padding:5px;
+  cursor:pointer
+}
+
+/* EMPTY */
+
+.panel{
+  background:linear-gradient(145deg,rgba(24,18,39,.88),rgba(14,11,23,.94));
+  border:1px solid var(--border);
+  border-radius:18px
+}
+
+.empty-state{
+  text-align:center;
+  padding:48px 16px
+}
+
+.empty-icon{
+  width:58px;
+  height:58px;
+  margin:0 auto 13px;
+  display:grid;
+  place-items:center;
+  border-radius:18px;
+  color:#bd94ff;
+  background:rgba(155,92,255,.1);
+  border:1px solid rgba(155,92,255,.15);
+  font-size:21px
+}
+
+.empty-state h3{font-size:13px}
+
+.empty-state p{
+  max-width:420px;
+  margin:7px auto 0;
+  color:var(--muted);
+  font-size:10px;
+  line-height:2
+}
+
+/* BUTTONS */
+
+.btn{
+  display:inline-flex;
+  justify-content:center;
+  align-items:center;
+  gap:8px;
+  padding:10px 15px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  font-size:10px;
+  font-weight:800;
+  transition:.2s
+}
+
+.btn-primary{
+  color:white;
+  background:linear-gradient(110deg,#8b4af0,#6533ce);
+  border-color:rgba(197,156,255,.4);
+  box-shadow:0 6px 20px rgba(108,54,232,.17)
+}
+
+.btn-primary:hover{transform:translateY(-2px)}
+
+.btn-secondary{
+  background:rgba(255,255,255,.025);
+  color:#d8cde9
+}
+
+.btn-secondary:hover{background:rgba(155,92,255,.1)}
+
+.footer{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  margin-top:28px;
+  padding-top:17px;
+  border-top:1px solid var(--border);
+  color:#6f667d;
+  font-size:9px
+}
+
+.footer span:last-child{
+  direction:ltr;
+  font-family:'Orbitron',sans-serif
+}
+
+.mobile-menu{display:none}
+
+/* INTERNAL PAGES */
+
+.page-view{display:none}
+.page-view.active{display:block}
+
+.content-card{
+  position:relative;
+  overflow:hidden;
+  padding:19px;
+  background:linear-gradient(155deg,rgba(28,20,44,.95),rgba(15,11,24,.98));
+  border:1px solid var(--border);
+  border-radius:18px;
+  transition:.25s
+}
+
+.content-card:hover{
+  transform:translateY(-3px);
+  border-color:rgba(155,92,255,.4)
+}
+
+.content-card h3{
+  font-size:13px;
+  margin:9px 0 5px
+}
+
+.content-card p{
+  color:var(--muted);
+  font-size:10px;
+  line-height:1.9;
+  overflow-wrap:anywhere
+}
+
+.content-image{
+  width:100%;
+  height:175px;
+  object-fit:cover;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background:#171027
+}
+
+.content-icon{
+  width:43px;
+  height:43px;
+  display:grid;
+  place-items:center;
+  border-radius:13px;
+  color:#d3b4ff;
+  background:rgba(155,92,255,.12);
+  border:1px solid rgba(155,92,255,.18);
+  font-size:17px
+}
+
+.content-meta{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:13px
+}
+
+.home-shortcuts{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+  margin-top:15px
+}
+
+.shortcut{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:15px;
+  text-align:right;
+  background:linear-gradient(145deg,rgba(24,18,39,.88),rgba(14,11,23,.94));
+  border:1px solid var(--border);
+  border-radius:15px;
+  color:var(--text);
+  transition:.2s
+}
+
+.shortcut:hover{
+  transform:translateY(-3px);
+  border-color:var(--purple)
+}
+
+.shortcut i{
+  width:37px;
+  height:37px;
+  display:grid;
+  place-items:center;
+  border-radius:11px;
+  background:rgba(155,92,255,.12);
+  color:#c59cff
+}
+
+.shortcut strong{font-size:10px}
+.shortcut small{display:block;color:var(--muted);font-size:8px;margin-top:3px}
+
+.winner-card{
+  text-align:center;
+  padding:22px;
+  background:linear-gradient(145deg,rgba(241,203,120,.09),rgba(24,18,39,.9));
+  border:1px solid rgba(241,203,120,.2);
+  border-radius:18px
+}
+
+.winner-card .content-icon{
+  margin:auto;
+  color:var(--gold);
+  background:rgba(241,203,120,.1);
+  border-color:rgba(241,203,120,.2)
+}
+
+.giveaway-card{
+  background:linear-gradient(145deg,rgba(155,92,255,.13),rgba(15,11,24,.98))
+}
+
+.status-live{
+  color:#82e8b3;
+  background:rgba(93,227,160,.08);
+  border:1px solid rgba(93,227,160,.14)
+}
+
+.status-closed{
+  color:#aaa0bd;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--border)
+}
+
+/* TOAST */
+
+.toast{
+  position:fixed;
+  bottom:20px;
+  left:20px;
+  max-width:calc(100vw - 40px);
+  padding:12px 16px;
+  border:1px solid rgba(155,92,255,.3);
+  border-radius:12px;
+  background:#191128;
+  color:white;
+  font-size:11px;
+  box-shadow:0 15px 40px #0005;
+  opacity:0;
+  transform:translateY(10px);
+  pointer-events:none;
+  transition:.25s;
+  z-index:100
+}
+
+.toast.show{
+  opacity:1;
+  transform:translateY(0)
+}
+
+/* LZ COMMUNITY CHAT */
+
+.chat-layout{
+  display:grid;
+  grid-template-columns:210px minmax(0,1fr);
+  min-height:520px;
+  overflow:hidden;
+  border:1px solid var(--border);
+  border-radius:18px;
+  background:#100d19;
+}
+
+.chat-channels{
+  padding:18px 12px;
+  background:#0d0a15;
+  border-left:1px solid var(--border);
+}
+
+.chat-server{
+  padding:12px;
+  margin-bottom:20px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:linear-gradient(135deg,#24153b,#130d20);
+  font-weight:900;
+  font-size:12px;
+}
+
+.chat-channel-title{
+  color:var(--muted);
+  font-size:9px;
+  font-weight:900;
+  margin:16px 8px 8px;
+}
+
+.chat-channel{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  padding:10px;
+  border-radius:9px;
+  color:var(--muted);
+  font-size:10px;
+  font-weight:800;
+}
+
+.chat-channel.active{
+  color:white;
+  background:rgba(155,92,255,.17);
+}
+
+.chat-main{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  min-height:520px;
+}
+
+.chat-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  padding:16px;
+  border-bottom:1px solid var(--border);
+  background:rgba(24,18,39,.6);
+}
+
+.chat-header strong{font-size:12px}
+.chat-header small{display:block;color:var(--muted);font-size:9px;margin-top:4px}
+
+.chat-messages{
+  flex:1;
+  min-height:330px;
+  max-height:520px;
+  overflow-y:auto;
+  padding:17px;
+  display:flex;
+  flex-direction:column;
+  gap:15px;
+}
+
+.chat-message{
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+  min-width:0;
+}
+
+.chat-avatar{
+  width:36px;
+  height:36px;
+  flex-shrink:0;
+  display:grid;
+  place-items:center;
+  border-radius:11px;
+  background:linear-gradient(135deg,#9b5cff,#5124a5);
+  font-size:11px;
+  font-weight:900;
+}
+
+.chat-message-body{min-width:0;flex:1}
+
+.chat-message-top{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:8px;
+}
+
+.chat-message-top strong{font-size:10px}
+.chat-time{font-size:8px;color:var(--muted)}
+
+.chat-message-text{
+  color:#d2c9df;
+  font-size:10px;
+  line-height:1.9;
+  margin-top:5px;
+  overflow-wrap:anywhere;
+}
+
+.chat-link{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  margin-top:8px;
+  padding:11px;
+  border:1px solid rgba(155,92,255,.2);
+  background:rgba(155,92,255,.08);
+  border-radius:10px;
+  color:#d9c2ff;
+  direction:ltr;
+  text-align:left;
+  font-size:10px;
+  overflow-wrap:anywhere;
+}
+
+.chat-link i{font-size:17px}
+
+.chat-delete{
+  margin-right:auto;
+  border:0;
+  background:transparent;
+  color:#ff8299;
+  font-size:10px;
+  padding:4px;
+}
+
+.chat-composer{
+  padding:14px;
+  border-top:1px solid var(--border);
+  background:rgba(15,11,24,.8);
+}
+
+.chat-name-input,
+.chat-text-input{
+  width:100%;
+  padding:11px;
+  border:1px solid var(--border);
+  border-radius:9px;
+  outline:none;
+  background:#0c0913;
+  color:white;
+  font-size:10px;
+}
+
+.chat-name-input:focus,
+.chat-text-input:focus{border-color:var(--purple)}
+
+.chat-composer-row{
+  display:flex;
+  gap:8px;
+  margin-top:8px;
+}
+
+.chat-send{
+  flex-shrink:0;
+  width:43px;
+  border:0;
+  border-radius:10px;
+  color:white;
+  background:linear-gradient(110deg,#8b4af0,#6533ce);
+}
+
+.chat-hint{
+  color:var(--muted);
+  font-size:9px;
+  margin-top:9px;
+  line-height:1.8;
+}
+
+.chat-empty{
+  margin:auto;
+  text-align:center;
+  color:var(--muted);
+  font-size:11px;
+  padding:30px;
+}
+
+@media(max-width:650px){
+  .chat-layout{grid-template-columns:1fr}
+  .chat-channels{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:9px;
+    border-left:0;
+    border-bottom:1px solid var(--border);
+  }
+  .chat-server{display:none}
+  .chat-channel-title{display:none}
+  .chat-channel{padding:9px}
+  .chat-messages{min-height:300px}
+}
+/* RESPONSIVE */
+
+@media(max-width:1150px){
+  .card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .main{padding:22px 19px}
+}
+
+@media(max-width:850px){
+  .app{grid-template-columns:1fr}
+
+  .sidebar{
+    position:fixed;
+    right:0;
+    top:0;
+    width:270px;
+    max-width:85vw;
+    transform:translateX(105%);
+    transition:transform .25s;
+    box-shadow:-20px 0 60px #0007
+  }
+
+  .sidebar.open{transform:translateX(0)}
+  .mobile-menu{display:grid}
+  .mobile-brand{display:flex}
+  .topbar-title{display:none}
+}
+
+@media(max-width:700px){
+  .home-shortcuts{grid-template-columns:1fr}
+}
+
+@media(max-width:540px){
+  .main{padding:14px 12px 24px}
+  .topbar{gap:7px;margin-bottom:20px}
+  .mobile-brand{font-size:10px}
+  .mobile-brand img{width:28px;height:28px}
+  .top-actions{gap:5px}
+  .icon-button{width:35px;height:35px}
+  .profile{padding:3px}
+  .profile-info{display:none}
+  .profile .avatar{width:28px;height:28px}
+  .hero{padding:21px 16px;border-radius:17px}
+  .hero h2{font-size:23px}
+  .hero:after{font-size:125px;top:0}
+  .stats-grid{grid-template-columns:1fr;gap:8px}
+  .stat-card{padding:12px;border-radius:14px}
+  .stat-value{font-size:20px;margin-top:12px}
+  .card-grid{grid-template-columns:1fr}
+  .footer{flex-direction:column}
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms!important;
+    transition-duration:.01ms!important
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="ambient a"></div>
+<div class="ambient b"></div>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+
+    <div class="brand">
+      <div class="logo-wrap">
+        <img src="logo.png" alt="LZ EDITORS" onerror="this.style.display='none';this.parentElement.innerHTML='<span style=&quot;font-family:Orbitron;color:#c59cff;font-weight:900&quot;>LZ</span>'">
+      </div>
+
+      <div>
+        <div class="brand-name">LZ EDITORS</div>
+        <div class="brand-sub">CREATIVE COMMUNITY</div>
+      </div>
+    </div>
+
+    <div class="nav-label">CREATIVE HUB</div>
+
+    <nav class="nav" id="mainNav">
+      <a href="#home" data-page="home"><i class="fa-solid fa-border-all"></i> الرئيسية</a>
+      <a href="#designers" data-page="designers" class="active"><i class="fa-solid fa-users"></i> المصممون</a>
+    <a href="#community" data-page="community">
+  <i class="fa-brands fa-discord"></i> محادثة المجتمع
+</a>
+      <a href="#works" data-page="works"><i class="fa-solid fa-images"></i> أعمال المصممين</a>
+      <a href="#awards" data-page="awards"><i class="fa-solid fa-trophy"></i> الجوائز والشارات</a>
+      <a href="#giveaway" data-page="giveaway"><i class="fa-solid fa-gift"></i> Giveaway</a>
+      <a href="#winners" data-page="winners"><i class="fa-solid fa-medal"></i> أرشيف الفائزين</a>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="community-card">
+        <div class="community-icon">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+        </div>
+        <strong>LZ Creative Space</strong>
+        <p>مجتمع للمصممين والمبدعين، لعرض الأعمال والاحتفاء بالمواهب.</p>
+      </div>
+
+      <div class="connection">
+        <span class="connection-dot"></span>
+        <span>واجهة محلية — غير مربوطة بالخادم</span>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <header class="topbar">
+
+      <button class="icon-button mobile-menu" id="menuBtn" aria-label="فتح القائمة">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+
+      <div class="mobile-brand">
+        <img src="logo.png" alt="LZ">
+        <span>LZ EDITORS</span>
+      </div>
+
+      <div class="topbar-title">
+        <h1 class="page-title" id="pageTitle">المصممون</h1>
+        <p class="page-subtitle" id="pageSubtitle">اكتشف المواهب والمبدعين في LZ EDITORS</p>
+      </div>
+
+      <div class="top-actions">
+        <button class="btn btn-primary" id="discordLogin" type="button"><i class="fa-brands fa-discord"></i> دخول Discord</button>
+        <button class="btn btn-secondary" id="discordLogout" type="button" style="display:none">خروج</button>
+        <button class="icon-button" id="helpBtn" title="معلومات">
+          <i class="fa-regular fa-circle-question"></i>
+        </button>
+
+        <div class="profile">
+          <div class="avatar">LZ</div>
+          <div class="profile-info">
+            <div class="profile-name">LZ EDITORS</div>
+            <div class="profile-role">CREATIVE COMMUNITY</div>
+          </div>
+        </div>
+      </div>
+
+    </header>
+
+    <!-- HOME PAGE -->
+    <section class="page-view" id="page-home">
+
+      <section class="hero">
+        <div class="hero-content">
+          <div class="eyebrow"><span></span> WELCOME TO LZ EDITORS</div>
+          <h2>مرحباً بك في <b>LZ EDITORS</b></h2>
+          <p>
+            مساحة إبداعية تجمع المصممين والمبدعين.
+            اكتشف المواهب، شاهد الأعمال، وتابع المسابقات والجوائز.
+          </p>
+        </div>
+      </section>
+
+      <section class="stats-grid">
+        <article class="stat-card">
+          <div class="stat-top">
+            <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
+            <span class="badge badge-purple">CREATORS</span>
+          </div>
+          <div class="stat-value" id="homeDesigners">0</div>
+          <div class="stat-label">المصممون</div>
+        </article>
+
+        <article class="stat-card">
+          <div class="stat-top">
+            <div class="stat-icon"><i class="fa-solid fa-images"></i></div>
+            <span class="badge badge-gold">PORTFOLIO</span>
+          </div>
+          <div class="stat-value" id="homeWorks">0</div>
+          <div class="stat-label">الأعمال المعروضة</div>
+        </article>
+
+        <article class="stat-card">
+          <div class="stat-top">
+            <div class="stat-icon"><i class="fa-solid fa-trophy"></i></div>
+            <span class="badge badge-green">AWARDS</span>
+          </div>
+          <div class="stat-value" id="homeAwards">0</div>
+          <div class="stat-label">الجوائز والشارات</div>
+        </article>
+      </section>
+
+      <div class="section-heading">
+        <div>
+          <h3>استكشف مجتمعنا</h3>
+          <p>انتقل إلى القسم الذي تريد اكتشافه</p>
+        </div>
+        <span class="badge badge-purple">EXPLORE LZ</span>
+      </div>
+
+      <div class="home-shortcuts">
+        <a href="#designers" data-page="designers" class="shortcut">
+          <i class="fa-solid fa-users"></i>
+          <span><strong>المصممون</strong><small>اكتشف أعضاء المجتمع</small></span>
+        </a>
+
+        <a href="#works" data-page="works" class="shortcut">
+          <i class="fa-solid fa-images"></i>
+          <span><strong>الأعمال</strong><small>شاهد إبداعات المصممين</small></span>
+        </a>
+
+        <a href="#awards" data-page="awards" class="shortcut">
+          <i class="fa-solid fa-trophy"></i>
+          <span><strong>الجوائز والشارات</strong><small>اكتشف التميز والإنجازات</small></span>
+        </a>
+
+        <a href="#giveaway" data-page="giveaway" class="shortcut">
+          <i class="fa-solid fa-gift"></i>
+          <span><strong>Giveaway</strong><small>تابع السحوبات</small></span>
+        </a>
+
+        <a href="#winners" data-page="winners" class="shortcut">
+          <i class="fa-solid fa-medal"></i>
+          <span><strong>أرشيف الفائزين</strong><small>تعرف على الفائزين السابقين</small></span>
+        </a>
+      </div>
+
+    </section>
+
+    <!-- DESIGNERS PAGE -->
+    <section class="page-view active" id="page-designers">
+
+      <section class="hero">
+        <div class="hero-content">
+          <div class="eyebrow"><span></span> OUR CREATIVE TEAM</div>
+          <h2>اكتشف مبدعي <b>LZ EDITORS</b></h2>
+          <p>
+            تعرّف على المصممين والمبدعين داخل مجتمعنا،
+            شاهد تخصصاتهم وأعمالهم وروابط حساباتهم.
+            كل موهبة تستحق أن تظهر.
+          </p>
+        </div>
+      </section>
+
+      <section class="stats-grid">
+        <article class="stat-card">
+          <div class="stat-top">
+            <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
+            <span class="badge badge-purple">CREATORS</span>
+          </div>
+          <div class="stat-value" id="totalDesigners">0</div>
+          <div class="stat-label">إجمالي المصممين</div>
+        </article>
+
+        <article class="stat-card">
+          <div class="stat-top">
+            <div class="stat-icon"><i class="fa-solid fa-star"></i></div>
+            <span class="badge badge-gold">FEATURED</span>
+          </div>
+          <div class="stat-value" id="totalBadges">0</div>
+          <div class="stat-label">المصممون المميزون</div>
+        </article>
+
+        <article class="stat-card">
+          <div class="stat-top">
+            <div class="stat-icon"><i class="fa-solid fa-palette"></i></div>
+            <span class="badge badge-green">SKILLS</span>
+          </div>
+          <div class="stat-value" id="totalSpecialties">0</div>
+          <div class="stat-label">التخصصات المختلفة</div>
+        </article>
+      </section>
+
+      <div class="section-heading">
+        <div>
+          <h3>مجتمع المصممين</h3>
+          <p>جميع المواهب المسجلة في LZ EDITORS</p>
+        </div>
+        <span class="badge badge-purple"><i class="fa-solid fa-users"></i> DESIGNERS</span>
+      </div>
+
+      <div class="toolbar">
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input class="field" id="searchInput" placeholder="ابحث عن مصمم بالاسم أو التخصص..." autocomplete="off">
+        </div>
+
+        <select class="field" id="specialtyFilter">
+          <option value="all">كل التخصصات</option>
+        </select>
+      </div>
+
+      <div class="card-grid" id="designersGrid"></div>
+
+      <div class="panel empty-state" id="emptyState" style="display:none">
+        <div class="empty-icon"><i class="fa-solid fa-users"></i></div>
+        <h3>لا يوجد مصممون حالياً</h3>
+        <p>لم يتم العثور على مصممين مطابقين للبحث.</p>
+      </div>
+
+    </section>
+
+    <!-- COMMUNITY CHAT -->
+<section class="page-view" id="page-community">
+
+  <section class="hero">
+    <div class="hero-content">
+      <div class="eyebrow"><span></span> LZ COMMUNITY CHAT</div>
+      <h2>مساحة <b>المبدعين</b></h2>
+      <p>شارك أعمالك وروابط فيديوهاتك وتواصل مع أعضاء LZ EDITORS.</p>
+    </div>
+  </section>
+
+  <div class="section-heading">
+    <div>
+      <h3>محادثة المجتمع</h3>
+      <p>شارك رابط عملك مع أعضاء المجتمع</p>
+    </div>
+    <span class="badge badge-green">COMMUNITY</span>
+  </div>
+
+  <div class="chat-layout">
+
+    <aside class="chat-channels">
+      <div class="chat-server">
+        <i class="fa-brands fa-discord"></i>
+        LZ EDITORS
+      </div>
+
+      <div class="chat-channel-title">القنوات النصية</div>
+
+      <div class="chat-channel active">
+        <i class="fa-solid fa-hashtag"></i>
+        share-your-work
+      </div>
+    </aside>
+
+    <div class="chat-main">
+
+      <header class="chat-header">
+        <div>
+          <strong><i class="fa-solid fa-hashtag"></i> share-your-work</strong>
+          <small>شارك روابط أعمالك مع المجتمع</small>
+        </div>
+        <span class="badge badge-purple" id="chatCount">0 رسالة</span>
+      </header>
+
+      <div class="chat-messages" id="chatMessages">
+        <div class="chat-empty">
+          <i class="fa-brands fa-discord" style="font-size:30px"></i>
+          <p>مرحباً بك في قناة LZ EDITORS!</p>
+          <p>كن أول من يشارك عملاً إبداعياً.</p>
+        </div>
+      </div>
+
+      <form class="chat-composer" id="chatForm">
+
+        <input
+          class="chat-name-input"
+          id="chatUsername"
+          maxlength="30"
+          placeholder="اسمك أو اسم المصمم"
+          required
+        >
+
+        <div class="chat-composer-row">
+          <input
+            class="chat-text-input"
+            id="chatMessage"
+            maxlength="500"
+            placeholder="اكتب رسالة أو ضع رابط TikTok / YouTube..."
+            required
+          >
+
+          <button class="chat-send" type="submit" aria-label="إرسال">
+            <i class="fa-solid fa-paper-plane"></i>
+          </button>
+        </div>
+
+        <p class="chat-hint">
+          يمكنك إرسال رسالة أو رابط TikTok أو YouTube.
+          لا تشارك معلوماتك الشخصية.
+        </p>
+
+      </form>
+
+    </div>
+  </div>
+</section>
+
+    <!-- WORKS PAGE -->
+    <section class="page-view" id="page-works">
+
+      <section class="hero">
+        <div class="hero-content">
+          <div class="eyebrow"><span></span> CREATIVE PORTFOLIO</div>
+          <h2>أعمال <b>LZ EDITORS</b></h2>
+          <p>اكتشف التصاميم والإبداعات التي يقدمها أعضاء مجتمعنا.</p>
+        </div>
+      </section>
+
+      <div class="section-heading">
+        <div>
+          <h3>معرض الأعمال</h3>
+          <p>أعمال المصممين المسجلة في المجتمع</p>
+        </div>
+        <span class="badge badge-purple"><i class="fa-solid fa-images"></i> PORTFOLIO</span>
+      </div>
+
+      <div class="toolbar">
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input class="field" id="worksSearch" placeholder="ابحث عن عمل أو مصمم..." autocomplete="off">
+        </div>
+      </div>
+
+      <div class="card-grid" id="worksGrid"></div>
+
+      <div class="panel empty-state" id="worksEmpty" style="display:none">
+        <div class="empty-icon"><i class="fa-solid fa-images"></i></div>
+        <h3>لا توجد أعمال حالياً</h3>
+        <p>لا توجد أعمال مسجلة أو مطابقة لعملية البحث.</p>
+      </div>
+
+    </section>
+
+    <!-- AWARDS PAGE -->
+    <section class="page-view" id="page-awards">
+
+      <section class="hero">
+        <div class="hero-content">
+          <div class="eyebrow"><span></span> ACHIEVEMENTS & RECOGNITION</div>
+          <h2>الجوائز <b>والشارات</b></h2>
+          <p>مساحة للاحتفاء بالمواهب والإنجازات المميزة داخل LZ EDITORS.</p>
+        </div>
+      </section>
+
+      <div class="section-heading">
+        <div>
+          <h3>الجوائز والشارات</h3>
+          <p>التكريمات والإنجازات المسجلة</p>
+        </div>
+        <span class="badge badge-gold"><i class="fa-solid fa-trophy"></i> AWARDS</span>
+      </div>
+
+      <div class="card-grid" id="awardsGrid"></div>
+
+      <div class="panel empty-state" id="awardsEmpty" style="display:none">
+        <div class="empty-icon"><i class="fa-solid fa-trophy"></i></div>
+        <h3>لا توجد جوائز حالياً</h3>
+        <p>ستظهر الجوائز والشارات هنا عند توفر بياناتها.</p>
+      </div>
+
+    </section>
+
+    <!-- GIVEAWAY PAGE -->
+    <section class="page-view" id="page-giveaway">
+
+      <section class="hero">
+        <div class="hero-content">
+          <div class="eyebrow"><span></span> GIVEAWAY EVENTS</div>
+          <h2>مسابقات <b>Giveaway</b></h2>
+          <p>تابع السحوبات والفعاليات والجوائز داخل مجتمع LZ EDITORS.</p>
+        </div>
+      </section>
+
+      <div class="section-heading">
+        <div>
+          <h3>السحوبات والفعاليات</h3>
+          <p>السحوبات المتاحة والمسجلة</p>
+        </div>
+        <span class="badge badge-purple"><i class="fa-solid fa-gift"></i> GIVEAWAY</span>
+      </div>
+
+      <div class="card-grid" id="giveawayGrid"></div>
+
+      <div class="panel empty-state" id="giveawayEmpty" style="display:none">
+        <div class="empty-icon"><i class="fa-solid fa-gift"></i></div>
+        <h3>لا توجد سحوبات حالياً</h3>
+        <p>لا توجد فعاليات Giveaway مسجلة في الوقت الحالي.</p>
+      </div>
+
+    </section>
+
+    <!-- WINNERS PAGE -->
+    <section class="page-view" id="page-winners">
+
+      <section class="hero">
+        <div class="hero-content">
+          <div class="eyebrow"><span></span> HALL OF FAME</div>
+          <h2>أرشيف <b>الفائزين</b></h2>
+          <p>هنا نحتفظ بإنجازات الفائزين واللحظات المميزة في مجتمعنا.</p>
+        </div>
+      </section>
+
+      <div class="section-heading">
+        <div>
+          <h3>الفائزون السابقون</h3>
+          <p>سجل الفائزين والإنجازات السابقة</p>
+        </div>
+        <span class="badge badge-gold"><i class="fa-solid fa-medal"></i> WINNERS</span>
+      </div>
+
+      <div class="card-grid" id="winnersGrid"></div>
+
+      <div class="panel empty-state" id="winnersEmpty" style="display:none">
+        <div class="empty-icon"><i class="fa-solid fa-medal"></i></div>
+        <h3>أرشيف الفائزين فارغ</h3>
+        <p>ستظهر أسماء الفائزين هنا عند توفر بياناتهم.</p>
+      </div>
+
+    </section>
+
+    <footer class="footer">
+      <span>© LZ EDITORS — Creative Community</span>
+      <span>CREATIVE HUB 1.0</span>
+    </footer>
+
+  </main>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div id="onboardingModal" style="display:none;position:fixed;inset:0;background:#000b;z-index:150;align-items:center;justify-content:center;padding:18px">
+ <form id="onboardingForm" class="panel" style="width:min(440px,100%);padding:25px">
+  <h3 style="margin-bottom:10px">أكمل حساب المصمم</h3>
+  <p style="color:var(--muted);font-size:12px;margin-bottom:14px">حط رابط قناة TikTok تاعك باش تظهر بطاقتك للناس.</p>
+  <input class="field" id="onboardingTikTok" type="url" required placeholder="https://www.tiktok.com/@username" dir="ltr">
+  <button class="btn btn-primary" id="onboardingSave" style="margin-top:12px;width:100%" type="submit">حفظ حسابي</button>
+ </form>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+<script>
+(() => {
+  'use strict';
+
+  const STORAGE_KEY = 'lz_editors_dashboard_v1';
+  const VIDEO_STORAGE_KEY = 'lz_editors_video_links_v1';
+  const $ = id => document.getElementById(id);
+  const SUPABASE_URL = 'https://gotgssqdkercujjzisdm.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_4NyoLY_J46KA6Lt2T4PNBg_Bzy8bT3r';
+  const db = window.supabase?.createClient(SUPABASE_URL, SUPABASE_KEY);
+  let currentUser = null;
+  let publicProfiles = [];
+  let publicMessages = [];
+  let chatOnline = false;
+  function validTikTokProfile(value){
+    try { const u = new URL(value); return u.protocol === 'https:' &&
+      ['tiktok.com','www.tiktok.com','m.tiktok.com'].includes(u.hostname.toLowerCase()) &&
+      /^\/@[A-Za-z0-9._]+\/?$/.test(u.pathname) ? u.href : ''; }
+    catch { return ''; }
+  }
+  function userName(user){
+    return String(user?.user_metadata?.custom_claims?.global_name || user?.user_metadata?.full_name || user?.user_metadata?.name || user?.user_metadata?.preferred_username || user?.user_metadata?.user_name || 'Discord Creator').slice(0,80);
+  }
+  function userAvatar(user){
+    const m = user?.user_metadata || {};
+    if(m.avatar_url && /^https:\/\//.test(m.avatar_url)) return m.avatar_url;
+    return '';
+  }
+  async function loadPublicProfiles(){
+    if(!db) return;
+    const {data:rows,error} = await db.from('profiles').select('id,discord_username,discord_avatar_url,tiktok_url,onboarding_completed').eq('onboarding_completed',true);
+    if(error){ console.error('Profiles:',error); toast('تعذر تحميل المصممين من Supabase'); return; }
+    publicProfiles = rows || [];
+    mergeDesigners();
+  }
+  function mergeDesigners(){
+    const remote = publicProfiles.map(p => ({id:p.id,name:p.discord_username || 'Discord Creator',image:p.discord_avatar_url,tiktok:p.tiktok_url,specialty:'مصمم',isRemote:true}));
+    designers = [...data.designers.filter(d => !remote.some(r => String(r.id) === String(d.id))),...remote];
+    updateStats(); updateSpecialties(); renderDesigners();
+  }
+  async function loadPublicChat(){
+    if(!db) return;
+    const {data:rows,error} = await db.from('community_messages').select('id,user_id,author_name,author_avatar,text,created_at').order('created_at',{ascending:true}).limit(200);
+    if(error){ console.error('Chat:',error); chatOnline=false; toast('المحادثة العامة تحتاج إعداد جدول community_messages'); return; }
+    chatOnline=true; publicMessages=rows || []; renderChat();
+  }
+  async function syncUser(){
+    if(!db) return;
+    const {data:{user},error} = await db.auth.getUser();
+    if(error) console.error(error);
+    currentUser=user || null;
+    $('discordLogin').style.display=currentUser?'none':'';
+    $('discordLogout').style.display=currentUser?'':'none';
+    $('chatUsername').readOnly=!!currentUser;
+    if(currentUser){
+      $('chatUsername').value=userName(currentUser);
+      const {data:profile,error:profileError}=await db.from('profiles').select('id,tiktok_url,onboarding_completed').eq('id',currentUser.id).maybeSingle();
+      if(profileError){ console.error(profileError); toast('تحقق من إعدادات جدول profiles وRLS'); return; }
+      if(!profile?.onboarding_completed || !profile.tiktok_url) $('onboardingModal').style.display='flex';
+      else $('onboardingModal').style.display='none';
+    } else $('onboardingModal').style.display='none';
+    renderChat();
+  }
+  $('discordLogin').addEventListener('click',async()=>{
+    if(!db){toast('تعذر تحميل Supabase');return;}
+    const {error}=await db.auth.signInWithOAuth({provider:'discord',options:{redirectTo:location.origin+location.pathname+location.search}});
+    if(error) toast('تعذر تسجيل الدخول: '+error.message);
+  });
+  $('discordLogout').addEventListener('click',async()=>{if(db) await db.auth.signOut();currentUser=null;await syncUser();});
+  $('onboardingForm').addEventListener('submit',async e=>{
+    e.preventDefault(); if(!currentUser || !db)return;
+    const url=validTikTokProfile($('onboardingTikTok').value.trim());
+    if(!url){toast('حط رابط قناة TikTok صحيح مثل https://www.tiktok.com/@name');return;}
+    $('onboardingSave').disabled=true;
+    const {error}=await db.from('profiles').upsert({id:currentUser.id,discord_username:userName(currentUser),discord_avatar_url:userAvatar(currentUser),tiktok_url:url,onboarding_completed:true},{onConflict:'id'});
+    $('onboardingSave').disabled=false;
+    if(error){console.error(error);toast('فشل الحفظ: راجع RLS وبنية profiles');return;}
+    $('onboardingModal').style.display='none';toast('تم إنشاء بطاقتك');await loadPublicProfiles();
+  });
+  async function startSupabase(){
+    if(!db){toast('مكتبة Supabase ما تحمّلتش');return;}
+    await Promise.all([loadPublicProfiles(),loadPublicChat()]);
+    await syncUser();
+    db.auth.onAuthStateChange(()=>{setTimeout(()=>syncUser(),0);});
+  }
+
+
+  let data = {
+    designers: [],
+    works: [],
+    awards: [],
+    giveaways: [],
+    winners: []
+  };
+
+  let designers = [];
+  let videoLinks = {};
+  let toastTimer;
+
+  const pageInfo = {
+    home: {
+        title: 'الرئيسية',
+        subtitle: 'مرحباً بك في مجتمع LZ EDITORS'
+    },
+    designers: {
+        title: 'المصممون',
+        subtitle: 'اكتشف المواهب والمبدعين في LZ EDITORS'
+    },
+    works: {
+        title: 'أعمال المصممين',
+        subtitle: 'اكتشف إبداعات أعضاء المجتمع'
+    },
+    awards: {
+        title: 'الجوائز والشارات',
+        subtitle: 'الإنجازات والتكريمات'
+    },
+    giveaway: {
+        title: 'Giveaway',
+        subtitle: 'السحوبات والفعاليات'
+    },
+    winners: {
+        title: 'أرشيف الفائزين',
+        subtitle: 'سجل الإنجازات والفائزين'
+    },
+    community: {
+        title: 'المجتمع',
+        subtitle: 'شارك أعمالك وروابط فيديوهاتك مع الأعضاء'
+    }
+};
+
+  function escapeHTML(value){
+    return String(value ?? '').replace(/[&<>"']/g, char => ({
+      '&':'&amp;',
+      '<':'&lt;',
+      '>':'&gt;',
+      '"':'&quot;',
+      "'":'&#39;'
+    })[char]);
+  }
+
+  function safeURL(value){
+    try{
+      const url = new URL(String(value || ''), window.location.href);
+
+      if(['http:','https:'].includes(url.protocol)){
+        return url.href;
+      }
+
+      return '';
+    }catch{
+      return '';
+    }
+  }
+
+  /* VIDEO LINKS STORAGE */
+
+  function loadVideoLinks(){
+    try{
+      const saved = JSON.parse(localStorage.getItem(VIDEO_STORAGE_KEY) || '{}');
+
+      videoLinks = saved && typeof saved === 'object' && !Array.isArray(saved)
+        ? saved
+        : {};
+    }catch(error){
+      console.error('Video links error:', error);
+      videoLinks = {};
+    }
+  }
+
+  function saveVideoLinks(){
+    try{
+      localStorage.setItem(VIDEO_STORAGE_KEY, JSON.stringify(videoLinks));
+      return true;
+    }catch(error){
+      console.error('Video save error:', error);
+      toast('تعذر حفظ الرابط في المتصفح.');
+      return false;
+    }
+  }
+
+  /*
+    نعتمد على معرف المصمم إن كان موجوداً.
+    وإذا لم يوجد، نستعمل بيانات بطاقته لإنشاء مفتاح ثابت.
+  */
+  function getDesignerKey(designer){
+    if(designer.id !== undefined && designer.id !== null && String(designer.id).trim()){
+      return 'id_' + String(designer.id);
+    }
+
+    return [
+      designer.name || '',
+      designer.specialty || '',
+      designer.image || ''
+    ].join('|').toLowerCase();
+  }
+
+  function validateVideoURL(value){
+    const url = safeURL(value);
+
+    if(!url) return '';
+
+    try{
+      const parsed = new URL(url);
+      const host = parsed.hostname.toLowerCase();
+
+      const allowed =
+        host === 'youtube.com' ||
+        host.endsWith('.youtube.com') ||
+        host === 'youtu.be' ||
+        host === 'tiktok.com' ||
+        host.endsWith('.tiktok.com');
+
+      return allowed ? url : '';
+    }catch{
+      return '';
+    }
+  }
+
+  function getVideoIcon(url){
+    try{
+      const host = new URL(url).hostname.toLowerCase();
+
+      if(host.includes('tiktok')){
+        return 'fa-brands fa-tiktok';
+      }
+
+      return 'fa-brands fa-youtube';
+    }catch{
+      return 'fa-solid fa-play';
+    }
+  }
+
+  function toast(message){
+    $('toast').textContent = message;
+    $('toast').classList.add('show');
+
+    clearTimeout(toastTimer);
+
+    toastTimer = setTimeout(() => {
+      $('toast').classList.remove('show');
+    },2800);
+  }
+
+  function readArray(source, key){
+    return source && Array.isArray(source[key]) ? source[key] : [];
+  }
+
+  function loadData(){
+    try{
+      const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+
+      if(parsed && typeof parsed === 'object'){
+        data = {
+          ...parsed,
+          designers: readArray(parsed, 'designers'),
+          works: readArray(parsed, 'works'),
+          awards: readArray(parsed, 'awards'),
+          giveaways: readArray(parsed, 'giveaways'),
+          winners: readArray(parsed, 'winners')
+        };
+      }else{
+        data = {
+          designers: [],
+          works: [],
+          awards: [],
+          giveaways: [],
+          winners: []
+        };
+      }
+    }catch(error){
+      console.error('LZ data error:', error);
+      toast('تعذر قراءة البيانات المحلية.');
+    }
+
+    mergeDesigners();
+
+    updateStats();
+    updateSpecialties();
+    renderDesigners();
+    renderWorks();
+    renderAwards();
+    renderGiveaways();
+    renderWinners();
+  }
+
+  /* NAVIGATION */
+
+  function navigate(page) {
+    if (!pageInfo[page]) {
+        page = 'designers';
+    }
+
+    document.querySelectorAll('.page-view').forEach(section => {
+        section.classList.toggle('active', section.id === 'page-' + page);
+    });
+
+    document.querySelectorAll('#mainNav a').forEach(link => {
+        link.classList.toggle('active', link.dataset.page === page);
+    });
+
+    $('pageTitle').textContent = pageInfo[page].title;
+    $('pageSubtitle').textContent = pageInfo[page].subtitle;
+
+    history.replaceState(null, '', '#' + page);
+
+    $('sidebar').classList.remove('open');
+
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
+}
+
+document.addEventListener('click', event => {
+    const link = event.target.closest('[data-page]');
+    if (!link) return;
+
+    event.preventDefault();
+    navigate(link.dataset.page);
+});
+
+window.addEventListener('hashchange', () => {
+    const page = location.hash.replace('#', '');
+    navigate(page || 'designers');
+});
+
+  /* DESIGNER STATS */
+
+  function updateStats(){
+    $('totalDesigners').textContent = designers.length;
+
+    $('totalBadges').textContent =
+      designers.filter(d => d.badge && String(d.badge).trim()).length;
+
+    const specialties = new Set(
+      designers
+        .map(d => String(d.specialty || '').trim())
+        .filter(Boolean)
+    );
+
+    $('totalSpecialties').textContent = specialties.size;
+
+    $('homeDesigners').textContent = designers.length;
+    $('homeWorks').textContent = data.works.length;
+    $('homeAwards').textContent = data.awards.length;
+  }
+
+  function updateSpecialties(){
+    const specialtyFilter = $('specialtyFilter');
+    const selected = specialtyFilter.value;
+
+    const specialties = [...new Set(
+      designers
+        .map(d => String(d.specialty || '').trim())
+        .filter(Boolean)
+    )];
+
+    specialtyFilter.innerHTML =
+      '<option value="all">كل التخصصات</option>';
+
+    specialties.forEach(specialty => {
+      const option = document.createElement('option');
+      option.value = specialty;
+      option.textContent = specialty;
+      specialtyFilter.appendChild(option);
+    });
+
+    if(specialties.includes(selected)){
+      specialtyFilter.value = selected;
+    }
+  }
+
+  function createDesignerCard(designer){
+    const imageURL = safeURL(designer.image);
+    const designerKey = getDesignerKey(designer);
+
+    const avatar = imageURL
+      ? `
+        <img
+          class="designer-avatar"
+          src="${escapeHTML(imageURL)}"
+          alt="${escapeHTML(designer.name || 'مصمم')}"
+          loading="lazy"
+          referrerpolicy="no-referrer"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='grid'"
+        >
+        <div class="designer-fallback" style="display:none">
+          ${escapeHTML(String(designer.name || 'LZ').slice(0,2))}
+        </div>
+      `
+      : `
+        <div class="designer-fallback">
+          ${escapeHTML(String(designer.name || 'LZ').slice(0,2))}
+        </div>
+      `;
+
+    const tiktokURL = safeURL(designer.tiktok);
+    const channelURL = safeURL(designer.channel);
+
+    const card = document.createElement('article');
+    card.className = 'designer-card';
+    card.dataset.designerKey = designerKey;
+
+    card.innerHTML = `
+      ${avatar}
+      <h3>${escapeHTML(designer.name || 'مصمم بدون اسم')}</h3>
+
+      <div class="designer-specialty">
+        ${escapeHTML(designer.specialty || 'مصمم')}
+      </div>
+
+      <div class="designer-badges">
+        ${
+          designer.badge
+            ? `<span class="badge badge-gold">${escapeHTML(designer.badge)}</span>`
+            : `<span class="badge badge-muted">LZ CREATOR</span>`
+        }
+      </div>
+
+      <div class="social-links">
+        ${
+          tiktokURL
+            ? `<a class="social-link" href="${escapeHTML(tiktokURL)}" target="_blank" rel="noopener noreferrer" aria-label="TikTok"><i class="fa-brands fa-tiktok"></i></a>`
+            : ''
+        }
+
+        ${
+          channelURL
+            ? `<a class="social-link" href="${escapeHTML(channelURL)}" target="_blank" rel="noopener noreferrer" aria-label="القناة"><i class="fa-brands fa-youtube"></i></a>`
+            : ''
+        }
+      </div>
+
+      <div class="designer-description">
+        ${escapeHTML(designer.description || 'مصمم مبدع ضمن عائلة LZ EDITORS.')}
+      </div>
+
+
+    `;
+
+    return card;
+  }
+
+  function renderDesigners(){
+    const query = $('searchInput').value.trim().toLowerCase();
+    const specialty = $('specialtyFilter').value;
+
+    const filtered = designers.filter(designer => {
+      const name = String(designer.name || '').toLowerCase();
+      const description = String(designer.description || '').toLowerCase();
+      const skill = String(designer.specialty || '').trim();
+
+      const matchesSearch =
+        name.includes(query) ||
+        description.includes(query) ||
+        skill.toLowerCase().includes(query);
+
+      const matchesSpecialty =
+        specialty === 'all' || skill === specialty;
+
+      return matchesSearch && matchesSpecialty;
+    });
+
+    const grid = $('designersGrid');
+    grid.innerHTML = '';
+
+    filtered.forEach(designer => {
+      grid.appendChild(createDesignerCard(designer));
+    });
+
+    $('emptyState').style.display =
+      filtered.length === 0 ? 'block' : 'none';
+  }
+
+  /* GENERIC CONTENT CARD */
+
+  function getFirst(item, keys, fallback = ''){
+    for(const key of keys){
+      if(item && item[key] !== undefined && item[key] !== null && String(item[key]).trim() !== ''){
+        return item[key];
+      }
+    }
+    return fallback;
+  }
+
+  function createContentCard(item, type){
+    const name = getFirst(item, ['name','title','username','designer','winner'], 'بدون عنوان');
+    const description = getFirst(item, ['description','details','text','prize','specialty'], '');
+    const image = safeURL(getFirst(item, ['image','imageUrl','thumbnail','photo','cover'], ''));
+    const link = safeURL(getFirst(item, ['url','link','workLink','portfolio'], ''));
+    const owner = getFirst(item, ['designerName','designer','author','username'], '');
+    const status = getFirst(item, ['status','state'], '');
+
+    const card = document.createElement('article');
+    card.className = type === 'winner' ? 'winner-card' : 'content-card';
+
+    let icon = 'fa-star';
+
+    if(type === 'work') icon = 'fa-images';
+    if(type === 'award') icon = 'fa-trophy';
+    if(type === 'giveaway') icon = 'fa-gift';
+    if(type === 'winner') icon = 'fa-medal';
+
+    const imageHTML = image
+      ? `<img class="content-image" src="${escapeHTML(image)}" alt="${escapeHTML(name)}" loading="lazy">`
+      : `<div class="content-icon"><i class="fa-solid ${icon}"></i></div>`;
+
+    const statusHTML = status
+      ? `<span class="badge ${/active|open|live|نشط|مفتوح/i.test(String(status)) ? 'status-live' : 'status-closed'}">${escapeHTML(status)}</span>`
+      : '';
+
+    card.innerHTML = `
+      ${imageHTML}
+      <h3>${escapeHTML(name)}</h3>
+      ${owner ? `<p>بواسطة: ${escapeHTML(owner)}</p>` : ''}
+      <p>${escapeHTML(description || 'عنصر من مجتمع LZ EDITORS.')}</p>
+
+      <div class="content-meta">
+        ${statusHTML}
+        ${
+          link
+            ? `<a class="btn btn-secondary" href="${escapeHTML(link)}" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-arrow-up-right-from-square"></i> عرض</a>`
+            : ''
+        }
+      </div>
+    `;
+
+    return card;
+  }
+
+  /* WORKS */
+
+  function renderWorks(){
+    const grid = $('worksGrid');
+    const query = $('worksSearch').value.trim().toLowerCase();
+
+    const filtered = data.works.filter(item => {
+      const text = [
+        item.name,
+        item.title,
+        item.description,
+        item.designer,
+        item.designerName,
+        item.author
+      ].join(' ').toLowerCase();
+
+      return text.includes(query);
+    });
+
+    grid.innerHTML = '';
+
+    filtered.forEach(item => {
+      grid.appendChild(createContentCard(item, 'work'));
+    });
+
+    $('worksEmpty').style.display =
+      filtered.length ? 'none' : 'block';
+  }
+
+  /* AWARDS */
+
+  function renderAwards(){
+    const grid = $('awardsGrid');
+    grid.innerHTML = '';
+
+    data.awards.forEach(item => {
+      grid.appendChild(createContentCard(item, 'award'));
+    });
+
+    $('awardsEmpty').style.display =
+      data.awards.length ? 'none' : 'block';
+  }
+
+  /* GIVEAWAYS */
+
+  function renderGiveaways(){
+    const grid = $('giveawayGrid');
+    grid.innerHTML = '';
+
+    data.giveaways.forEach(item => {
+      grid.appendChild(createContentCard(item, 'giveaway'));
+    });
+
+    $('giveawayEmpty').style.display =
+      data.giveaways.length ? 'none' : 'block';
+  }
+
+  /* WINNERS */
+
+  function renderWinners(){
+    const grid = $('winnersGrid');
+    grid.innerHTML = '';
+
+    data.winners.forEach(item => {
+      grid.appendChild(createContentCard(item, 'winner'));
+    });
+
+    $('winnersEmpty').style.display =
+      data.winners.length ? 'none' : 'block';
+  }
+
+  /* SEARCH & FILTER */
+
+  $('searchInput').addEventListener('input', renderDesigners);
+  $('specialtyFilter').addEventListener('change', renderDesigners);
+  $('worksSearch').addEventListener('input', renderWorks);
+
+  /* MOBILE SIDEBAR */
+
+  const sidebar = $('sidebar');
+
+  $('menuBtn').addEventListener('click', () => {
+    sidebar.classList.toggle('open');
+  });
+
+  document.addEventListener('click', event => {
+    if(
+      window.innerWidth <= 850 &&
+      sidebar.classList.contains('open') &&
+      !sidebar.contains(event.target) &&
+      !event.target.closest('#menuBtn')
+    ){
+      sidebar.classList.remove('open');
+    }
+  });
+
+  $('helpBtn').addEventListener('click', () => {
+    toast('مرحباً بك في LZ EDITORS — Creative Community.');
+  });
+
+  /* REFRESH WHEN DATA CHANGES IN ANOTHER TAB */
+
+  window.addEventListener('storage', event => {
+    if(event.key === STORAGE_KEY){
+      loadData();
+      toast('تم تحديث بيانات المجتمع.');
+    }
+
+    if(event.key === VIDEO_STORAGE_KEY){
+      loadVideoLinks();
+      renderDesigners();
+      toast('تم تحديث روابط الفيديو.');
+    }
+  });
+
+  /* LZ COMMUNITY CHAT */
+
+const CHAT_STORAGE_KEY = 'lz_editors_community_chat_v1';
+
+function loadChatMessages(){
+  try{
+    const messages = JSON.parse(
+      localStorage.getItem(CHAT_STORAGE_KEY) || '[]'
+    );
+
+    return Array.isArray(messages) ? messages : [];
+  }catch{
+    return [];
+  }
+}
+
+function saveChatMessages(messages){
+  try{
+    localStorage.setItem(
+      CHAT_STORAGE_KEY,
+      JSON.stringify(messages)
+    );
+    return true;
+  }catch(error){
+    console.error(error);
+    toast('تعذر حفظ الرسالة.');
+    return false;
+  }
+}
+
+function getChatVideoIcon(url){
+  try{
+    const host = new URL(url).hostname.toLowerCase();
+
+    return host.includes('tiktok')
+      ? 'fa-brands fa-tiktok'
+      : 'fa-brands fa-youtube';
+  }catch{
+    return 'fa-solid fa-link';
+  }
+}
+
+function renderChat(){
+  const messages = [...loadChatMessages().map(m=>({...m,local:true})),...publicMessages.map(m=>({id:m.id,name:m.author_name,avatar:m.author_avatar,text:m.text,date:m.created_at,user_id:m.user_id,remote:true}))].sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const container = $('chatMessages');
+
+  $('chatCount').textContent = messages.length + ' رسالة';
+
+  container.innerHTML = '';
+
+  if(!messages.length){
+    container.innerHTML = `
+      <div class="chat-empty">
+        <i class="fa-brands fa-discord" style="font-size:30px"></i>
+        <p>لا توجد رسائل حتى الآن.</p>
+        <p>ابدأ أول مشاركة في المجتمع!</p>
+      </div>
+    `;
+    return;
+  }
+
+  messages.forEach(message => {
+    const item = document.createElement('article');
+    item.className = 'chat-message';
+
+    const videoURL = validateVideoURL(message.text);
+    const date = new Date(message.date);
+
+    const time = Number.isNaN(date.getTime())
+      ? ''
+      : date.toLocaleString('ar-DZ', {
+          day:'2-digit',
+          month:'2-digit',
+          hour:'2-digit',
+          minute:'2-digit'
+        });
+
+    item.innerHTML = `
+      <div class="chat-avatar">
+        ${message.avatar && safeURL(message.avatar) ? `<img src="${escapeHTML(safeURL(message.avatar))}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:11px">` : escapeHTML(String(message.name || 'LZ').slice(0,2))}
+      </div>
+
+      <div class="chat-message-body">
+        <div class="chat-message-top">
+          <strong>${escapeHTML(message.name || 'LZ Creator')}</strong>
+          <span class="chat-time">${escapeHTML(time)}</span>
+          <button
+            type="button"
+            class="chat-delete"
+            style="${message.remote && currentUser?.id !== message.user_id ? 'display:none' : ''}"
+            data-chat-delete="${escapeHTML(message.id)}"
+            data-chat-remote="${message.remote ? '1' : '0'}"
+            title="حذف الرسالة"
+          >
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </div>
+
+        ${
+          videoURL
+          ? `
+            <a
+              class="chat-link"
+              href="${escapeHTML(videoURL)}"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <i class="${getChatVideoIcon(videoURL)}"></i>
+              <span>${escapeHTML(videoURL)}</span>
+              <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            </a>
+          `
+          : `
+            <p class="chat-message-text">
+              ${escapeHTML(message.text)}
+            </p>
+          `
+        }
+      </div>
+    `;
+
+    container.appendChild(item);
+  });
+
+  container.scrollTop = container.scrollHeight;
+}
+
+$('chatForm').addEventListener('submit', async event => {
+  event.preventDefault();
+  if(!currentUser){toast('سجّل دخولك عبر Discord باش تنشر بحسابك');return;}
+  const text=$('chatMessage').value.trim();
+  if(!text)return;
+  const url=validateVideoURL(text);
+  if(/^https?:\/\//i.test(text) && !url){toast('الرابط يجب أن يكون من TikTok أو YouTube');return;}
+  if(!chatOnline){toast('المحادثة العامة غير مفعّلة: لازم جدول community_messages');return;}
+  const {error}=await db.from('community_messages').insert({user_id:currentUser.id,author_name:userName(currentUser),author_avatar:userAvatar(currentUser),text:url||text});
+  if(error){console.error(error);toast('تعذر نشر الرسالة، راجع سياسات RLS');return;}
+  $('chatMessage').value='';await loadPublicChat();toast('تم نشر رسالتك بحساب Discord');
+});
+
+$('chatMessages').addEventListener('click', async event => {
+  const button=event.target.closest('[data-chat-delete]');if(!button)return;
+  const id=button.dataset.chatDelete;
+  if(button.dataset.chatRemote==='1'){
+    if(!currentUser)return;
+    const {error}=await db.from('community_messages').delete().eq('id',id).eq('user_id',currentUser.id);
+    if(error){toast('ما قدرتش تحذف الرسالة');return;}
+    await loadPublicChat();
+  }else{
+    const messages=loadChatMessages().filter(m=>String(m.id)!==id);
+    if(!saveChatMessages(messages))return;
+    renderChat();
+  }
+});
+
+window.addEventListener('storage', event => {
+  if(event.key === CHAT_STORAGE_KEY){
+    renderChat();
+  }
+});
+
+renderChat();
+
+  /* INITIAL LOAD */
+
+  loadVideoLinks();
+  loadData();
+  startSupabase();
+
+  const initialPage = location.hash.replace('#', '');
+  navigate(pageInfo[initialPage] ? initialPage : 'designers');
+
+})();
+</script>
+
+</body>
+</html>
