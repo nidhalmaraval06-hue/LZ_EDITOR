@@ -1,4 +1,3 @@
-
 'use strict';
 
 // LZ EDITORS Backend — Node.js 20+
@@ -38,9 +37,35 @@ const supabase = createClient(
 );
 
 const app = express();
-
-
+app.set('trust proxy', 1);
 app.disable('x-powered-by');
+
+// صفحات الموقع
+const pages = [
+  'login-dashboard.html',
+  'login-designers.html',
+  'dashboard.html',
+  'designers.html'
+];
+
+app.get('/', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'login-dashboard.html'));
+});
+app.get('/login-dashboard.html', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'login-dashboard.html'));
+});
+
+pages.forEach(page => {
+  app.get('/' + page, (_req, res) => {
+    res.sendFile(path.join(__dirname, page));
+  });
+});
+
+// الشعار
+app.get('/logo.png', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'logo.png'));
+});
+
 app.use(express.json({ limit: '32kb' }));
 
 const origins = process.env.FRONTEND_ORIGIN
@@ -95,7 +120,7 @@ function validUrl(value) {
 const fail = (res, status, message) =>
   res.status(status).json({ error: message });
 
-// Verify Supabase access token
+// التحقق من تسجيل الدخول
 async function auth(req, res, next) {
   try {
     const token = /^Bearer (.+)$/i.exec(
@@ -119,7 +144,7 @@ async function auth(req, res, next) {
   }
 }
 
-// Get user's role
+// جلب رتبة العضو
 async function getRole(userId) {
   if (userId === process.env.OWNER_USER_ID) {
     return 'owner';
@@ -150,7 +175,7 @@ async function requireOwnerOrCoOwner(req, res, next) {
   }
 }
 
-// Health check
+// فحص السيرفر
 app.get('/api/health', (_req, res) => {
   res.json({
     ok: true,
@@ -158,7 +183,7 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
-// Public designers
+// جلب المصممين
 app.get('/api/designers', async (_req, res, next) => {
   try {
     const { data, error } = await supabase
@@ -206,7 +231,7 @@ app.get('/api/designers', async (_req, res, next) => {
   }
 });
 
-// Current user
+// المستخدم الحالي
 app.get('/api/me', auth, async (req, res, next) => {
   try {
     const { data, error } = await supabase
@@ -229,7 +254,7 @@ app.get('/api/me', auth, async (req, res, next) => {
   }
 });
 
-// Update TikTok profile
+// تحديث حساب تيك توك
 app.put('/api/me/profile', auth, async (req, res, next) => {
   try {
     const tiktok = validUrl(req.body?.tiktok_url);
@@ -288,7 +313,7 @@ app.put('/api/me/profile', auth, async (req, res, next) => {
   }
 });
 
-// Public messages
+// جلب رسائل المجتمع
 app.get('/api/messages', async (req, res, next) => {
   try {
     const limit = Math.min(
@@ -312,7 +337,7 @@ app.get('/api/messages', async (req, res, next) => {
   }
 });
 
-// Send message
+// إرسال رسالة
 app.post('/api/messages', auth, async (req, res, next) => {
   try {
     const message = String(req.body?.text || '').trim();
@@ -356,17 +381,22 @@ app.post('/api/messages', auth, async (req, res, next) => {
   }
 });
 
-// Delete message
+// حذف رسالة
 app.delete('/api/messages/:id', auth, async (req, res, next) => {
   try {
-    if (!uuid(req.params.id)) {
+    const messageId = req.params.id;
+
+    if (
+      !/^[1-9]\d*$/.test(messageId) ||
+      BigInt(messageId) > 9223372036854775807n
+    ) {
       return fail(res, 400, 'Invalid message ID');
     }
 
     const { data: message, error: readError } = await supabase
       .from('community_messages')
       .select('user_id')
-      .eq('id', req.params.id)
+      .eq('id', messageId)
       .maybeSingle();
 
     if (readError) throw readError;
@@ -387,7 +417,7 @@ app.delete('/api/messages/:id', auth, async (req, res, next) => {
     const { error } = await supabase
       .from('community_messages')
       .delete()
-      .eq('id', req.params.id);
+      .eq('id', messageId);
 
     if (error) throw error;
 
@@ -397,7 +427,7 @@ app.delete('/api/messages/:id', auth, async (req, res, next) => {
   }
 });
 
-// Assign roles
+// تغيير رتب الأعضاء
 app.put(
   '/api/roles/:userId',
   auth,
@@ -464,7 +494,7 @@ app.put(
   }
 );
 
-// Error handler
+// معالجة الأخطاء
 app.use((error, _req, res, _next) => {
   console.error('Backend error:', error);
 
