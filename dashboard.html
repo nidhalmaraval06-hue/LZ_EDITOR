@@ -568,7 +568,7 @@ tbody tr:last-child td{border-bottom:none}
   const sb = window.supabase?.createClient(SB_URL, SB_KEY);
   let currentRole = null;
   let remoteDesigners = [];
-  const allowedRoles = ['member','co_owner','developer','head_admin','admin','moderator','helper','top_1','top_2'];
+  const allowedRoles = ['member','co_owner','developer','head_admin','admin','moderator','helper','top_1','top_2','top_3'];
   async function apiRequest(path, options = {}) {
     const {data:{session}} = await sb.auth.getSession();
     if (!session?.access_token) throw new Error('انتهت الجلسة، سجّل الدخول مجددًا');
