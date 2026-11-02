@@ -560,7 +560,20 @@ tbody tr:last-child td{border-bottom:none}
 (() => {
   'use strict';
 
-  const roleLabels = {member:'عضو', owner:'LZ | Owner', co_owner:'💎 LZ | Co Owner', developer:'🔧 LZ | Developer dis.', head_admin:'🛠️ LZ | Head Admin', admin:'🛡️ LZ | Admin', moderator:'⭐ LZ | Moderator', helper:'✧ LZ | Helper', top_1:'🥇 LZ | TOP 1', top_2:'🥈 LZ | TOP 2', content_manager:'مسؤول محتوى'};
+  const roleLabels = {
+  member: '👤 LZ | MEMBER',
+  owner: '👑 LZ | Owner',
+  co_owner: '💎 LZ | Co Owner',
+  developer: '🔧 LZ | Developer',
+  head_admin: '🛠️ LZ | Head Admin',
+  admin: '🛡️ LZ | Admin',
+  moderator: '⭐ LZ | Moderator',
+  helper: '✧ LZ | Helper',
+  top_1: '🥇 LZ | TOP 1',
+  top_2: '🥈 LZ | TOP 2',
+  top_3: '🥉 LZ | TOP 3',
+  content_manager: 'مسؤول محتوى'
+};
   let editingRoleId = null;
   const API = 'https://lz-editor-qoa6.onrender.com';
   const SB_URL = 'https://gotgssqdkercujjzisdm.supabase.co';
