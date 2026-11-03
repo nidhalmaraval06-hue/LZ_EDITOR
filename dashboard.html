@@ -3,11 +3,11 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="manifest" href="/manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#090711">
 <meta name="description" content="LZ EDITORS - Creative Community Dashboard">
 <title>LZ EDITORS | Creative Hub</title>
-<link rel="icon" href="logo.png"><link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -155,7 +155,6 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .badge-green{color:#82e8b3;background:rgba(93,227,160,.08);border:1px solid rgba(93,227,160,.14)}
 .badge-pink{color:#f2b4ff;background:rgba(209,106,255,.09);border:1px solid rgba(209,106,255,.16)}
 .badge-muted{color:#aaa0bd;background:rgba(255,255,255,.04);border:1px solid var(--border)}
-.badge-red{color:#ff9bac;background:rgba(255,80,110,.10);border:1px solid rgba(255,80,110,.25)}
 
 /* PANELS / STATS */
 .panel,.stat-card{background:linear-gradient(145deg,rgba(24,18,39,.88),rgba(14,11,23,.94));border:1px solid var(--border);border-radius:18px;min-width:0}
@@ -343,21 +342,20 @@ tbody tr:last-child td{border-bottom:none}
       <button data-page="awards"><i class="fa-solid fa-trophy"></i> الجوائز والشارات</button>
       <button data-page="giveaway"><i class="fa-solid fa-gift"></i> Giveaway</button>
       <button data-page="winners"><i class="fa-solid fa-medal"></i> أرشيف الفائزين</button>
-      <button data-page="bans"><i class="fa-solid fa-user-lock"></i> إدارة الحظر</button>
     </nav>
 
     <div class="nav-label">ADMINISTRATION</div>
     <nav class="nav">
       <button data-page="manage"><i class="fa-solid fa-sliders"></i> إدارة المحتوى</button>
+      <button data-page="bans"><i class="fa-solid fa-ban"></i> الحظر وإلغاء الحظر</button>
       <button data-page="settings"><i class="fa-solid fa-gear"></i> الإعدادات</button>
-      <a class="nav-link" href="https://discord.gg/PVZpUJH35" target="_blank" rel="noopener noreferrer" style="display:block;padding:11px 14px;color:inherit;text-decoration:none"><i class="fa-brands fa-discord"></i> انضم إلى Discord</a>
     </nav>
 
     <div class="sidebar-bottom">
       <div class="community-card">
         <div class="community-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
         <strong>LZ Creative Space</strong>
-        <p>مجتمع للمصممين والمبدعين، لعرض الأعمال والاحتفاء بالمواهب.</p><a href="https://discord.gg/PVZpUJH35" target="_blank" rel="noopener noreferrer" style="color:#bda0ff;font-size:11px">انضم إلى سيرفر Discord</a>
+        <p>مجتمع للمصممين والمبدعين، لعرض الأعمال والاحتفاء بالمواهب.</p>
       </div>
       <div class="connection"><span class="connection-dot"></span><span>واجهة محلية — غير مربوطة بالخادم</span></div>
     </div>
@@ -524,18 +522,20 @@ tbody tr:last-child td{border-bottom:none}
       <div class="setting-note"><i class="fa-solid fa-triangle-exclamation"></i> البيانات تُحفظ في LocalStorage داخل المتصفح فقط. إذا مسحت بيانات المتصفح أو فتحت الموقع على جهاز آخر، قد لا تظهر البيانات. هذه ليست قاعدة بيانات مشتركة، وليست نظام صلاحيات آمناً.</div>
     </section>
 
+
     <!-- BAN MANAGEMENT -->
     <section class="page" id="page-bans">
-      <div class="section-heading"><div><h3>إدارة الحظر</h3><p>اعرض المحظورين، سبب الحظر، تاريخ الانتهاء، واحذف الحظر عند الحاجة.</p></div><button class="btn btn-secondary btn-small" id="refreshBans" type="button"><i class="fa-solid fa-rotate"></i> تحديث القائمة</button></div>
-      <div class="panel" style="padding:18px;margin-bottom:16px">
-        <div class="panel-head"><h3><i class="fa-solid fa-user-lock"></i> حظر عضو</h3><span>OWNER / CO OWNER / MANAGER ADMIN</span></div>
+      <div class="section-heading"><div><h3>إدارة الحظر</h3><p>عرض المحظورين، سبب الحظر، من قام به، والمدة المتبقية مع إمكانية إلغاء الحظر.</p></div><button class="btn btn-secondary btn-small" id="refreshBans" type="button"><i class="fa-solid fa-rotate"></i> تحديث</button></div>
+      <div class="panel" style="margin-bottom:16px">
+        <div class="panel-head"><h3><i class="fa-solid fa-user-slash"></i> حظر عضو</h3><span>MODERATION</span></div>
         <form id="banForm"><div class="form-grid">
-          <div class="form-group"><label for="banTarget">العضو</label><select class="field" id="banTarget" required><option value="">اختر العضو</option></select></div>
-          <div class="form-group"><label for="banDuration">مدة الحظر</label><select class="field" id="banDuration"><option value="60">ساعة واحدة</option><option value="360">6 ساعات</option><option value="720">12 ساعة</option><option value="1440">يوم واحد</option><option value="4320">3 أيام</option><option value="10080">7 أيام</option><option value="43200">30 يوماً</option><option value="0">دائم</option></select></div>
-          <div class="form-group full"><label for="banReason">سبب الحظر</label><textarea class="field" id="banReason" required maxlength="500" placeholder="اكتب سبب الحظر بوضوح..."></textarea></div>
+          <div class="form-group"><label for="banUser">العضو *</label><select class="field" id="banUser" required><option value="">اختر العضو</option></select></div>
+          <div class="form-group"><label for="banDuration">مدة الحظر *</label><select class="field" id="banDuration" required><option value="1">ساعة واحدة</option><option value="6">6 ساعات</option><option value="12">12 ساعة</option><option value="24" selected>يوم واحد</option><option value="72">3 أيام</option><option value="168">7 أيام</option><option value="720">30 يوماً</option><option value="custom">تاريخ ووقت مخصص</option><option value="permanent">دائم</option></select></div>
+          <div class="form-group" id="banCustomWrap" style="display:none"><label for="banCustomDate">ينتهي الحظر في</label><input class="field" id="banCustomDate" type="datetime-local"></div>
+          <div class="form-group full"><label for="banReason">سبب الحظر *</label><textarea class="field" id="banReason" maxlength="500" required placeholder="اكتب سبب الحظر بوضوح..."></textarea></div>
         </div><div class="form-actions"><button class="btn btn-danger" type="submit"><i class="fa-solid fa-ban"></i> تأكيد الحظر</button></div></form>
       </div>
-      <div class="panel" style="padding:18px"><div class="panel-head"><h3>المحظورون وسجل الحظر</h3><span id="banCount">0</span></div><div id="bansList" class="quick-list"><p>جاري تحميل القائمة...</p></div></div>
+      <div class="panel"><div class="panel-head"><h3>سجل الحظر</h3><span id="banCount">0</span></div><div class="table-wrap"><table><thead><tr><th>العضو</th><th>السبب</th><th>بواسطة</th><th>تاريخ الحظر</th><th>ينتهي في</th><th>الحالة</th><th>إجراء</th></tr></thead><tbody id="banRows"><tr><td colspan="7">جاري تحميل سجل الحظر...</td></tr></tbody></table></div></div>
     </section>
 
     <!-- SETTINGS -->
@@ -566,8 +566,8 @@ tbody tr:last-child td{border-bottom:none}
     <h3 id="permissionsTitle" style="margin-bottom:9px">صلاحيات المصمم</h3>
     <p id="permissionsName" style="font-size:12px;color:var(--muted);margin-bottom:15px"></p>
     <label for="permissionsRole" style="display:block;font-size:11px;margin-bottom:7px">اختر الرتبة</label>
-    <select id="permissionsRole" class="field" style="margin-bottom:12px"><option value="member">بدون رتبة إدارية (عضو)</option><option value="co_owner">𝐋𝐙 𝐂𝐨 𝐎𝐰𝐧𝐞𝐫 💎</option><option value="manager_admin">𝐌𝐀𝐍𝐀𝐆𝐄𝐑 𝐀𝐃𝐌𝐈𝐍</option><option value="help_admin">𝐋𝐙 𝐇𝐞𝐥𝐩 𝐀𝐝𝐦𝐢𝐧 🛡️</option><option value="admin">𝐋𝐙 𝐀𝐝𝐦𝐢𝐧 🎭</option></select>
-    <p style="font-size:10px;color:var(--muted);line-height:1.9">الرتب تحفظ في Supabase عبر السيرفر. دخول الداشبورد للمالك ونائبه وManager Admin.</p>
+    <select id="permissionsRole" class="field" style="margin-bottom:12px"><option value="member">عضو</option><option value="co_owner">𝐋𝐙 𝐂𝐨 𝐎𝐰𝐧𝐞𝐫 💎</option><option value="manager_admin">𝐌𝐀𝐍𝐀𝐆𝐄𝐑 𝐀𝐃𝐌𝐈𝐍</option></select>
+    <p style="font-size:10px;color:var(--muted);line-height:1.9">الرتب تحفظ في Supabase عبر السيرفر. Owner وحده يمنح رتب الإدارة؛ Co Owner وManager Admin يديران الأعضاء والحظر.</p>
     <div class="form-actions"><button class="btn btn-primary" type="submit">حفظ الرتبة</button><button class="btn btn-secondary" type="button" id="permissionsCancel">إلغاء</button></div>
   </form>
 </dialog>
@@ -578,50 +578,67 @@ tbody tr:last-child td{border-bottom:none}
   'use strict';
 
   const roleLabels = {
-  member: 'عضو',
-  owner: 'LZ Owner 👑',
-  co_owner: '𝐋𝐙 𝐂𝐨 𝐎𝐰𝐧𝐞𝐫 💎',
-  manager_admin: '𝐌𝐀𝐍𝐀𝐆𝐄𝐑 𝐀𝐃𝐌𝐈𝐍',
-  help_admin: '𝐋𝐙 𝐇𝐞𝐥𝐩 𝐀𝐝𝐦𝐢𝐧 🛡️',
-  admin: '𝐋𝐙 𝐀𝐝𝐦𝐢𝐧 🎭'
-};
+    member: 'عضو',
+    owner: 'LZ Owner 👑',
+    co_owner: '𝐋𝐙 𝐂𝐨 𝐎𝐰𝐧𝐞𝐫 💎',
+    manager_admin: '𝐌𝐀𝐍𝐀𝐆𝐄𝐑 𝐀𝐃𝐌𝐈𝐍'
+  };
   let editingRoleId = null;
   const API = 'https://lz-editor-qoa6.onrender.com';
   const SB_URL = 'https://gotgssqdkercujjzisdm.supabase.co';
   const SB_KEY = 'sb_publishable_4NyoLY_J46KA6Lt2T4PNBg_Bzy8bT3r';
-  const sb = window.supabase?.createClient(SB_URL, SB_KEY, {auth:{storageKey:'lz-editors-auth-v1',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
+  const sb = window.supabase?.createClient(SB_URL, SB_KEY, {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
   let currentRole = null;
   let remoteDesigners = [];
-  const allowedRoles = ['member','co_owner','manager_admin','help_admin','admin'];
-  async function validSession(forceRefresh = false) {
-    let result = forceRefresh ? await sb.auth.refreshSession() : await sb.auth.getSession();
-    let session = result?.data?.session || null;
-    if (!session?.access_token && !forceRefresh) {
-      result = await sb.auth.refreshSession();
-      session = result?.data?.session || null;
+  let banUsers = [];
+  const allowedRoles = ['member','co_owner','manager_admin'];
+  async function getAuthSession() {
+    if (!sb) throw new Error('مكتبة تسجيل الدخول غير متاحة');
+    try { if (typeof sb.auth.initialize === 'function') await sb.auth.initialize(); } catch (_) {}
+    let result = await sb.auth.getSession();
+    if (result.error) console.warn('getSession:', result.error.message);
+    let session = result.data?.session || null;
+    for (let attempt = 0; !session?.access_token && attempt < 4; attempt++) {
+      await new Promise(resolve => setTimeout(resolve, 250));
+      result = await sb.auth.getSession();
+      session = result.data?.session || null;
     }
-    if (!session?.access_token) throw new Error('انتهت الجلسة. أعد تسجيل الدخول من صفحة الإدارة.');
+    if (!session?.access_token && session?.refresh_token) {
+      const refreshed = await sb.auth.refreshSession({refresh_token:session.refresh_token});
+      if (!refreshed.error) session = refreshed.data?.session || null;
+    }
     return session;
   }
   async function apiRequest(path, options = {}) {
-    let session = await validSession();
+    let session = await getAuthSession();
+    if (!session?.access_token) {
+      location.replace('/login-dashboard.html');
+      throw new Error('انتهت جلسة الدخول. أعد تسجيل الدخول.');
+    }
     const send = token => fetch(API + path, {
       ...options,
-      headers: {'Authorization':'Bearer '+token,
-        ...(options.body ? {'Content-Type':'application/json'} : {}), ...(options.headers || {})}
+      headers: {'Authorization':'Bearer '+token, ...(options.body ? {'Content-Type':'application/json'} : {}), ...(options.headers || {})}
     });
     let response = await send(session.access_token);
     if (response.status === 401) {
-      session = await validSession(true);
-      response = await send(session.access_token);
+      const refreshed = await sb.auth.refreshSession({refresh_token:session.refresh_token});
+      if (!refreshed.error && refreshed.data?.session?.access_token) response = await send(refreshed.data.session.access_token);
     }
-    const body = await response.json().catch(() => ({}));
+    let body = await response.json().catch(() => ({}));
     if (!response.ok) {
-      const error = new Error(body.error || `HTTP ${response.status}`);
-      error.status = response.status; error.ban = body.ban || null; error.banned = !!body.banned;
-      throw error;
+      if (response.status === 403 && body.ban) { showBanned(body.ban); const err = new Error(body.error || 'تم حظر الحساب'); err.ban = body.ban; throw err; }
+      throw new Error(body.error || `HTTP ${response.status}`);
     }
     return body;
+  }
+  function showBanned(ban) {
+    const box = document.getElementById('authLoading');
+    if (!box) return;
+    const reason = escapeHTML(ban?.reason || 'لم يتم تحديد السبب');
+    const expiry = ban?.expires_at ? new Date(ban.expires_at).toLocaleString('ar-DZ') : 'حظر دائم';
+    const left = ban?.expires_at ? Math.max(0, new Date(ban.expires_at).getTime() - Date.now()) : null;
+    const remaining = left === null ? 'دائم' : left <= 0 ? 'انتهى' : `${Math.floor(left/86400000)} يوم و${Math.floor((left%86400000)/3600000)} ساعة و${Math.floor((left%3600000)/60000)} دقيقة`;
+    box.innerHTML = `<div style="max-width:520px;padding:28px;text-align:center;background:#171126;border:1px solid #a64b62;border-radius:20px"><h2 style="color:#ff8298">تم حظر حسابك</h2><p style="margin:12px 0">السبب: ${reason}</p><p>ينتهي: ${escapeHTML(expiry)}</p><p>الوقت المتبقي: ${escapeHTML(remaining)}</p><a class="btn btn-primary" style="display:inline-block;margin-top:16px" href="https://discord.com/channels/1528679532637454376/1565737674357342228" target="_blank" rel="noopener">تقديم طعن في Discord</a></div>`;
   }
   async function loadRemoteDesigners() {
     const response = await fetch(API + '/api/designers');
@@ -635,13 +652,14 @@ tbody tr:last-child td{border-bottom:none}
     }));
     data.designers = remoteDesigners;
     renderAll();
+    fillBanUsers();
   }
   async function initializeDashboard() {
     try {
       if (!sb) throw new Error('مكتبة Supabase ما تحملتش');
       const me = await apiRequest('/api/me');
       if (!['owner','co_owner','manager_admin'].includes(me.role)) {
-        document.getElementById('authLoading').textContent = 'ممنوع الدخول: هذه اللوحة للمالك وCo Owner وManager Admin';
+        document.getElementById('authLoading').textContent = 'ممنوع الدخول: الداشبورد للمالك ونائبه فقط';
         return;
       }
       currentRole = me.role;
@@ -650,12 +668,11 @@ tbody tr:last-child td{border-bottom:none}
       document.querySelector('.profile-name').textContent = me.profile?.discord_username || 'الإدارة';
       document.querySelector('.profile-role').textContent = roleLabels[me.role] || me.role.toUpperCase();
       await loadRemoteDesigners();
-      await loadSharedContent();
+      await loadBanUsers();
       await loadBans();
     } catch (error) {
       console.error('Dashboard authentication:', error);
-      document.getElementById('authLoading').textContent = (error.banned ? 'هذا الحساب محظور: ' + (error.ban?.reason || '') : 'تعذر التحقق من الدخول: ' + error.message) + ' — جاري تحويلك إلى تسجيل الدخول...';
-      if (!error.banned && /انتهت الجلسة|سجّل الدخول|session/i.test(error.message)) setTimeout(() => location.replace(new URL('/login-dashboard.html', location.origin).href), 700);
+      document.getElementById('authLoading').textContent = 'تعذر التحقق من الدخول: ' + error.message;
       // Keep dashboard hidden until backend verifies the session.
     }
   }
@@ -670,7 +687,7 @@ tbody tr:last-child td{border-bottom:none}
     winners:'أرشيف الفائزين',
     manage:'إدارة المحتوى',
     settings:'الإعدادات',
-    bans:'إدارة الحظر'
+    bans:'الحظر وإلغاء الحظر'
   };
 
   const $ = id => document.getElementById(id);
@@ -731,33 +748,11 @@ tbody tr:last-child td{border-bottom:none}
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
       renderAll();
-      // Keep a local backup, and persist shared site content through the protected backend.
-      apiRequest('/api/content', {method:'PUT', body:JSON.stringify({content:{works:data.works,awards:data.awards,winners:data.awards,giveaways:data.giveaways,designers:[]}})})
-        .catch(error => toast('تم الحفظ محلياً، لكن تعذر تحديث Supabase: '+error.message));
       return true;
     } catch (error) {
       toast('تعذر الحفظ. قد تكون مساحة تخزين المتصفح ممتلئة.');
       return false;
     }
-  }
-  async function loadSharedContent() {
-    try {
-      const remote = await apiRequest('/api/content');
-      const merge = (localRows, remoteRows) => {
-        const result = [...(Array.isArray(remoteRows) ? remoteRows : [])];
-        const keyOf = item => String(item?.id || item?.title || item?.name || JSON.stringify(item));
-        const keys = new Set(result.map(keyOf));
-        for (const item of (Array.isArray(localRows) ? localRows : [])) {
-          const key = keyOf(item); if (!keys.has(key)) { result.push(item); keys.add(key); }
-        }
-        return result;
-      };
-      data.works = merge(data.works, remote.works);
-      data.awards = merge(data.awards, Array.isArray(remote.awards) ? remote.awards : remote.winners);
-      data.giveaways = merge(data.giveaways, remote.giveaways);
-      renderAll();
-      apiRequest('/api/content', {method:'PUT', body:JSON.stringify({content:{works:data.works,awards:data.awards,winners:data.awards,giveaways:data.giveaways,designers:[]}})}).catch(error => console.warn('Initial content sync:',error.message));
-    } catch(error) { console.warn('Shared content not loaded:', error.message); }
   }
 
   function openPage(name) {
@@ -832,7 +827,7 @@ tbody tr:last-child td{border-bottom:none}
         ${avatar}
         <h3>${escapeHTML(d.name)}</h3>
         <div class="designer-specialty">${escapeHTML(d.specialty)}</div>
-        <div class="designer-badges">${d.badge ? `<span class="badge badge-gold">${escapeHTML(d.badge)}</span>` : '<span class="badge badge-muted">مصمم LZ</span>'} ${d.role && d.role !== 'member' ? `<span class="badge badge-purple">${escapeHTML(roleLabels[d.role] || 'عضو')}</span>` : ''}</div>
+        <div class="designer-badges">${d.badge ? `<span class="badge badge-gold">${escapeHTML(d.badge)}</span>` : '<span class="badge badge-muted">مصمم LZ</span>'} <span class="badge badge-purple">${escapeHTML(roleLabels[d.role] || 'عضو')}</span></div>
         <div class="social-links">
           ${linkHTML(d.tiktok, 'TikTok', 'fa-brands fa-tiktok')}
           ${linkHTML(d.channel, 'القناة', 'fa-brands fa-youtube')}
@@ -1017,37 +1012,6 @@ tbody tr:last-child td{border-bottom:none}
     finally { button.disabled = false; }
   });
 
-  function formatBanDate(value) { return value ? new Date(value).toLocaleString('ar-DZ') : 'حظر دائم'; }
-  async function loadBans() {
-    const rows = await apiRequest('/api/bans');
-    const active = rows.filter(x => x.active);
-    $('banCount').textContent = `${active.length} نشط / ${rows.length} إجمالي`;
-    $('banTarget').innerHTML = '<option value="">اختر العضو</option>' + remoteDesigners.filter(d => d.role !== 'owner').map(d => `<option value="${escapeHTML(d.id)}">${escapeHTML(d.name)} — ${escapeHTML(roleLabels[d.role] || 'عضو')}</option>`).join('');
-    $('bansList').innerHTML = rows.length ? rows.map(b => {
-      const name = b.profile?.display_name || b.profile?.discord_username || b.user_id;
-      return `<div class="quick-action" style="align-items:flex-start;gap:12px"><span style="flex:1;min-width:0"><strong>${escapeHTML(name)} ${b.active ? '<span class="badge badge-red">محظور</span>' : '<span class="badge badge-muted">منتهي</span>'}</strong><small>السبب: ${escapeHTML(b.reason || 'غير محدد')}<br>بداية الحظر: ${escapeHTML(formatBanDate(b.created_at))}<br>ينتهي: ${escapeHTML(formatBanDate(b.expires_at))}</small></span>${b.active ? `<button class="btn btn-secondary btn-small" data-unban="${escapeHTML(b.user_id)}"><i class="fa-solid fa-unlock"></i> حذف الحظر</button>` : ''}</div>`;
-    }).join('') : '<p class="setting-note">لا يوجد أي حظر مسجل حالياً.</p>';
-  }
-  $('banForm').addEventListener('submit', async event => {
-    event.preventDefault();
-    const target=$('banTarget').value, reason=$('banReason').value.trim(), duration=Number($('banDuration').value);
-    if(!target || !reason) return toast('اختر العضو واكتب سبب الحظر.');
-    const button=event.target.querySelector('[type="submit"]'); button.disabled=true;
-    try {
-      await apiRequest('/api/bans/ban/'+encodeURIComponent(target),{method:'POST',body:JSON.stringify({reason,duration_minutes:duration})});
-      $('banReason').value=''; await loadBans(); toast('تم حظر العضو وحفظ السبب والمدة.');
-    } catch(error) { toast('فشل الحظر: '+error.message); }
-    finally { button.disabled=false; }
-  });
-  $('refreshBans').addEventListener('click',()=>loadBans().catch(e=>toast(e.message)));
-  document.addEventListener('click', async event => {
-    const button=event.target.closest('[data-unban]'); if(!button) return;
-    if(!confirm('هل تريد حذف الحظر عن هذا العضو؟')) return;
-    button.disabled=true;
-    try { await apiRequest('/api/bans/unban/'+encodeURIComponent(button.dataset.unban),{method:'DELETE'}); await loadBans(); toast('تم حذف الحظر.'); }
-    catch(e) { toast('تعذر حذف الحظر: '+e.message); button.disabled=false; }
-  });
-
   $('permissionsCancel').addEventListener('click', () => $('permissionsDialog').close());
   $('permissionsForm').addEventListener('submit', async event => {
     event.preventDefault();
@@ -1055,8 +1019,7 @@ tbody tr:last-child td{border-bottom:none}
     const role = $('permissionsRole').value;
     if (!designer || !allowedRoles.includes(role)) return toast('رتبة غير مسموحة');
     if (designer.role === 'owner') return toast('لا يمكن تعديل رتبة المالك');
-    if (role === 'co_owner' && currentRole !== 'owner') return toast('المالك فقط يمنح رتبة نائب المالك');
-    if (role === 'manager_admin' && !['owner','co_owner'].includes(currentRole)) return toast('المالك أو نائب المالك فقط يمنح Manager Admin');
+    if (role !== 'member' && currentRole !== 'owner') return toast('المالك فقط يمنح رتب الإدارة');
     const submit = event.target.querySelector('[type="submit"]');
     submit.disabled = true;
     try {
@@ -1065,8 +1028,6 @@ tbody tr:last-child td{border-bottom:none}
       });
       $('permissionsDialog').close();
       await loadRemoteDesigners();
-      await loadSharedContent();
-      await loadBans();
       toast('تم حفظ الرتبة في Supabase بنجاح');
     } catch (error) { toast('فشل تغيير الرتبة: ' + error.message); }
     finally { submit.disabled = false; }
@@ -1081,6 +1042,7 @@ tbody tr:last-child td{border-bottom:none}
         editingRoleId = designer.id;
         $('permissionsName').textContent = designer.name;
         $('permissionsRole').value = roleLabels[designer.role] ? designer.role : 'member';
+        for (const option of $('permissionsRole').options) { option.disabled = currentRole !== 'owner' && option.value !== 'member'; }
         $('permissionsDialog').showModal();
       }
       return;
@@ -1135,6 +1097,80 @@ tbody tr:last-child td{border-bottom:none}
     }
   });
 
+  // Ban management
+  function formatDate(value) { return value ? new Date(value).toLocaleString('ar-DZ') : '—'; }
+  function formatRemaining(value) { if (!value) return 'دائم'; const ms = new Date(value).getTime() - Date.now(); if (ms <= 0) return 'انتهى'; const d=Math.floor(ms/86400000), h=Math.floor((ms%86400000)/3600000), m=Math.floor((ms%3600000)/60000); return `${d} يوم، ${h} ساعة، ${m} دقيقة`; }
+  function fillBanUsers() {
+    const select = $('banUser');
+    if (!select) return;
+    const previous = select.value;
+    const users = banUsers.length ? banUsers : remoteDesigners;
+    select.innerHTML = '<option value="">اختر العضو</option>' + users
+      .filter(d => d.role !== 'owner')
+      .map(d => `<option value="${escapeHTML(d.id)}">${escapeHTML(d.name)}${d.role && d.role !== 'member' ? ' — '+escapeHTML(roleLabels[d.role] || d.role) : ''}</option>`).join('');
+    if (previous) select.value = previous;
+  }
+  async function loadBanUsers() {
+    const all = [];
+    let offset = 0;
+    while (offset < 3000) {
+      const page = await apiRequest('/api/admin/users?limit=500&offset=' + offset);
+      all.push(...(page.users || []));
+      if (!page.has_more) break;
+      offset += 500;
+    }
+    banUsers = all;
+    fillBanUsers();
+  }
+  async function loadBans() {
+    const body = $('banRows');
+    if (!body) return;
+    body.innerHTML = '<tr><td colspan="7">جاري تحميل سجل الحظر...</td></tr>';
+    try {
+      const bans = await apiRequest('/api/bans');
+      $('banCount').textContent = String(bans.length);
+      body.innerHTML = bans.length ? bans.map(b => `<tr>
+        <td>${escapeHTML(b.username || b.user_id)}</td><td>${escapeHTML(b.reason || '—')}</td>
+        <td>${escapeHTML(b.banned_by_name || '—')}</td><td>${escapeHTML(formatDate(b.created_at))}</td>
+        <td>${b.expires_at ? escapeHTML(formatDate(b.expires_at)) + `<small style="display:block;color:var(--muted)">متبقي: ${escapeHTML(formatRemaining(b.expires_at))}</small>` : 'دائم'}</td>
+        <td><span class="badge ${b.active ? 'badge-yellow' : 'badge-muted'}">${b.active ? 'محظور' : 'انتهى'}</span></td>
+        <td><button class="btn btn-secondary btn-small" data-unban="${escapeHTML(b.user_id)}">${b.active ? 'إلغاء الحظر' : 'حذف السجل'}</button></td>
+      </tr>`).join('') : '<tr><td colspan="7">لا يوجد حظر مسجل حالياً.</td></tr>';
+      fillBanUsers();
+    } catch (e) { body.innerHTML = `<tr><td colspan="7">تعذر تحميل الحظر: ${escapeHTML(e.message)}</td></tr>`; }
+  }
+  $('banDuration').addEventListener('change', () => { $('banCustomWrap').style.display = $('banDuration').value === 'custom' ? '' : 'none'; });
+  $('refreshBans').addEventListener('click', loadBans);
+  $('banForm').addEventListener('submit', async event => {
+    event.preventDefault();
+    const user_id = $('banUser').value;
+    const reason = $('banReason').value.trim();
+    const duration = $('banDuration').value;
+    if (!user_id || !reason) return toast('اختر العضو واكتب سبب الحظر');
+    const payload = {user_id, reason, duration};
+    if (duration === 'custom') {
+      const date = $('banCustomDate').value;
+      if (!date || new Date(date).getTime() <= Date.now()) return toast('اختر تاريخاً مستقبلياً صحيحاً');
+      payload.expires_at = new Date(date).toISOString();
+    }
+    const submit = event.target.querySelector('[type="submit"]'); submit.disabled = true;
+    try {
+      await apiRequest('/api/bans', {method:'POST', body:JSON.stringify(payload)});
+      event.target.reset(); $('banCustomWrap').style.display = 'none';
+      toast('تم حظر العضو وحفظ السبب والمدة'); await loadBans();
+    } catch (e) { toast('فشل الحظر: ' + e.message); }
+    finally { submit.disabled = false; }
+  });
+  document.addEventListener('click', async event => {
+    const button = event.target.closest('[data-unban]');
+    if (!button) return;
+    const id = button.dataset.unban;
+    if (!confirm('هل تريد إلغاء حظر هذا العضو؟')) return;
+    button.disabled = true;
+    try { await apiRequest('/api/bans/' + encodeURIComponent(id), {method:'DELETE'}); toast('تم إلغاء الحظر'); await loadBans(); }
+    catch(e) { toast('تعذر إلغاء الحظر: ' + e.message); button.disabled = false; }
+  });
+
   // Read-only public chat feed: shared links appear on the dashboard.
   const CHAT_API = 'https://gotgssqdkercujjzisdm.supabase.co/rest/v1/community_messages';
   const CHAT_PUBLIC_KEY = 'sb_publishable_4NyoLY_J46KA6Lt2T4PNBg_Bzy8bT3r';
@@ -1145,7 +1181,10 @@ tbody tr:last-child td{border-bottom:none}
     $('refreshChatLinks').disabled = true;
     $('chatLinksStatus').textContent = 'جاري تحديث روابط المحادثة...';
     try {
-      const response = await fetch(API + '/api/messages?limit=100', { cache: 'no-store' });
+      const response = await fetch(CHAT_API + '?select=id,author_name,author_avatar,text,created_at&order=created_at.desc&limit=100', {
+        headers: { apikey: CHAT_PUBLIC_KEY, Accept: 'application/json' },
+        cache: 'no-store'
+      });
       if (!response.ok) throw new Error('HTTP ' + response.status);
       const messages = await response.json();
       if (!Array.isArray(messages)) throw new Error('Invalid response');
