@@ -97,7 +97,8 @@ const roles = [
   'moderator',
   'helper',
   'top_1',
-  'top_2'
+  'top_2',
+  'top_3'
 ];
 
 const adminRoles = new Set(['owner', 'co_owner']);
@@ -138,6 +139,27 @@ async function auth(req, res, next) {
     }
 
     req.user = data.user;
+
+    // منع الحسابات المحظورة من استخدام واجهات API المحمية
+    const { data: ban, error: banError } = await supabase
+      .from('lz_user_bans')
+      .select('reason,expires_at')
+      .eq('user_id', req.user.id)
+      .maybeSingle();
+
+    if (banError) throw banError;
+    if (ban) {
+      const expired = ban.expires_at && new Date(ban.expires_at).getTime() <= Date.now();
+      if (!expired) {
+        return res.status(403).json({
+          error: 'هذا الحساب محظور من الموقع',
+          reason: ban.reason || '',
+          expires_at: ban.expires_at
+        });
+      }
+      await supabase.from('lz_user_bans').delete().eq('user_id', req.user.id);
+    }
+
     next();
   } catch (error) {
     next(error);
@@ -217,13 +239,29 @@ app.get('/api/designers', async (_req, res, next) => {
       );
     }
 
+    let banMap = new Map();
+    if (ids.length) {
+      const { data: bans, error: banError } = await supabase
+        .from('lz_user_bans')
+        .select('user_id,reason,expires_at')
+        .in('user_id', ids);
+      if (banError) throw banError;
+      const now = Date.now();
+      banMap = new Map((bans || [])
+        .filter(b => !b.expires_at || new Date(b.expires_at).getTime() > now)
+        .map(b => [b.user_id, b]));
+    }
+
     res.json(
       profiles.map(profile => ({
         ...profile,
         role:
           profile.id === process.env.OWNER_USER_ID
             ? 'owner'
-            : roleMap.get(profile.id) || 'member'
+            : roleMap.get(profile.id) || 'member',
+        banned: banMap.has(profile.id),
+        ban_reason: banMap.get(profile.id)?.reason || '',
+        ban_expires_at: banMap.get(profile.id)?.expires_at || null
       }))
     );
   } catch (error) {
@@ -425,6 +463,46 @@ app.delete('/api/messages/:id', auth, async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+});
+
+// حظر مصمم (مؤقت أو دائم) — Owner وCo Owner فقط
+app.put('/api/bans/:userId', auth, requireOwnerOrCoOwner, async (req, res, next) => {
+  try {
+    const target = req.params.userId;
+    const reason = String(req.body?.reason || '').trim().slice(0, 500);
+    const expiresAt = req.body?.expires_at ?? null;
+    if (!uuid(target)) return fail(res, 400, 'Invalid user ID');
+    if (target === process.env.OWNER_USER_ID) return fail(res, 403, 'لا يمكن حظر المالك');
+    if (expiresAt !== null && (!Number.isFinite(Date.parse(expiresAt)) || Date.parse(expiresAt) <= Date.now())) {
+      return fail(res, 400, 'تاريخ انتهاء الحظر غير صالح');
+    }
+    const requesterRole = await getRole(req.user.id);
+    const targetRole = await getRole(target);
+    if (targetRole === 'co_owner' && requesterRole !== 'owner') {
+      return fail(res, 403, 'المالك فقط يمكنه حظر Co Owner');
+    }
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles').select('id').eq('id', target).maybeSingle();
+    if (profileError) throw profileError;
+    if (!profile) return fail(res, 404, 'Designer not found');
+    const { error } = await supabase.from('lz_user_bans').upsert({
+      user_id: target, reason, expires_at: expiresAt,
+      banned_by: req.user.id, created_at: new Date().toISOString()
+    }, { onConflict: 'user_id' });
+    if (error) throw error;
+    res.json({ ok: true, user_id: target, reason, expires_at: expiresAt });
+  } catch (error) { next(error); }
+});
+
+// إلغاء الحظر
+app.delete('/api/bans/:userId', auth, requireOwnerOrCoOwner, async (req, res, next) => {
+  try {
+    const target = req.params.userId;
+    if (!uuid(target)) return fail(res, 400, 'Invalid user ID');
+    const { error } = await supabase.from('lz_user_bans').delete().eq('user_id', target);
+    if (error) throw error;
+    res.json({ ok: true, user_id: target });
+  } catch (error) { next(error); }
 });
 
 // تغيير رتب الأعضاء
