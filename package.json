@@ -1,0 +1,16 @@
+{
+  "name": "lz-editors-backend",
+  "version": "2.0.0",
+  "private": true,
+  "description": "LZ EDITORS API and community site",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.57.4",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.1.0"
+  }
+}
