@@ -39,6 +39,12 @@ const supabase = createClient(
 const app = express();
 app.set('trust proxy', 1);
 app.disable('x-powered-by');
+// Loader.io verification
+app.get('/loaderio-4a17560a8b621dadf4a6909899c457a6.txt', (_req, res) => {
+  res.status(200)
+    .type('text/plain')
+    .send('loaderio-4a17560a8b621dadf4a6909899c457a6');
+});
 
 // Serve only the intended HTML pages. Never expose the entire project folder.
 const pages = [
