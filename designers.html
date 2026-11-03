@@ -3,13 +3,12 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="manifest" href="/manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#090711">
 <meta name="description" content="LZ EDITORS - Creative Community">
 <title>LZ EDITORS | Creative Community</title>
 
 <link rel="icon" href="logo.png">
-<link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -1296,7 +1295,8 @@ select.field option{background:#151020}
     <nav class="nav" id="mainNav">
       <a href="#home" data-page="home"><i class="fa-solid fa-border-all"></i> الرئيسية</a>
       <a href="#designers" data-page="designers" class="active"><i class="fa-solid fa-users"></i> المصممون</a>
-    <a href="#community" data-page="community">
+    <a href="https://discord.gg/PVZpUJH35" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-discord"></i> انضم إلى سيرفر Discord</a>
+      <a href="#community" data-page="community">
   <i class="fa-brands fa-discord"></i> محادثة المجتمع
 </a>
       <a href="#works" data-page="works"><i class="fa-solid fa-images"></i> أعمال المصممين</a>
@@ -1311,7 +1311,7 @@ select.field option{background:#151020}
           <i class="fa-solid fa-wand-magic-sparkles"></i>
         </div>
         <strong>LZ Creative Space</strong>
-        <p>مجتمع للمصممين والمبدعين، لعرض الأعمال والاحتفاء بالمواهب.</p><a href="https://discord.gg/PVZpUJH35" target="_blank" rel="noopener noreferrer" style="color:#bda0ff">انضم إلى سيرفر Discord</a>
+        <p>مجتمع للمصممين والمبدعين، لعرض الأعمال والاحتفاء بالمواهب.</p>
       </div>
 
       <div class="connection">
@@ -1732,6 +1732,13 @@ select.field option{background:#151020}
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div id="banOverlay" style="display:none;position:fixed;inset:0;z-index:99999;background:#080611f5;align-items:center;justify-content:center;padding:20px">
+ <div style="max-width:520px;width:100%;padding:30px;text-align:center;background:#171126;border:1px solid #b84d68;border-radius:22px;box-shadow:0 20px 80px #000b">
+  <div style="font-size:42px;color:#ff8298">⛔</div><h2 style="color:#ff9aaa;margin:10px 0">تم حظر حسابك من LZ EDITORS</h2>
+  <p id="banReason" style="line-height:1.9;color:#eee">سبب الحظر</p><p id="banExpiry" style="color:#c7b5d8"></p><p id="banRemaining" style="color:#c7b5d8"></p>
+  <a href="https://discord.com/channels/1528679532637454376/1565737674357342228" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="display:inline-flex;margin-top:15px"><i class="fa-brands fa-discord"></i> تقديم طعن</a>
+ </div>
+</div>
 <div id="onboardingModal" style="display:none;position:fixed;inset:0;background:#000b;z-index:150;align-items:center;justify-content:center;padding:18px">
  <form id="onboardingForm" class="panel" style="width:min(440px,100%);padding:25px">
   <h3 style="margin-bottom:10px">أكمل حساب المصمم</h3>
@@ -1751,9 +1758,9 @@ select.field option{background:#151020}
   const $ = id => document.getElementById(id);
   const SUPABASE_URL = 'https://gotgssqdkercujjzisdm.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_4NyoLY_J46KA6Lt2T4PNBg_Bzy8bT3r';
-  const db = window.supabase?.createClient(SUPABASE_URL, SUPABASE_KEY, {auth:{storageKey:"lz-editors-auth-v1",detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
-  const API = "https://lz-editor-qoa6.onrender.com";
-  const roleLabels = {owner:"LZ Owner 👑",co_owner:"𝐋𝐙 𝐂𝐨 𝐎𝐰𝐧𝐞𝐫 💎",manager_admin:"𝐌𝐀𝐍𝐀𝐆𝐄𝐑 𝐀𝐃𝐌𝐈𝐍",help_admin:"𝐋𝐙 𝐇𝐞𝐥𝐩 𝐀𝐝𝐦𝐢𝐧 🛡️",admin:"𝐋𝐙 𝐀𝐝𝐦𝐢𝐧 🎭"};
+  const API = 'https://lz-editor-qoa6.onrender.com';
+  const db = window.supabase?.createClient(SUPABASE_URL, SUPABASE_KEY, {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+  const roleLabels = {owner:'LZ Owner 👑',co_owner:'𝐋𝐙 𝐂𝐨 𝐎𝐰𝐧𝐞𝐫 💎',manager_admin:'𝐌𝐀𝐍𝐀𝐆𝐄𝐑 𝐀𝐃𝐌𝐈𝐍',member:'عضو'};
   let currentUser = null;
   let publicProfiles = [];
   let publicMessages = [];
@@ -1774,56 +1781,54 @@ select.field option{background:#151020}
   }
   async function loadPublicProfiles(){
     try {
-      const response=await fetch(API+'/api/designers');
-      if(!response.ok) throw new Error('HTTP '+response.status);
-      publicProfiles=await response.json();
+      const response = await fetch(API + '/api/designers', {cache:'no-store'});
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      publicProfiles = await response.json();
       mergeDesigners();
-    } catch(error){ console.error('Profiles:',error); toast('تعذر تحميل المصممين من الخادم'); }
+    } catch(error) { console.error('Profiles:',error); toast('تعذر تحميل المصممين من السيرفر'); }
   }
   function mergeDesigners(){
-    const remote = publicProfiles.map(p => ({id:p.id,name:p.discord_username || p.display_name || 'Discord Creator',image:p.discord_avatar_url,tiktok:p.tiktok_url,role:p.role || 'member',specialty:'مصمم',isRemote:true}));
+    const remote = publicProfiles.map(p => ({id:p.id,name:p.discord_username || 'Discord Creator',image:p.discord_avatar_url,tiktok:p.tiktok_url,role:p.role || 'member',specialty:'مصمم',isRemote:true}));
     designers = [...data.designers.filter(d => !remote.some(r => String(r.id) === String(d.id))),...remote];
     updateStats(); updateSpecialties(); renderDesigners();
   }
   async function loadPublicChat(){
-    try {
-      const response=await fetch(API+'/api/messages?limit=100');
-      if(!response.ok) throw new Error('HTTP '+response.status);
-      publicMessages=(await response.json()).reverse(); chatOnline=true; renderChat();
-    } catch(error){ console.error('Chat:',error); chatOnline=false; toast('تعذر تحميل رسائل المجتمع من الخادم'); }
-  }
-  async function currentAccessToken(refresh=false){
-    if(!db) return null;
-    let result=refresh?await db.auth.refreshSession():await db.auth.getSession();
-    let session=result?.data?.session;
-    if(!session?.access_token && !refresh){result=await db.auth.refreshSession();session=result?.data?.session;}
-    return session?.access_token || null;
-  }
-  async function apiWithAuth(path,options={}){
-    let token=await currentAccessToken(); if(!token) throw new Error('سجّل الدخول مجدداً.');
-    const send=t=>fetch(API+path,{...options,headers:{Authorization:'Bearer '+t,...(options.body?{'Content-Type':'application/json'}:{}),...(options.headers||{})}});
-    let response=await send(token); if(response.status===401){token=await currentAccessToken(true);if(token)response=await send(token);}
-    const body=await response.json().catch(()=>({})); if(!response.ok){const e=new Error(body.error||'فشل الطلب');e.status=response.status;e.banned=!!body.banned;e.ban=body.ban;throw e;} return body;
-  }
-  function showBanScreen(ban){
-    let overlay=document.getElementById('lzBanScreen'); if(!overlay){overlay=document.createElement('div');overlay.id='lzBanScreen';overlay.style.cssText='position:fixed;inset:0;z-index:99999;background:#090711f7;display:grid;place-items:center;padding:20px;color:white;font-family:Cairo,sans-serif';document.body.appendChild(overlay);}
-    const expiry=ban?.expires_at?new Date(ban.expires_at).toLocaleString('ar-DZ'):'حظر دائم';
-    overlay.innerHTML=`<section style="max-width:520px;width:100%;background:#1a1128;border:1px solid #ff6988;border-radius:22px;padding:26px;text-align:center"><div style="font-size:42px">⛔</div><h2>تم حظر حسابك من LZ EDITORS</h2><p style="margin:14px 0;color:#ff9aac">سبب الحظر: ${escapeHTML(ban?.reason||'غير محدد')}</p><p>ينتهي الحظر: <b>${escapeHTML(expiry)}</b></p><form id="lzAppealForm" style="margin-top:18px"><textarea id="lzAppealText" required minlength="10" maxlength="1500" placeholder="اكتب طعنك هنا (10 أحرف على الأقل)" style="width:100%;min-height:110px;background:#100b1a;color:white;border:1px solid #654b83;border-radius:12px;padding:12px"></textarea><button style="margin-top:10px;padding:12px 18px;border:0;border-radius:10px;background:#8650df;color:white;font-weight:800">إرسال الطعن إلى Discord</button><p id="lzAppealStatus" style="margin-top:10px;font-size:12px"></p></form></section>`;
-    document.getElementById('lzAppealForm').addEventListener('submit',async e=>{e.preventDefault();const status=document.getElementById('lzAppealStatus');status.textContent='جاري إرسال الطعن...';try{const result=await apiWithAuth('/api/bans/appeal',{method:'POST',body:JSON.stringify({message:document.getElementById('lzAppealText').value.trim()})});status.textContent=result.message||'تم إرسال الطعن.';}catch(error){status.textContent=error.message;}});
+    if(!db) return;
+    const {data:rows,error} = await db.from('community_messages').select('id,user_id,author_name,author_avatar,text,created_at').order('created_at',{ascending:true}).limit(200);
+    if(error){ console.error('Chat:',error); chatOnline=false; toast('المحادثة العامة تحتاج إعداد جدول community_messages'); return; }
+    chatOnline=true; publicMessages=rows || []; renderChat();
   }
   async function syncUser(){
     if(!db) return;
     const {data:{user},error} = await db.auth.getUser();
     if(error) console.error(error);
     currentUser=user || null;
-    if(!currentUser){location.replace(new URL('/login-designers.html',location.origin).href);return;}
-    try{await apiWithAuth('/api/me');}catch(accessError){if(accessError.banned){showBanScreen(accessError.ban);return;}console.warn('Access verification:',accessError.message);}
+    const banOverlay = $('banOverlay');
+    if (currentUser) {
+      const {data:{session}} = await db.auth.getSession();
+      if (session?.access_token) {
+        try {
+          const check = await fetch(API + '/api/me', {headers:{Authorization:'Bearer '+session.access_token},cache:'no-store'});
+          const payload = await check.json().catch(()=>({}));
+          if (check.status === 403 && payload.ban) {
+            $('banReason').textContent = 'السبب: ' + (payload.ban.reason || 'غير محدد');
+            $('banExpiry').textContent = payload.ban.expires_at ? 'ينتهي الحظر: ' + new Date(payload.ban.expires_at).toLocaleString('ar-DZ') : 'مدة الحظر: دائم';
+            if (payload.ban.expires_at) { const ms = new Date(payload.ban.expires_at).getTime() - Date.now(); $('banRemaining').textContent = ms <= 0 ? 'انتهى الحظر' : 'المتبقي: ' + Math.floor(ms/86400000) + ' يوم و' + Math.floor(ms%86400000/3600000) + ' ساعة و' + Math.floor(ms%3600000/60000) + ' دقيقة'; } else $('banRemaining').textContent = 'الوقت المتبقي: دائم';
+            banOverlay.style.display = 'flex';
+            $('onboardingModal').style.display = 'none';
+            renderChat();
+            return;
+          } else banOverlay.style.display = 'none';
+        } catch(e) { console.warn('Ban check:',e); }
+      }
+    } else if (banOverlay) banOverlay.style.display = 'none';
     $('discordLogin').style.display=currentUser?'none':'';
     $('discordLogout').style.display=currentUser?'':'none';
     $('chatUsername').readOnly=!!currentUser;
     if(currentUser){
       $('chatUsername').value=userName(currentUser);
-      const profile = publicProfiles.find(p=>p.id===currentUser.id) || null;
+      const {data:profile,error:profileError}=await db.from('profiles').select('id,tiktok_url,onboarding_completed').eq('id',currentUser.id).maybeSingle();
+      if(profileError){ console.error(profileError); toast('تحقق من إعدادات جدول profiles وRLS'); return; }
       if(!profile?.onboarding_completed || !profile.tiktok_url) $('onboardingModal').style.display='flex';
       else $('onboardingModal').style.display='none';
     } else $('onboardingModal').style.display='none';
@@ -1831,7 +1836,7 @@ select.field option{background:#151020}
   }
   $('discordLogin').addEventListener('click',async()=>{
     if(!db){toast('تعذر تحميل Supabase');return;}
-    const {error}=await db.auth.signInWithOAuth({provider:'discord',options:{redirectTo:new URL('/designers.html',location.origin).href}});
+    const {error}=await db.auth.signInWithOAuth({provider:'discord',options:{redirectTo:new URL(location.pathname + location.search, location.origin).href}});
     if(error) toast('تعذر تسجيل الدخول: '+error.message);
   });
   $('discordLogout').addEventListener('click',async()=>{if(db) await db.auth.signOut();currentUser=null;await syncUser();});
@@ -1840,33 +1845,17 @@ select.field option{background:#151020}
     const url=validTikTokProfile($('onboardingTikTok').value.trim());
     if(!url){toast('حط رابط قناة TikTok صحيح مثل https://www.tiktok.com/@name');return;}
     $('onboardingSave').disabled=true;
-    try{await apiWithAuth('/api/me/profile',{method:'PUT',body:JSON.stringify({tiktok_url:url})});}catch(error){$('onboardingSave').disabled=false;toast('فشل الحفظ: '+error.message);return;}
+    const {data:{session}} = await db.auth.getSession();
+    let response;
+    try { response = await fetch(API + '/api/me/profile', {method:'PUT',headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},body:JSON.stringify({tiktok_url:url})}); }
+    catch(err) { $('onboardingSave').disabled=false; toast('تعذر الاتصال بالسيرفر'); return; }
     $('onboardingSave').disabled=false;
+    if(!response.ok){const payload=await response.json().catch(()=>({}));toast('فشل الحفظ: '+(payload.error||response.status));return;}
     $('onboardingModal').style.display='none';toast('تم إنشاء بطاقتك');await loadPublicProfiles();
   });
-  async function loadSharedPublicContent(){
-    try{
-      const response=await fetch(API+'/api/content'); if(!response.ok) throw new Error('HTTP '+response.status);
-      const remote=await response.json();
-      const merge=(localRows,remoteRows)=>{
-        const result=Array.isArray(remoteRows)?[...remoteRows]:[];
-        const keyOf=item=>String(item?.id||item?.title||item?.name||JSON.stringify(item));
-        const keys=new Set(result.map(keyOf));
-        for(const item of (Array.isArray(localRows)?localRows:[])){const key=keyOf(item);if(!keys.has(key)){result.push(item);keys.add(key);}}
-        return result;
-      };
-      data.works=merge(data.works,remote.works);
-      data.awards=merge(data.awards,Array.isArray(remote.awards)?remote.awards:remote.winners);
-      data.winners=merge(data.winners,remote.winners);
-      data.giveaways=merge(data.giveaways,remote.giveaways);
-      try{localStorage.setItem(STORAGE_KEY,JSON.stringify(data));}catch(_e){}
-      updateStats(); renderWorks(); renderAwards(); renderGiveaways(); renderWinners();
-    }catch(error){console.warn('Shared site content:',error.message);}
-  }
-
   async function startSupabase(){
     if(!db){toast('مكتبة Supabase ما تحمّلتش');return;}
-    await Promise.all([loadPublicProfiles(),loadPublicChat(),loadSharedPublicContent()]);
+    await Promise.all([loadPublicProfiles(),loadPublicChat()]);
     await syncUser();
     db.auth.onAuthStateChange(()=>{setTimeout(()=>syncUser(),0);});
   }
@@ -2197,12 +2186,12 @@ window.addEventListener('hashchange', () => {
       </div>
 
       <div class="designer-badges">
-        ${designer.role && designer.role !== 'member' ? `<span class="badge badge-purple">${escapeHTML(roleLabels[designer.role] || '')}</span>` : ''}
         ${
           designer.badge
             ? `<span class="badge badge-gold">${escapeHTML(designer.badge)}</span>`
             : `<span class="badge badge-muted">LZ CREATOR</span>`
         }
+        <span class="badge badge-purple">${escapeHTML(roleLabels[designer.role] || roleLabels.member)}</span>
       </div>
 
       <div class="social-links">
@@ -2566,8 +2555,8 @@ $('chatForm').addEventListener('submit', async event => {
   const url=validateVideoURL(text);
   if(/^https?:\/\//i.test(text) && !url){toast('الرابط يجب أن يكون من TikTok أو YouTube');return;}
   if(!chatOnline){toast('المحادثة العامة غير مفعّلة: لازم جدول community_messages');return;}
-  try{await apiWithAuth('/api/messages',{method:'POST',body:JSON.stringify({text:url||text})});}
-  catch(error){console.error(error);toast('تعذر نشر الرسالة: '+error.message);return;}
+  const {error}=await db.from('community_messages').insert({user_id:currentUser.id,author_name:userName(currentUser),author_avatar:userAvatar(currentUser),text:url||text});
+  if(error){console.error(error);toast('تعذر نشر الرسالة، راجع سياسات RLS');return;}
   $('chatMessage').value='';await loadPublicChat();toast('تم نشر رسالتك بحساب Discord');
 });
 
@@ -2576,8 +2565,8 @@ $('chatMessages').addEventListener('click', async event => {
   const id=button.dataset.chatDelete;
   if(button.dataset.chatRemote==='1'){
     if(!currentUser)return;
-    try{await apiWithAuth('/api/messages/'+encodeURIComponent(id),{method:'DELETE'});}
-    catch(error){toast('ما قدرتش تحذف الرسالة: '+error.message);return;}
+    const {error}=await db.from('community_messages').delete().eq('id',id).eq('user_id',currentUser.id);
+    if(error){toast('ما قدرتش تحذف الرسالة');return;}
     await loadPublicChat();
   }else{
     const messages=loadChatMessages().filter(m=>String(m.id)!==id);
