@@ -601,7 +601,7 @@ tbody tr:last-child td{border-bottom:none}
     remoteDesigners = profiles.map(p => ({
       id:p.id, name:p.discord_username || 'Discord member',
       image:p.discord_avatar_url || '', tiktok:p.tiktok_url || '',
-      role:p.role || 'member', specialty:'تصميم', description:'مصمم ضمن مجتمع LZ EDITORS',
+      role:p.role || 'member', banned:!!p.banned, ban_reason:p.ban_reason || '', ban_expires_at:p.ban_expires_at || null, specialty:'تصميم', description:'مصمم ضمن مجتمع LZ EDITORS',
       remote:true
     }));
     data.designers = remoteDesigners;
@@ -785,6 +785,7 @@ tbody tr:last-child td{border-bottom:none}
         <div class="designer-description">${escapeHTML(d.description || 'مصمم ضمن مجتمع LZ EDITORS.')}</div>
         <div class="card-actions">
           <button class="btn btn-secondary btn-small" data-role-designer="${escapeHTML(d.id)}"><i class="fa-solid fa-user-shield"></i> الصلاحيات</button>
+          ${d.banned ? `<button class="btn btn-primary btn-small" data-unban-designer="${escapeHTML(d.id)}">إلغاء BAN</button>` : `<button class="btn btn-danger btn-small" data-ban-designer="${escapeHTML(d.id)}">🔨 BAN</button>`}
           ${d.remote ? '' : `<button class="btn btn-danger btn-small" data-delete-designer="${escapeHTML(d.id)}"><i class="fa-solid fa-trash"></i> حذف</button>`}
         </div>
       </article>`;
@@ -983,7 +984,43 @@ tbody tr:last-child td{border-bottom:none}
     finally { submit.disabled = false; }
   });
 
-  document.addEventListener('click', event => {
+  document.addEventListener('click', async event => {
+    const banButton = event.target.closest('[data-ban-designer]');
+    if (banButton) {
+      const designer = remoteDesigners.find(d => d.id === banButton.dataset.banDesigner);
+      if (!designer) return;
+      if (designer.role === 'owner') return toast('لا يمكن حظر المالك');
+      const reason = prompt(`سبب حظر ${designer.name}:`, 'مخالفة قوانين الموقع');
+      if (reason === null) return;
+      const daysText = prompt('مدة الحظر بالأيام. اكتب 0 أو اتركه فارغاً للحظر الدائم:', '7');
+      if (daysText === null) return;
+      const days = daysText.trim() === '' ? 0 : Number(daysText);
+      if (!Number.isInteger(days) || days < 0 || days > 36500) return toast('أدخل عدد أيام صحيحاً');
+      const expires_at = days === 0 ? null : new Date(Date.now() + days * 86400000).toISOString();
+      banButton.disabled = true;
+      try {
+        await apiRequest('/api/bans/' + encodeURIComponent(designer.id), {
+          method:'PUT', body:JSON.stringify({reason, expires_at})
+        });
+        await loadRemoteDesigners();
+        toast('تم حظر المصمم بنجاح');
+      } catch (error) { toast('فشل الحظر: ' + error.message); }
+      finally { banButton.disabled = false; }
+      return;
+    }
+    const unbanButton = event.target.closest('[data-unban-designer]');
+    if (unbanButton) {
+      const designer = remoteDesigners.find(d => d.id === unbanButton.dataset.unbanDesigner);
+      if (!designer || !confirm(`إلغاء حظر ${designer.name}؟`)) return;
+      unbanButton.disabled = true;
+      try {
+        await apiRequest('/api/bans/' + encodeURIComponent(designer.id), {method:'DELETE'});
+        await loadRemoteDesigners();
+        toast('تم إلغاء الحظر');
+      } catch (error) { toast('فشل إلغاء الحظر: ' + error.message); }
+      finally { unbanButton.disabled = false; }
+      return;
+    }
     const roleDesigner = event.target.closest('[data-role-designer]');
     if (roleDesigner) {
       const designer = remoteDesigners.find(d => d.id === roleDesigner.dataset.roleDesigner);
