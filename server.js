@@ -1250,7 +1250,7 @@ app.post('/api/community/polls', auth, requireOwnerOrCoOwner, async (req, res, n
     const options = Array.isArray(req.body?.options) ? [...new Set(req.body.options.map(x => String(x || '').trim().slice(0,100)).filter(Boolean))].slice(0,8) : [];
     const endsAt = req.body?.ends_at ? new Date(req.body.ends_at).toISOString() : null;
     if (!question || options.length < 2) return fail(res, 400, 'اكتب السؤال وخيارين على الأقل');
-    const { data: poll, error } = await supabase.from('lz_polls').insert({ id: crypto.randomUUID(), question, ends_at: endsAt, created_by: req.user.id }).select('id,question,ends_at,active,created_at').single();
+    const { data: poll, error } = await supabase.from('lz_polls').insert({ id: crypto.randomUUID(), title: question, question, ends_at: endsAt, created_by: req.user.id }).select('id,question,ends_at,active,created_at').single();
     if (error) throw error;
     const { error: optionError } = await supabase.from('lz_poll_options').insert(options.map(label => ({ poll_id: poll.id, label })));
     if (optionError) {

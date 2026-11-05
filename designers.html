@@ -608,6 +608,7 @@ select.field option{background:#151020}
   font-weight:900
 }
 
+.designer-role-badges{display:flex;align-items:center;justify-content:center;gap:7px;flex-wrap:wrap;margin:8px 0}
 .designer-specialty{
   font-size:10px;
   color:var(--muted);
@@ -2262,7 +2263,10 @@ window.addEventListener('hashchange', () => {
     card.innerHTML = `
       ${avatar}
       <h3>${escapeHTML(designer.name || 'مصمم بدون اسم')}</h3>
-      ${designer.roleLabel ? `<div class="designer-specialty">${escapeHTML(designer.roleLabel)}</div>` : ''}
+      <div class="designer-role-badges">
+        ${designer.roleLabel ? `<span class="designer-specialty">${escapeHTML(designer.roleLabel)}</span>` : ''}
+        ${Array.isArray(designer.earnedBadges) ? designer.earnedBadges.slice(0,4).map(b=>`<span class="badge badge-gold">${escapeHTML(b.icon || '🏅')} ${escapeHTML(b.name || 'شارة')}</span>`).join('') : ''}
+      </div>
 
       <div class="designer-specialty">
         ${escapeHTML(designer.specialty || 'مصمم')}
@@ -2275,7 +2279,6 @@ window.addEventListener('hashchange', () => {
             : `<span class="badge badge-muted">LZ CREATOR</span>`
         }
       </div>
-      ${Array.isArray(designer.earnedBadges) && designer.earnedBadges.length ? `<div class="designer-badges">${designer.earnedBadges.slice(0,4).map(b=>`<span class="badge badge-gold">${escapeHTML(b.icon || '🏅')} ${escapeHTML(b.name || 'شارة')}</span>`).join('')}</div>` : ''}
 
       <div class="social-links">
         ${
