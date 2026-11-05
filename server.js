@@ -280,7 +280,8 @@ async function auth(req, res, next) {
           ban: { reason: ban.reason || '', expires_at: ban.expires_at }
         });
       }
-      await supabase.from('lz_user_bans').delete().eq('user_id', req.user.id);
+      const { error: cleanupError } = await supabase.from('lz_user_bans').delete().eq('user_id', req.user.id);
+      if (cleanupError) console.warn('Expired ban cleanup failed:', cleanupError.message);
     }
 
     next();
@@ -1006,7 +1007,7 @@ app.get('/api/bans', auth, requireOwnerOrCoOwner, async (_req, res, next) => {
 app.put('/api/bans/:userId', auth, requireOwnerOrCoOwner, async (req, res, next) => {
   try {
     const target = req.params.userId;
-    const reason = String(req.body?.reason || '').trim().slice(0, 500);
+    const reason = String(req.body?.reason || 'مخالفة قوانين الموقع').trim().slice(0, 500);
     const expiresAt = req.body?.expires_at ?? null;
     if (!uuid(target)) return fail(res, 400, 'Invalid user ID');
     if (target === process.env.OWNER_USER_ID) return fail(res, 403, 'لا يمكن حظر المالك');
@@ -1015,6 +1016,7 @@ app.put('/api/bans/:userId', auth, requireOwnerOrCoOwner, async (req, res, next)
     }
     const requesterRole = await getRole(req.user.id);
     const targetRole = await getRole(target);
+    if (targetRole === 'owner') return fail(res, 403, 'لا يمكن حظر حساب يحمل رتبة Owner');
     if (['co_owner', 'manager_admin'].includes(targetRole) && requesterRole !== 'owner') {
       return fail(res, 403, 'المالك فقط يمكنه حظر Co Owner أو Manager Admin');
     }
