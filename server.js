@@ -1255,14 +1255,24 @@ app.delete('/api/community/badges/award', auth, requireOwnerOrCoOwner, async (re
   } catch (error) { next(error); }
 });
 
-// Public portfolio feed: videos submitted to active and past TikTok contests.
+// Public portfolio feed: fetch entries and profiles separately so the feed
+// still works on Supabase projects where PostgREST has no cached FK relation.
 app.get('/api/community/contests/public-entries', async (_req, res, next) => {
   try {
-    const { data, error } = await supabase.from('lz_contest_entries')
-      .select('id,contest_id,user_id,video_url,likes_count,created_at,profile:profiles(discord_username,discord_avatar_url)')
+    const { data: entries, error } = await supabase.from('lz_contest_entries')
+      .select('id,contest_id,user_id,video_url,likes_count,created_at')
       .order('created_at', { ascending: false }).limit(500);
     if (error) throw error;
-    res.json(data || []);
+    const userIds = [...new Set((entries || []).map(row => row.user_id).filter(Boolean))];
+    let profiles = [];
+    if (userIds.length) {
+      const result = await supabase.from('profiles').select('id,discord_username,discord_avatar_url').in('id', userIds);
+      if (result.error) throw result.error;
+      profiles = result.data || [];
+    }
+    const profileById = new Map(profiles.map(profile => [String(profile.id), profile]));
+    res.set('Cache-Control', 'no-store');
+    res.json((entries || []).map(entry => ({ ...entry, profile: profileById.get(String(entry.user_id)) || null })));
   } catch (error) { next(error); }
 });
 
@@ -1380,21 +1390,19 @@ app.post('/api/community/contests/:id/entries', auth, requireOnboarding, async (
     const raw = String(req.body?.video_url || '').trim();
     let url;
     try { url = new URL(raw); } catch { return fail(res, 400, 'رابط فيديو TikTok غير صحيح'); }
-    if (url.protocol !== 'https:' || !['tiktok.com','www.tiktok.com','m.tiktok.com','vm.tiktok.com'].includes(url.hostname.toLowerCase()) || !/\/@[A-Za-z0-9._]+\/video\/\d+/.test(url.pathname)) return fail(res, 400, 'أرسل رابط فيديو TikTok عام');
+    const host = url.hostname.toLowerCase();
+    const isTikTok = host === 'tiktok.com' || host.endsWith('.tiktok.com');
+    const hasVideoPath = /\/@[A-Za-z0-9._]+\/video\/\d+/.test(url.pathname);
+    const isShortShare = host === 'vm.tiktok.com' || host === 'vt.tiktok.com';
+    if (url.protocol !== 'https:' || !isTikTok || (!hasVideoPath && !isShortShare)) return fail(res, 400, 'أرسل رابط فيديو TikTok عاماً وصحيحاً');
     const { data: row, error: contentError } = await supabase.from('lz_site_content').select('content').eq('id', 1).maybeSingle();
     if (contentError) throw contentError;
     const contest = (row?.content?.giveaways || []).find(g => String(g.id) === String(req.params.id) && g.type === 'tiktok_contest');
     if (!contest || (contest.end && contest.end < new Date().toISOString().slice(0,10))) return fail(res, 404, 'مسابقة الفيديو غير متاحة');
-    if (!tiktokConfigReady()) return fail(res, 503, 'ربط TikTok الرسمي غير مفعّل بعد لدى إدارة الموقع');
-    const connection = await getTikTokConnection(req.user.id);
-    if (!connection) return fail(res, 409, 'اربط حساب TikTok أولاً قبل إرسال الفيديو');
-    const accessToken = await getValidTikTokToken(connection);
-    url.search = ''; url.hash = '';
-    const videoId = (url.pathname.match(/\/video\/(\d+)/) || [])[1];
-    const verifiedVideos = await queryTikTokVideos(accessToken, [videoId]);
-    const verified = verifiedVideos.find(video => String(video.id) === String(videoId));
-    if (!verified) return fail(res, 403, 'الفيديو غير موجود ضمن فيديوهات حساب TikTok المرتبط. يجب أن يكون الفيديو ملكاً للحساب الذي ربطته.');
-    const { data, error } = await supabase.from('lz_contest_entries').insert({ contest_id: String(contest.id), user_id: req.user.id, video_url: url.href, likes_count: 0, baseline_likes_count: Number(verified.like_count || 0), last_observed_likes_count: Number(verified.like_count || 0), likes_updated_at: new Date().toISOString(), likes_source: 'tiktok_api' }).select('id,video_url,likes_count,created_at').single();
+    // لا نفرض ربط TikTok OAuth لقبول رابط المشاركة؛ يكفي رابط TikTok عام.
+    // تبقى مزامنة الإعجابات الرسمية منفصلة وتتطلب ربط الحساب والصلاحيات المناسبة.
+    url.hash = '';
+    const { data, error } = await supabase.from('lz_contest_entries').insert({ contest_id: String(contest.id), user_id: req.user.id, video_url: url.href, likes_count: 0, baseline_likes_count: 0, last_observed_likes_count: 0, likes_updated_at: new Date().toISOString(), likes_source: 'pending_sync' }).select('id,video_url,likes_count,created_at').single();
     if (error?.code === '23505') return fail(res, 409, 'هذا الفيديو مسجل بالفعل في المسابقة');
     if (error) throw error;
     res.status(201).json(data);

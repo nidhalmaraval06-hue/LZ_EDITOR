@@ -577,10 +577,16 @@ tbody tr:last-child td{border-bottom:none}
           <div class="form-group"><label for="badgePreset">اختر شارة الإنجاز *</label><select class="field" id="badgePreset" required><option value="">اختر الشارة</option><option value="🎨 مصمم مبدع|🎨">🎨 مصمم مبدع</option><option value="⚡ سريع الإنجاز|⚡">⚡ سريع الإنجاز</option><option value="🏆 أسطورة LZ|🏆">🏆 أسطورة LZ</option><option value="💎 عضو مميز|💎">💎 عضو مميز</option><option value="🔥 صانع محتوى|🔥">🔥 صانع محتوى</option><option value="🥇 W EDIT|🥇">🥇 W EDIT</option><option value="🌟 نجم المجتمع|🌟">🌟 نجم المجتمع</option></select></div>
           <div class="form-group"><label for="badgeDescription">الوصف</label><input class="field" id="badgeDescription" maxlength="240" placeholder="سبب منح الشارة"></div>
         </div><div class="form-actions"><button class="btn btn-primary" type="submit">منح الشارة وإرسال إشعار</button></div></form>
-        <div class="form-grid" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
-          <div class="form-group"><label for="badgeRemoveSelect">الشارات الممنوحة لهذا العضو</label><select class="field" id="badgeRemoveSelect"><option value="">اختر العضو أولاً</option></select></div>
-          <div class="form-group" style="align-self:end"><button class="btn btn-secondary" id="removeMemberBadge" type="button">إزالة الشارة المحددة</button></div>
+      </div>
+      <div class="panel" style="margin-top:15px">
+        <div class="panel-head"><h3><i class="fa-solid fa-eraser" style="color:var(--gold);margin-left:7px"></i> حذف شارة إنجاز</h3><span>BADGE REMOVE</span></div>
+        <p style="color:var(--muted);font-size:11px;line-height:1.8;margin-bottom:12px">هذا القسم مستقل عن منح الشارات. اختر العضو أولاً، ثم اختر الشارة التي تريد حذفها منه فقط.</p>
+        <div class="form-grid">
+          <div class="form-group"><label for="removeBadgeUser">اختر العضو *</label><select class="field" id="removeBadgeUser"><option value="">اختر العضو أولاً</option></select></div>
+          <div class="form-group"><label for="badgeRemoveSelect">شارة العضو *</label><select class="field" id="badgeRemoveSelect" disabled><option value="">اختر العضو أولاً</option></select></div>
         </div>
+        <div class="form-actions"><button class="btn btn-secondary" id="removeMemberBadge" type="button">حذف الشارة المحددة فقط</button></div>
+      </div>
       </div>
       <div class="panel" style="margin-top:15px">
         <div class="panel-head"><h3><i class="fa-brands fa-tiktok" style="margin-left:7px"></i> مراجعة نقاط إعجابات TikTok</h3><button class="btn btn-secondary btn-small" id="refreshContestEntries" type="button">تحديث المشاركات</button></div>
@@ -690,16 +696,21 @@ tbody tr:last-child td{border-bottom:none}
     }));
     data.designers = remoteDesigners;
     const badgeSelect = $('badgeUser');
-    if (badgeSelect) {
-      badgeSelect.innerHTML = '<option value="">جاري تحميل الأعضاء...</option>';
+    const removeMemberSelect = $('removeBadgeUser');
+    if (badgeSelect || removeMemberSelect) {
+      if (badgeSelect) badgeSelect.innerHTML = '<option value="">جاري تحميل الأعضاء...</option>';
+      if (removeMemberSelect) removeMemberSelect.innerHTML = '<option value="">جاري تحميل الأعضاء...</option>';
       try {
         const members = await apiRequest('/api/admin/users');
-        badgeSelect.innerHTML = '<option value="">اختر العضو أولاً</option>' + members.map(p => {
+        const options = '<option value="">اختر العضو أولاً</option>' + members.map(p => {
           const name = (p.discord_username || 'Discord member') + (p.onboarding_completed ? '' : ' · لم يكمل التسجيل');
           return `<option value="${escapeHTML(p.id)}">${escapeHTML(name)}</option>`;
         }).join('');
+        if (badgeSelect) badgeSelect.innerHTML = options;
+        if (removeMemberSelect) removeMemberSelect.innerHTML = options;
       } catch (memberError) {
-        badgeSelect.innerHTML = '<option value="">تعذر تحميل الأعضاء</option>';
+        if (badgeSelect) badgeSelect.innerHTML = '<option value="">تعذر تحميل الأعضاء</option>';
+        if (removeMemberSelect) removeMemberSelect.innerHTML = '<option value="">تعذر تحميل الأعضاء</option>';
         console.error('Admin member list:', memberError);
       }
     }
@@ -1193,21 +1204,24 @@ tbody tr:last-child td{border-bottom:none}
 
   let allEarnedBadgesForAdmin = [];
   async function refreshMemberBadgeOptions() {
-    const memberId = $('badgeUser')?.value;
+    const memberId = $('removeBadgeUser')?.value;
     const select = $('badgeRemoveSelect');
     if (!select) return;
-    if (!memberId) { select.innerHTML='<option value="">اختر العضو أولاً</option>'; return; }
+    if (!memberId) { select.disabled=true; select.innerHTML='<option value="">اختر العضو أولاً</option>'; return; }
+    select.disabled=true;
+    select.innerHTML='<option value="">جاري تحميل شارات العضو...</option>';
     try {
       const response = await fetch(API + '/api/community/badges/earned', {cache:'no-store'});
       if (!response.ok) throw new Error('HTTP ' + response.status);
       allEarnedBadgesForAdmin = await response.json();
-      const rows = allEarnedBadgesForAdmin.filter(row => row.user_id === memberId && row.badge?.id);
+      const rows = allEarnedBadgesForAdmin.filter(row => String(row.user_id) === String(memberId) && row.badge?.id);
       select.innerHTML = rows.map(row => `<option value="${escapeHTML(row.badge.id)}">${escapeHTML((row.badge.icon || '🏅')+' '+row.badge.name)}</option>`).join('') || '<option value="">لا توجد شارات لهذا العضو</option>';
+      select.disabled = !rows.length;
     } catch(error) { select.innerHTML='<option value="">تعذر تحميل الشارات</option>'; toast('تعذر تحميل شارات العضو: '+error.message); }
   }
-  $('badgeUser')?.addEventListener('change', refreshMemberBadgeOptions);
+  $('removeBadgeUser')?.addEventListener('change', refreshMemberBadgeOptions);
   $('removeMemberBadge')?.addEventListener('click', async () => {
-    const userId=$('badgeUser').value, badgeId=$('badgeRemoveSelect').value;
+    const userId=$('removeBadgeUser').value, badgeId=$('badgeRemoveSelect').value;
     if (!userId || !badgeId) return toast('اختر العضو والشارة أولاً');
     if (!confirm('هل تريد إزالة هذه الشارة من العضو؟')) return;
     const button=$('removeMemberBadge'); button.disabled=true;
