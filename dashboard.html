@@ -360,7 +360,6 @@ tbody tr:last-child td{border-bottom:none}
       <button data-page="streamers"><i class="fa-solid fa-tower-broadcast"></i> الستريمرز</button>
       <button data-page="bans"><i class="fa-solid fa-ban"></i> المحظورون وBAN</button>
       <button data-page="works"><i class="fa-solid fa-images"></i> أعمال المصممين</button>
-      <button data-page="contestVideos"><i class="fa-brands fa-tiktok"></i> فيديوهات المسابقة</button>
       <button data-page="communityLinks"><i class="fa-solid fa-link"></i> ✓・𝐄𝐃𝐈𝐓𝐒・👑</button>
       <button data-page="awards"><i class="fa-solid fa-trophy"></i> الجوائز والشارات</button>
       <button data-page="giveaway"><i class="fa-solid fa-gift"></i> Giveaway</button>
@@ -560,6 +559,16 @@ tbody tr:last-child td{border-bottom:none}
         </form>
       </div>
 
+
+      <div class="panel contest-admin-panel contest-award-panel">
+        <div class="panel-head">
+          <h3><i class="fa-brands fa-tiktok" style="color:var(--gold);margin-left:7px"></i> فيديوهات المسابقة</h3>
+          <button class="btn btn-secondary btn-small" id="refreshContestEntries" type="button"><i class="fa-solid fa-rotate"></i> تحديث</button>
+        </div>
+        <p class="contest-panel-description">مشاركات المصممين في المسابقة — عرض الفيديوهات وتعديل عدد الإعجابات.</p>
+        <div id="contestEntriesAdmin" class="contest-admin-grid"><small>اضغط تحديث لعرض فيديوهات المشاركين.</small></div>
+      </div>
+
       <div class="panel" style="margin-top:15px">
         <div class="panel-head"><h3><i class="fa-solid fa-gift" style="color:var(--gold);margin-left:7px"></i> إنشاء Giveaway</h3><span>COMMUNITY GIVEAWAY</span></div>
         <form id="giveawayForm">
@@ -610,18 +619,6 @@ tbody tr:last-child td{border-bottom:none}
       </div>
     </section>
 
-
-    <!-- CONTEST VIDEOS: same panel structure as AWARD WINNER -->
-    <section class="page" id="page-contestVideos">
-      <div class="panel contest-admin-panel contest-award-panel">
-        <div class="panel-head">
-          <h3><i class="fa-brands fa-tiktok" style="color:var(--gold);margin-left:7px"></i> فيديوهات المسابقة</h3>
-          <button class="btn btn-secondary btn-small" id="refreshContestEntries" type="button"><i class="fa-solid fa-rotate"></i> تحديث</button>
-        </div>
-        <p class="contest-panel-description">مشاركات المصممين في المسابقة — عرض الفيديوهات وتعديل عدد الإعجابات.</p>
-        <div id="contestEntriesAdmin" class="contest-admin-grid"><small>اضغط تحديث لعرض فيديوهات المشاركين.</small></div>
-      </div>
-    </section>
 
     <!-- SETTINGS -->
     <section class="page" id="page-settings">
@@ -827,7 +824,6 @@ tbody tr:last-child td{border-bottom:none}
     designers:'المصممون',
     bans:'المحظورون وBAN',
     works:'أعمال المصممين',
-    contestVideos:'فيديوهات المسابقة',
     communityLinks:'✓・𝐄𝐃𝐈𝐓𝐒・👑',
     awards:'الجوائز والشارات',
     giveaway:'Giveaway',
@@ -910,8 +906,8 @@ tbody tr:last-child td{border-bottom:none}
     $('topTitle').textContent = titles[name];
     if (name === 'bans') loadBans();
     if (name === 'communityLinks') loadDashboardChatLinks();
-    if (name === 'contestVideos') loadContestEntriesAdmin();
-    if (name === 'manage') loadAdminPolls();
+
+    if (name === 'manage') { loadAdminPolls(); loadContestEntriesAdmin(); }
     $('sidebar').classList.remove('open');
     window.scrollTo({ top:0, behavior:'smooth' });
   }
