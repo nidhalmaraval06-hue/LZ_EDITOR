@@ -1129,25 +1129,6 @@ app.put(
   }
 );
 
-// تعيين رتبة Owner بواسطة Discord ID — المالك الحالي فقط
-app.post('/api/roles/by-discord/:discordId', auth, async (req, res, next) => {
-  try {
-    if (req.user.id !== process.env.OWNER_USER_ID) return fail(res, 403, 'فقط المالك الأساسي يستطيع منح رتبة Owner');
-    const discordId = String(req.params.discordId || '').trim();
-    if (!/^\d{17,20}$/.test(discordId)) return fail(res, 400, 'Discord ID غير صالح؛ يجب أن يكون 17 إلى 20 رقماً');
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles').select('id,discord_id,discord_username')
-      .eq('discord_id', discordId).maybeSingle();
-    if (profileError) throw profileError;
-    if (!profile) return fail(res, 404, 'لم يتم العثور على هذا Discord ID. يجب على العضو تسجيل الدخول للموقع مرة واحدة أولاً.');
-    if (profile.id === process.env.OWNER_USER_ID) return fail(res, 409, 'هذا الحساب هو المالك الأساسي بالفعل');
-    const { error } = await supabase.from('lz_user_roles').upsert({ user_id: profile.id, role: 'owner' }, { onConflict: 'user_id' });
-    if (error) throw error;
-    res.json({ ok: true, user_id: profile.id, discord_id: discordId, username: profile.discord_username, role: 'owner' });
-  } catch (error) { next(error); }
-});
-
-
 // Community features: badges, notifications, polls, giveaway entries and TikTok contests.
 async function notifyUser(userId, title, body, type = 'general') {
   if (!uuid(userId)) return;

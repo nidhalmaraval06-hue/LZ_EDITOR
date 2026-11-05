@@ -446,12 +446,6 @@ tbody tr:last-child td{border-bottom:none}
     <!-- BAN MANAGEMENT -->
     <section class="page" id="page-bans">
       <div class="section-heading"><div><h3>إدارة الحظر</h3><p>قائمة المحظورين النشطين، سبب الحظر وتاريخ انتهائه، مع إمكانية إلغاء الحظر.</p></div><button class="btn btn-secondary btn-small" id="refreshBans"><i class="fa-solid fa-rotate"></i> تحديث القائمة</button></div>
-      <div class="panel" id="ownerDiscordAssign" style="display:none;margin-bottom:15px">
-        <div class="panel-head"><h3><i class="fa-brands fa-discord"></i> منح رتبة LZ Owner عبر Discord ID</h3><span>OWNER ONLY</span></div>
-        <p style="color:var(--muted);font-size:11px;line-height:1.9;margin-bottom:12px">أدخل Discord User ID الرقمي. يجب أن يكون العضو قد سجّل الدخول إلى الموقع مرة واحدة حتى يتم ربط Discord ID بحسابه.</p>
-        <div class="form-grid"><div class="form-group"><label for="ownerDiscordId">Discord ID</label><input class="field" id="ownerDiscordId" inputmode="numeric" autocomplete="off" placeholder="مثال: 123456789012345678"></div></div>
-        <div class="form-actions"><button class="btn btn-primary" id="assignDiscordOwner" type="button">منح رتبة LZ Owner</button></div>
-      </div>
       <div class="panel"><div class="table-wrap"><table><thead><tr><th>العضو</th><th>سبب الحظر</th><th>تاريخ الحظر</th><th>ينتهي في</th><th>الإجراء</th></tr></thead><tbody id="bansTable"><tr><td colspan="5">اضغط تحديث القائمة لتحميل المحظورين.</td></tr></tbody></table></div><div id="bansEmpty" class="empty-state" style="display:none"><div class="empty-icon"><i class="fa-solid fa-shield-check"></i></div><h3>لا يوجد محظورون حالياً</h3><p>ستظهر الحسابات المحظورة هنا.</p></div></div>
     </section>
 
@@ -744,7 +738,6 @@ tbody tr:last-child td{border-bottom:none}
       }
       currentRole = me.role;
       currentIsPrimaryOwner = me.is_primary_owner === true;
-      if (currentIsPrimaryOwner) $('ownerDiscordAssign').style.display = 'block';
       document.body.style.visibility = 'visible';
       document.getElementById('authLoading').remove();
       document.querySelector('.profile-name').textContent = me.profile?.discord_username || 'الإدارة';
@@ -1198,20 +1191,6 @@ tbody tr:last-child td{border-bottom:none}
   });
 
   $('refreshBans').addEventListener('click', loadBans);
-  $('assignDiscordOwner').addEventListener('click', async () => {
-    if (!currentIsPrimaryOwner) return toast('هذه الخاصية للمالك الأساسي فقط');
-    const discordId = $('ownerDiscordId').value.trim();
-    if (!/^\d{17,20}$/.test(discordId)) return toast('أدخل Discord ID صحيحاً (17 إلى 20 رقماً)');
-    const button = $('assignDiscordOwner'); button.disabled = true;
-    try {
-      const result = await apiRequest('/api/roles/by-discord/' + encodeURIComponent(discordId), {method:'POST'});
-      $('ownerDiscordId').value = '';
-      await loadRemoteDesigners();
-      toast('تم منح رتبة LZ Owner إلى ' + (result.username || discordId));
-    } catch (error) { toast('فشل منح Owner: ' + error.message); }
-    finally { button.disabled = false; }
-  });
-
   $('permissionsCancel').addEventListener('click', () => $('permissionsDialog').close());
   $('permissionsForm').addEventListener('submit', async event => {
     event.preventDefault();
