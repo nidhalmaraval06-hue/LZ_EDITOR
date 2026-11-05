@@ -356,6 +356,7 @@ tbody tr:last-child td{border-bottom:none}
       <button data-page="streamers"><i class="fa-solid fa-tower-broadcast"></i> الستريمرز</button>
       <button data-page="bans"><i class="fa-solid fa-ban"></i> المحظورون وBAN</button>
       <button data-page="works"><i class="fa-solid fa-images"></i> أعمال المصممين</button>
+      <button data-page="contestVideos"><i class="fa-brands fa-tiktok"></i> فيديوهات المسابقة</button>
       <button data-page="awards"><i class="fa-solid fa-trophy"></i> الجوائز والشارات</button>
       <button data-page="giveaway"><i class="fa-solid fa-gift"></i> Giveaway</button>
       <button data-page="manage"><i class="fa-solid fa-square-poll-vertical"></i> التصويت والشارات</button>
@@ -598,12 +599,16 @@ tbody tr:last-child td{border-bottom:none}
         <div class="form-actions"><button class="btn btn-secondary" id="removeMemberBadge" type="button">حذف الشارة المحددة فقط</button></div>
       </div>
       </div>
+    </section>
+
+
+    <!-- CONTEST VIDEOS -->
+    <section class="page" id="page-contestVideos">
+      <div class="section-heading"><div><h3>فيديوهات المسابقة المشاركة</h3><p>إدارة روابط فيديوهات المشاركين وتعديل عدد الإعجابات بجانب كل فيديو.</p></div><button class="btn btn-secondary btn-small" id="refreshContestEntries" type="button"><i class="fa-solid fa-rotate"></i> تحديث</button></div>
       <div class="panel contest-admin-panel" style="margin-top:15px">
-        <div class="panel-head"><h3><i class="fa-solid fa-clapperboard" style="color:#c49aff;margin-left:7px"></i> فيديوهات المسابقة المشاركة</h3><button class="btn btn-secondary btn-small" id="refreshContestEntries" type="button"><i class="fa-solid fa-rotate"></i> تحديث</button></div>
         <div id="contestEntriesAdmin" class="contest-admin-grid"><small>اضغط تحديث لعرض فيديوهات المشاركين.</small></div>
       </div>
     </section>
-
 
     <!-- SETTINGS -->
     <section class="page" id="page-settings">
@@ -809,6 +814,7 @@ tbody tr:last-child td{border-bottom:none}
     designers:'المصممون',
     bans:'المحظورون وBAN',
     works:'أعمال المصممين',
+    contestVideos:'فيديوهات المسابقة',
     awards:'الجوائز والشارات',
     giveaway:'Giveaway',
     polls:'التصويت والشارات',
@@ -1510,6 +1516,7 @@ tbody tr:last-child td{border-bottom:none}
   }
   $('refreshChatLinks').addEventListener('click', loadDashboardChatLinks);
   document.querySelectorAll('[data-page="overview"]').forEach(btn => btn.addEventListener('click', loadDashboardChatLinks));
+  document.querySelectorAll('[data-page="contestVideos"]').forEach(btn => btn.addEventListener('click', loadContestEntriesAdmin));
   document.addEventListener('visibilitychange', () => { if (!document.hidden && $('page-overview').classList.contains('active')) loadDashboardChatLinks(); });
   setInterval(() => { if (!document.hidden && $('page-overview').classList.contains('active')) loadDashboardChatLinks(); }, 30000);
   loadDashboardChatLinks();
