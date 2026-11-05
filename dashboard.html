@@ -437,7 +437,7 @@ tbody tr:last-child td{border-bottom:none}
           </div>
         </div>
       </div>
-      <div class="section-heading"><div><h3><i class="fa-solid fa-comments" style="color:#bd94ff;margin-left:7px"></i> روابط محادثة المجتمع</h3><p>الروابط التي يشاركها الأعضاء في الشات، مع اسم وصورة حساب Discord.</p></div><button class="btn btn-secondary btn-small" id="refreshChatLinks" type="button"><i class="fa-solid fa-rotate"></i> تحديث</button></div>
+      <div class="section-heading"><div><h3><i class="fa-solid fa-comments" style="color:#bd94ff;margin-left:7px"></i> روابط محادثة المجتمع</h3><p>تظهر باسم ✓・𝐄𝐃𝐈𝐓𝐒・👑، ويكون اسم المصمم هو النص القابل للضغط بدلاً من إظهار الرابط.</p></div><button class="btn btn-secondary btn-small" id="refreshChatLinks" type="button"><i class="fa-solid fa-rotate"></i> تحديث</button></div>
       <div class="panel" style="margin-bottom:18px">
         <div id="chatLinksStatus" style="font-size:10px;color:var(--muted);margin-bottom:9px" role="status">جاري جلب الروابط من المحادثة...</div>
         <div id="chatLinksList" class="quick-list"></div>
@@ -1499,10 +1499,16 @@ tbody tr:last-child td{border-bottom:none}
         const avatar = safeURL(message.author_avatar);
         const when = message.created_at && !Number.isNaN(Date.parse(message.created_at))
           ? new Date(message.created_at).toLocaleString('ar-DZ') : '';
-        return `<article class="quick-action" style="cursor:default;align-items:flex-start;overflow:hidden">
-          ${avatar ? `<img src="${escapeHTML(avatar)}" alt="" loading="lazy" referrerpolicy="no-referrer" style="width:36px;height:36px;border-radius:11px;object-fit:cover;flex-shrink:0">` : '<i class="fa-brands fa-discord" style="font-size:25px"></i>'}
-          <div style="flex:1;min-width:0"><strong>${escapeHTML(name)}</strong><small>${escapeHTML(when)}</small><a href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer" style="display:block;direction:ltr;text-align:left;color:#cbaaff;overflow-wrap:anywhere;font-size:10px;margin-top:7px">${escapeHTML(url)}</a></div>
-          <a class="btn btn-secondary btn-small" href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer" aria-label="فتح الرابط"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+        return `<article class="quick-action" style="cursor:default;align-items:flex-start;overflow:hidden;gap:12px">
+          ${avatar ? `<img src="${escapeHTML(avatar)}" alt="" loading="lazy" referrerpolicy="no-referrer" style="width:40px;height:40px;border-radius:12px;object-fit:cover;flex-shrink:0">` : '<i class="fa-brands fa-discord" style="font-size:25px;flex-shrink:0"></i>'}
+          <div style="flex:1;min-width:0">
+            <strong style="display:block;color:#e8d8ff;font-size:12px">✓・𝐄𝐃𝐈𝐓𝐒・👑</strong>
+            <small style="display:block;margin-top:4px">${escapeHTML(when)} · رابط المصمم</small>
+            <a href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:7px;max-width:100%;color:#cbaaff;font-size:12px;font-weight:800;margin-top:9px;text-decoration:none;overflow-wrap:anywhere">
+              <i class="fa-solid fa-link" aria-hidden="true"></i><span>${escapeHTML(name)}</span>
+            </a>
+          </div>
+          <a class="btn btn-secondary btn-small" href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer" aria-label="فتح رابط ${escapeHTML(name)}"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
         </article>`;
       }).join('');
     } catch (error) {
