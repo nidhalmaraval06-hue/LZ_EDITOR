@@ -676,19 +676,6 @@ app.put('/api/site-content', auth, requireOwnerOrCoOwner, async (req, res, next)
     for (const giveaway of removedGiveaways) {
     }
 
-    const collections = ['designers','works','awards','winners','streamers'];
-    for (const collection of collections) {
-      const keep = new Set((content[collection] || []).map(item => String(item?.id || '')).filter(Boolean));
-      const removed = (Array.isArray(previous[collection]) ? previous[collection] : []).filter(item => item?.id && !keep.has(String(item.id)));
-      for (const item of removed) {
-        if (collection === 'streamers') await writeAudit(req, 'delete', 'streamer', item.id, { name: item.name || '', platform: item.platform || '' });
-        else await writeAudit(req, 'delete', collection.slice(0, -1), item.id, { name: item.name || item.designerName || item.title || '' });
-      }
-      const previousIds = new Set((Array.isArray(previous[collection]) ? previous[collection] : []).map(item => String(item?.id || '')).filter(Boolean));
-      for (const item of (content[collection] || []).filter(item => item?.id && !previousIds.has(String(item.id)))) {
-        const entityType = collection === 'streamers' ? 'streamer' : collection.slice(0, -1);
-      }
-    }
     res.json({ ok: true, content, deleted_giveaways: removedGiveaways.length });
   } catch (error) { next(error); }
 });
