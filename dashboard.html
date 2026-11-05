@@ -370,7 +370,6 @@ tbody tr:last-child td{border-bottom:none}
     <div class="nav-label">ADMINISTRATION</div>
     <nav class="nav">
       <button data-page="manage"><i class="fa-solid fa-sliders"></i> إدارة المحتوى</button>
-      <button data-page="settings"><i class="fa-solid fa-gear"></i> الإعدادات</button>
     </nav>
 
     <div class="sidebar-bottom">
@@ -620,23 +619,6 @@ tbody tr:last-child td{border-bottom:none}
     </section>
 
 
-    <!-- SETTINGS -->
-    <section class="page" id="page-settings">
-      <div class="section-heading"><div><h3>إعدادات الواجهة</h3><p>معلومات النسخة الحالية.</p></div></div>
-      <div class="panel">
-        <div class="panel-head"><h3>حالة النظام</h3><span>BUILD 1.4</span></div>
-        <div class="table-wrap"><table><tbody>
-          <tr><td>اسم المنصة</td><td>LZ EDITORS</td></tr>
-          <tr><td>الواجهة</td><td><span class="badge badge-green">جاهزة للعرض</span></td></tr>
-          <tr><td>تخزين البيانات</td><td><span class="badge badge-green">Supabase عبر الخادم</span></td></tr>
-          <tr><td>قاعدة بيانات مشتركة</td><td><span class="badge badge-green">مربوطة</span></td></tr>
-          <tr><td>تسجيل الدخول عبر Discord</td><td><span class="badge badge-green">Discord OAuth</span></td></tr>
-          <tr><td>إدارة صلاحيات آمنة</td><td><span class="badge badge-green">محمية عبر Backend</span></td></tr>
-        </tbody></table></div>
-        <div class="setting-note">لا تضع مفاتيح سرية أو رموز Discord داخل HTML. الربط الآمن يكون من خلال الخادم.</div>
-        <div class="form-actions"><button class="btn btn-danger" id="clearData"><i class="fa-solid fa-trash"></i> حذف بيانات التجربة من هذا المتصفح</button></div>
-      </div>
-    </section>
 
     <footer class="footer"><span>© LZ EDITORS — Creative Community</span><span>CREATIVE HUB 1.4</span></footer>
   </main>
@@ -830,8 +812,7 @@ tbody tr:last-child td{border-bottom:none}
     polls:'التصويت والشارات',
     winners:'أرشيف الفائزين',
     streamers:'الستريمرز',
-    manage:'إدارة المحتوى',
-    settings:'الإعدادات'
+    manage:'إدارة المحتوى'
   };
 
   function $(id) { return document.getElementById(id); }
@@ -1265,19 +1246,21 @@ tbody tr:last-child td{border-bottom:none}
     try {
       allEarnedBadgesForAdmin = await apiRequest('/api/community/badges/earned');
       const rows = allEarnedBadgesForAdmin.filter(row => String(row.user_id) === String(memberId) && row.badge?.id);
-      select.innerHTML = rows.map(row => `<option value="${escapeHTML(row.badge.id)}">${escapeHTML((row.badge.icon || '🏅')+' '+row.badge.name)}</option>`).join('') || '<option value="">لا توجد شارات لهذا العضو</option>';
+      select.innerHTML = '<option value="">اختر الشارة المراد حذفها</option>' + rows.map(row => `<option value="${escapeHTML(row.id)}" data-badge-id="${escapeHTML(row.badge.id)}">${escapeHTML((row.badge.icon || '🏅')+' '+row.badge.name)}</option>`).join('');
       select.disabled = !rows.length;
     } catch(error) { select.innerHTML='<option value="">تعذر تحميل الشارات</option>'; toast('تعذر تحميل شارات العضو: '+error.message); }
   }
   $('removeBadgeUser')?.addEventListener('change', refreshMemberBadgeOptions);
   $('removeMemberBadge')?.addEventListener('click', async () => {
-    const userId=$('removeBadgeUser').value, badgeId=$('badgeRemoveSelect').value;
-    if (!userId || !badgeId) return toast('تعذرت إزالة الشارة: اختر العضو والشارة بشكل صحيح.');
+    const userId=$('removeBadgeUser').value, awardId=$('badgeRemoveSelect').value;
+    if (!userId || !awardId) return toast('تعذرت إزالة الشارة: اختر العضو والشارة بشكل صحيح.');
     if (!confirm('هل تريد إزالة هذه الشارة من العضو؟')) return;
     const button=$('removeMemberBadge'); button.disabled=true;
     try {
-      await apiRequest('/api/community/badges/award',{method:'DELETE',body:JSON.stringify({user_id:userId,badge_id:badgeId})});
-      toast('تمت إزالة الشارة بنجاح'); await refreshMemberBadgeOptions();
+      const result = await apiRequest('/api/community/badges/award',{method:'DELETE',body:JSON.stringify({user_id:userId,award_id:awardId})});
+      if (!result?.ok || !result.removed) throw new Error('لم يؤكد الخادم حذف الشارة.');
+      toast('تم حذف الشارة من العضو بنجاح');
+      await refreshMemberBadgeOptions();
     } catch(error) { toast('تعذرت إزالة الشارة: '+(error.message || 'تحقق من اختيار العضو والشارة وصلاحياتك.')); }
     finally { button.disabled=false; }
   });
@@ -1480,7 +1463,6 @@ tbody tr:last-child td{border-bottom:none}
   $('workSearch').addEventListener('input', renderWorks);
   $('workFilter').addEventListener('change', renderWorks);
 
-  $('clearData').addEventListener('click', () => toast('الحذف المحلي معطل؛ البيانات محفوظة في Supabase.'));
 
   // Read-only public chat feed: shared links appear on the dashboard.
   const CHAT_API = 'https://gotgssqdkercujjzisdm.supabase.co/rest/v1/community_messages';

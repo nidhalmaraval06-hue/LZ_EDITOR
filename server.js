@@ -1302,13 +1302,24 @@ app.post('/api/community/badges/award', auth, requireOwnerOrCoOwner, async (req,
 app.delete('/api/community/badges/award', auth, requireOwnerOrCoOwner, async (req, res, next) => {
   try {
     const target = String(req.body?.user_id || '');
-    const badgeId = String(req.body?.badge_id || '');
-    if (!uuid(target) || !uuid(badgeId)) return fail(res, 400, 'اختر العضو والشارة بشكل صحيح');
-    const { data, error } = await supabase.from('lz_user_badges').delete()
-      .eq('user_id', target).eq('badge_id', badgeId).select('id');
+    const awardId = Number(req.body?.award_id);
+    const badgeId = Number(req.body?.badge_id);
+    if (!uuid(target)) return fail(res, 400, 'اختر العضو بشكل صحيح');
+
+    // Delete the exact assignment row selected in the admin UI. This avoids
+    // confusing a badge definition id with the member's earned-badge row id.
+    let query = supabase.from('lz_user_badges').delete().eq('user_id', target);
+    if (Number.isSafeInteger(awardId) && awardId > 0) {
+      query = query.eq('id', awardId);
+    } else if (Number.isSafeInteger(badgeId) && badgeId > 0) {
+      query = query.eq('badge_id', badgeId);
+    } else {
+      return fail(res, 400, 'اختر الشارة المراد حذفها بشكل صحيح');
+    }
+    const { data, error } = await query.select('id,user_id,badge_id');
     if (error) throw error;
-    if (!data?.length) return fail(res, 404, 'هذه الشارة غير ممنوحة لهذا العضو');
-    res.json({ ok: true, removed: data.length });
+    if (!data?.length) return fail(res, 404, 'لم يتم العثور على الشارة المحددة لهذا العضو');
+    res.json({ ok: true, removed: data.length, deleted: data[0] });
   } catch (error) { next(error); }
 });
 
