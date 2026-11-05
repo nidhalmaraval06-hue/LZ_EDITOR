@@ -51,8 +51,12 @@ const pages = [
 ];
 
 app.get('/', (_req, res) => {
-  res.set('Cache-Control', 'no-store, max-age=0');
-  res.sendFile(path.join(__dirname, 'login-dashboard.html'));
+  // الصفحة الرئيسية العامة تفتح تسجيل دخول المصممين مباشرة.
+  // لا نستخدم sendFile هنا حتى لا تظهر صفحة دخول لوحة الإدارة للزوار.
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  return res.redirect(302, '/login-designers.html');
 });
 app.get('/login-dashboard.html', (_req, res) => {
   res.sendFile(path.join(__dirname, 'login-dashboard.html'));
@@ -67,7 +71,13 @@ pages.forEach(page => {
 
 // الشعار
 app.get('/logo.png', (_req, res) => {
+  res.set('Cache-Control', 'public, max-age=3600');
   res.sendFile(path.join(__dirname, 'logo.png'));
+});
+// شعار واجهة الحظر — ملف مستقل باسم logo.ban.png
+app.get('/logo.ban.png', (_req, res) => {
+  res.set('Cache-Control', 'no-store, max-age=0');
+  res.type('png').sendFile(path.join(__dirname, 'logo.ban.png'));
 });
 app.get('/manifest.webmanifest', (_req, res) => {
   res.type('application/manifest+json').sendFile(path.join(__dirname, 'manifest.webmanifest'));
@@ -790,7 +800,8 @@ app.get('/api/me', auth, async (req, res, next) => {
     res.json({
       user_id: req.user.id,
       profile: data,
-      role: await getRole(req.user.id)
+      role: await getRole(req.user.id),
+      is_primary_owner: req.user.id === process.env.OWNER_USER_ID
     });
   } catch (error) {
     next(error);
@@ -1063,8 +1074,11 @@ app.put(
       }
 
       const requesterRole = await getRole(req.user.id);
-      if (role === 'owner' && requesterRole !== 'owner') {
-        return fail(res, 403, 'المالك الأساسي فقط يمكنه منح رتبة Owner');
+      const isPrimaryOwner = req.user.id === process.env.OWNER_USER_ID;
+      const isOwnerRole = (await getRole(target)) === 'owner';
+      // رتبة Owner محجوزة للمالك الأساسي فقط: لا يستطيع أي Owner مُعيّن منحها أو نزعها أو تعديلها.
+      if ((role === 'owner' || isOwnerRole) && !isPrimaryOwner) {
+        return fail(res, 403, 'فقط المالك الأساسي يستطيع منح رتبة Owner أو سحبها أو تعديلها');
       }
 
       if (
@@ -1118,7 +1132,7 @@ app.put(
 // تعيين رتبة Owner بواسطة Discord ID — المالك الحالي فقط
 app.post('/api/roles/by-discord/:discordId', auth, async (req, res, next) => {
   try {
-    if (await getRole(req.user.id) !== 'owner') return fail(res, 403, 'Only Owner can assign Owner');
+    if (req.user.id !== process.env.OWNER_USER_ID) return fail(res, 403, 'فقط المالك الأساسي يستطيع منح رتبة Owner');
     const discordId = String(req.params.discordId || '').trim();
     if (!/^\d{17,20}$/.test(discordId)) return fail(res, 400, 'Discord ID غير صالح؛ يجب أن يكون 17 إلى 20 رقماً');
     const { data: profile, error: profileError } = await supabase

@@ -646,6 +646,7 @@ tbody tr:last-child td{border-bottom:none}
   const SB_KEY = 'sb_publishable_4NyoLY_J46KA6Lt2T4PNBg_Bzy8bT3r';
   const sb = window.supabase?.createClient(SB_URL, SB_KEY);
   let currentRole = null;
+  let currentIsPrimaryOwner = false;
   let remoteDesigners = [];
   const allowedRoles = ['member','co_owner','manager_admin','admin','owner'];
   async function apiRequest(path, options = {}) {
@@ -742,7 +743,8 @@ tbody tr:last-child td{border-bottom:none}
         return;
       }
       currentRole = me.role;
-      if (currentRole === 'owner') $('ownerDiscordAssign').style.display = 'block';
+      currentIsPrimaryOwner = me.is_primary_owner === true;
+      if (currentIsPrimaryOwner) $('ownerDiscordAssign').style.display = 'block';
       document.body.style.visibility = 'visible';
       document.getElementById('authLoading').remove();
       document.querySelector('.profile-name').textContent = me.profile?.discord_username || 'الإدارة';
@@ -1197,7 +1199,7 @@ tbody tr:last-child td{border-bottom:none}
 
   $('refreshBans').addEventListener('click', loadBans);
   $('assignDiscordOwner').addEventListener('click', async () => {
-    if (currentRole !== 'owner') return toast('هذه الخاصية للمالك الأساسي فقط');
+    if (!currentIsPrimaryOwner) return toast('هذه الخاصية للمالك الأساسي فقط');
     const discordId = $('ownerDiscordId').value.trim();
     if (!/^\d{17,20}$/.test(discordId)) return toast('أدخل Discord ID صحيحاً (17 إلى 20 رقماً)');
     const button = $('assignDiscordOwner'); button.disabled = true;
@@ -1216,8 +1218,7 @@ tbody tr:last-child td{border-bottom:none}
     const designer = remoteDesigners.find(d => d.id === editingRoleId);
     const role = $('permissionsRole').value;
     if (!designer || !allowedRoles.includes(role)) return toast('رتبة غير مسموحة');
-    if (designer.role === 'owner' && currentRole !== 'owner') return toast('المالك الأساسي فقط يمكنه تعديل رتبة Owner');
-    if (role === 'owner' && currentRole !== 'owner') return toast('المالك الأساسي فقط يمكنه منح رتبة Owner');
+    if ((designer.role === 'owner' || role === 'owner') && !currentIsPrimaryOwner) return toast('فقط المالك الأساسي يستطيع منح رتبة Owner أو سحبها أو تعديلها');
     if (['co_owner','manager_admin'].includes(role) && currentRole !== 'owner') return toast('المالك فقط يمنح رتبة Co Owner أو Manager Admin');
     const submit = event.target.querySelector('[type="submit"]');
     submit.disabled = true;
@@ -1298,10 +1299,10 @@ tbody tr:last-child td{border-bottom:none}
     if (roleDesigner) {
       const designer = remoteDesigners.find(d => d.id === roleDesigner.dataset.roleDesigner);
       if (designer) {
-        if (designer.role === 'owner' && currentRole !== 'owner') return toast('رتبة Owner لا يعدلها إلا المالك الأساسي');
+        if (designer.role === 'owner' && !currentIsPrimaryOwner) return toast('رتبة Owner لا يعدلها إلا المالك الأساسي');
         editingRoleId = designer.id;
         const ownerOption = $('permissionsRole').querySelector('option[value="owner"]');
-        if (ownerOption) ownerOption.hidden = currentRole !== 'owner';
+        if (ownerOption) ownerOption.hidden = !currentIsPrimaryOwner;
         $('permissionsName').textContent = designer.name;
         $('permissionsRole').value = roleLabels[designer.role] ? designer.role : 'member';
         $('permissionsDialog').showModal();
