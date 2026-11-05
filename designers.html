@@ -1742,12 +1742,11 @@ select.field option{background:#151020}
     <!-- GIVEAWAY PAGE -->
     <section class="page-view" id="page-giveaway">
 
-      <section class="hero" style="display:flex;align-items:center;gap:22px;flex-wrap:wrap">
-        <img src="logo.giv.png" alt="LZ EDITORS Giveaway" style="width:min(260px,42vw);max-height:190px;object-fit:contain;filter:drop-shadow(0 0 22px rgba(177,65,255,.35))">
+      <section class="hero">
         <div class="hero-content">
-          <div class="eyebrow"><span></span> LZ EDITORS GIVEAWAY EVENTS</div>
+          <div class="eyebrow"><span></span> GIVEAWAY EVENTS</div>
           <h2>مسابقات <b>Giveaway</b></h2>
-          <p>شارك بفيديو من حساب TikTok المرتبط بك، واجمع الإعجابات واربح الجوائز.</p>
+          <p>تابع السحوبات والفعاليات والجوائز داخل مجتمع LZ EDITORS.</p>
         </div>
       </section>
 
@@ -1900,7 +1899,7 @@ select.field option{background:#151020}
     } catch(error) { console.warn('Earned badges:',error); }
   }
   function mergeDesigners(){
-    const roleNames = {member:'👤 Member',owner:'👑 LZ Owner',co_owner:'💎 LZ Co Owner',manager_admin:'𝐌𝐀𝐍𝐀𝐆𝐄𝐑 𝐀𝐃𝐌𝐈𝐍',admin:'🎭 LZ Admin'};
+    const roleNames = {member:'👤 Member',owner:'👑 LZ Owner',co_owner:'💎 LZ Co Owner',manager_admin:'𝐌𝐀𝐍𝐀𝐆𝐄𝐑 𝐀𝐃𝐌𝐈𝐍',admin:'🎭 LZ Admin',w_edit:'🥇 W EDIT'};
     const remote = publicProfiles.map(p => ({id:p.id,name:p.discord_username || 'Discord Creator',image:p.discord_avatar_url,tiktok:p.tiktok_url,role:p.role || 'member',roleLabel:roleNames[p.role || 'member'],specialty:'مصمم',earnedBadges:earnedBadgesByUser[p.id] || [],isRemote:true}));
     designers = [...data.designers.filter(d => !remote.some(r => String(r.id) === String(d.id))),...remote];
     updateStats(); updateSpecialties(); renderDesigners(); renderStreamers();
@@ -2610,7 +2609,7 @@ window.addEventListener('hashchange', () => {
       const card = createContentCard(item, 'giveaway');
       const actions = document.createElement('div'); actions.className='content-meta';
       if (item.type === 'tiktok_contest') {
-        actions.innerHTML = `<div style="display:flex;gap:9px;flex-wrap:wrap;width:100%;align-items:center"><input class="field" type="url" inputmode="url" autocomplete="url" placeholder="ألصق رابط فيديو TikTok من حسابك المرتبط" aria-label="رابط فيديو TikTok" data-contest-video="${escapeHTML(item.id)}" style="flex:1;min-width:220px;direction:ltr;text-align:left"><button class="btn btn-primary" type="button" data-contest-submit="${escapeHTML(item.id)}"><i class="fa-solid fa-paper-plane"></i> إرسال المشاركة</button><span class="badge badge-gold">كل إعجاب جديد = نقطة</span></div><small style="display:block;color:var(--muted);margin-top:7px;line-height:1.8">يجب ربط حساب TikTok أعلاه أولاً. لن يُقبل إلا فيديو منشور على الحساب الذي ربطته.</small>`;
+        actions.innerHTML = `<button class="btn btn-primary" data-contest-submit="${escapeHTML(item.id)}">إرسال فيديو TikTok للمسابقة</button><span class="badge badge-gold">كل إعجاب = نقطة</span>`;
         const list = document.createElement('div'); list.style.marginTop='12px'; list.innerHTML='<b>الفيديوهات المشاركة وترتيب النقاط</b>';
         const entries = document.createElement('div'); entries.dataset.contestEntryList = item.id; list.appendChild(entries); card.appendChild(actions); card.appendChild(list); loadContestEntries(item.id, entries);
       } else {
@@ -2652,7 +2651,7 @@ window.addEventListener('hashchange', () => {
     try {
       if (vote) { await communityRequest('/polls/'+encodeURIComponent(vote.dataset.pollVote)+'/vote', {method:'POST', body:JSON.stringify({option_id:Number(vote.dataset.optionId)})}); toast('تم تسجيل صوتك'); await loadPolls(); }
       if (join) { await communityRequest('/giveaways/'+encodeURIComponent(join.dataset.giveawayJoin)+'/join', {method:'POST', body:'{}'}); toast('تم تسجيل مشاركتك في السحب'); await loadNotifications(); }
-      if (submitContest) { const input=document.querySelector(`[data-contest-video="${CSS.escape(submitContest.dataset.contestSubmit)}"]`); const video=input?.value.trim(); if(!video){toast('ألصق رابط فيديو TikTok أولاً');return;} submitContest.disabled=true; try { await communityRequest('/contests/'+encodeURIComponent(submitContest.dataset.contestSubmit)+'/entries', {method:'POST', body:JSON.stringify({video_url:video})}); toast('تم إرسال الفيديو والتحقق من ملكيته لحسابك'); if(input)input.value=''; await loadData(); } finally { submitContest.disabled=false; } }
+      if (submitContest) { const video = prompt('ضع رابط فيديو TikTok العام الذي تريد تسجيله في المسابقة:'); if (!video) return; await communityRequest('/contests/'+encodeURIComponent(submitContest.dataset.contestSubmit)+'/entries', {method:'POST', body:JSON.stringify({video_url:video.trim()})}); toast('تم إرسال الفيديو للمسابقة'); await loadData(); }
       if (read) { await communityRequest('/notifications/'+encodeURIComponent(read.dataset.notificationRead)+'/read', {method:'PATCH', body:'{}'}); await loadNotifications(); }
     } catch(error) { toast(error.message || 'تعذر تنفيذ العملية'); }
   });

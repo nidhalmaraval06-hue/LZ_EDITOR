@@ -74,10 +74,6 @@ app.get('/logo.png', (_req, res) => {
   res.set('Cache-Control', 'public, max-age=3600');
   res.sendFile(path.join(__dirname, 'logo.png'));
 });
-app.get('/logo.giv.png', (_req, res) => {
-  res.set('Cache-Control', 'public, max-age=3600');
-  res.type('png').sendFile(path.join(__dirname, 'logo.giv.png'));
-});
 // شعار واجهة الحظر — ملف مستقل باسم logo.ban.png
 app.get('/logo.ban.png', (_req, res) => {
   res.set('Cache-Control', 'no-store, max-age=0');
@@ -113,7 +109,7 @@ app.use('/api', rateLimit({
   legacyHeaders: false
 }));
 
-const roles = ['member', 'owner', 'co_owner', 'manager_admin', 'admin'];
+const roles = ['member', 'owner', 'co_owner', 'manager_admin', 'admin', 'w_edit'];
 const adminRoles = new Set(['owner', 'co_owner', 'manager_admin']);
 
 const uuid = value =>
@@ -1427,7 +1423,8 @@ app.use((error, _req, res, _next) => {
   if (code === '23505') {
     return res.status(409).json({ error: 'يوجد سجل مكرر. راجع user_id في جداول lz_user_roles و lz_user_bans.' });
   }
-  res.status(500).json({ error: 'Server error. Check backend logs.' });
+  const safeMessage = typeof error?.message === 'string' ? error.message.slice(0, 220) : 'Unknown backend error';
+  res.status(500).json({ error: `Server error: ${safeMessage}`, code: code || 'INTERNAL_ERROR' });
 });
 
 const port = Number(process.env.PORT) || 3000;

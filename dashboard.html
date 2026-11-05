@@ -479,11 +479,10 @@ tbody tr:last-child td{border-bottom:none}
 
     <!-- GIVEAWAY -->
     <section class="page" id="page-giveaway">
-      <div class="giveaway-banner" style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
-        <img src="logo.giv.png" alt="LZ GIVEAWAY" style="width:min(230px,40vw);max-height:155px;object-fit:contain;filter:drop-shadow(0 0 18px rgba(177,65,255,.35))">
-        <div style="flex:1;min-width:220px"><span class="badge badge-gold"><i class="fa-solid fa-gift"></i> LZ GIVEAWAY</span>
+      <div class="giveaway-banner">
+        <span class="badge badge-gold"><i class="fa-solid fa-gift"></i> LZ GIVEAWAY</span>
         <h3>المسابقات والهدايا</h3>
-        <p>أنشئ مسابقات السحب ومسابقات فيديوهات TikTok، وتابع روابط المشاركين ونقاط الإعجابات.</p></div>
+        <p>اكتشف المسابقات الحالية، الجوائز، موعد النهاية وصورة المسابقة وتفاصيلها.</p>
         <div class="hero-actions"><button class="btn btn-primary" data-goto="manage"><i class="fa-solid fa-plus"></i> إضافة مسابقة</button></div>
       </div>
       <div class="section-heading"><div><h3>المسابقات</h3><p>المسابقات التي أُضيفت من لوحة الإدارة المحلية.</p></div></div>
@@ -575,8 +574,7 @@ tbody tr:last-child td{border-bottom:none}
         <div class="panel-head"><h3><i class="fa-solid fa-medal" style="color:var(--gold);margin-left:7px"></i> منح شارة إنجاز</h3><span>BADGE AWARD</span></div>
         <form id="badgeAdminForm"><div class="form-grid">
           <div class="form-group"><label for="badgeUser">العضو *</label><select class="field" id="badgeUser" required><option value="">حمّل المصممين أولاً</option></select></div>
-          <div class="form-group"><label for="badgeName">اسم الشارة *</label><input class="field" id="badgeName" required maxlength="80" placeholder="مصمم مبدع"></div>
-          <div class="form-group"><label for="badgeIcon">رمز الشارة</label><input class="field" id="badgeIcon" maxlength="12" value="🏅"></div>
+          <div class="form-group"><label for="badgePreset">اختر شارة الإنجاز *</label><select class="field" id="badgePreset" required><option value="">اختر الشارة</option><option value="🎨 مصمم مبدع|🎨">🎨 مصمم مبدع</option><option value="⚡ سريع الإنجاز|⚡">⚡ سريع الإنجاز</option><option value="🏆 أسطورة LZ|🏆">🏆 أسطورة LZ</option><option value="💎 عضو مميز|💎">💎 عضو مميز</option><option value="🔥 صانع محتوى|🔥">🔥 صانع محتوى</option><option value="🥇 W EDIT|🥇">🥇 W EDIT</option><option value="🌟 نجم المجتمع|🌟">🌟 نجم المجتمع</option></select></div>
           <div class="form-group"><label for="badgeDescription">الوصف</label><input class="field" id="badgeDescription" maxlength="240" placeholder="سبب منح الشارة"></div>
         </div><div class="form-actions"><button class="btn btn-primary" type="submit">منح الشارة وإرسال إشعار</button></div></form>
       </div>
@@ -612,12 +610,20 @@ tbody tr:last-child td{border-bottom:none}
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<dialog id="banDialog" aria-labelledby="banDialogTitle" style="margin:auto;max-width:min(440px,92vw);width:100%;padding:22px;background:#171126;color:var(--text);border:1px solid var(--border);border-radius:18px;box-shadow:0 25px 70px #0009">
+  <form id="banForm"><h3 id="banDialogTitle" style="margin-bottom:8px">حظر عضو</h3><p id="banTargetName" style="color:var(--muted);font-size:12px;margin-bottom:14px"></p>
+    <label for="banReason" style="display:block;font-size:11px;margin-bottom:6px">سبب الحظر</label><input id="banReason" class="field" maxlength="500" required value="مخالفة قوانين الموقع" style="margin-bottom:12px">
+    <label for="banDurationUnit" style="display:block;font-size:11px;margin-bottom:6px">مدة الحظر</label><select id="banDurationUnit" class="field" style="margin-bottom:10px"><option value="hours">ساعات</option><option value="days" selected>أيام</option><option value="weeks">أسابيع</option><option value="permanent">دائم</option></select>
+    <label for="banDurationAmount" style="display:block;font-size:11px;margin-bottom:6px">العدد</label><input id="banDurationAmount" class="field" type="number" min="1" max="36500" value="7" style="margin-bottom:14px">
+    <div class="form-actions"><button class="btn btn-danger" type="submit">تأكيد الحظر</button><button class="btn btn-secondary" type="button" id="banCancel">إلغاء</button></div>
+  </form>
+</dialog>
 <dialog id="permissionsDialog" aria-labelledby="permissionsTitle" style="margin:auto;max-width:min(430px,92vw);width:100%;padding:22px;background:#171126;color:var(--text);border:1px solid var(--border);border-radius:18px;box-shadow:0 25px 70px #0009">
   <form id="permissionsForm">
     <h3 id="permissionsTitle" style="margin-bottom:9px">صلاحيات المصمم</h3>
     <p id="permissionsName" style="font-size:12px;color:var(--muted);margin-bottom:15px"></p>
     <label for="permissionsRole" style="display:block;font-size:11px;margin-bottom:7px">اختر الرتبة</label>
-    <select id="permissionsRole" class="field" style="margin-bottom:12px"><option value="member">👤 Member</option><option value="owner" hidden>👑 LZ Owner</option><option value="co_owner">💎 LZ Co Owner</option><option value="manager_admin">𝐌𝐀𝐍𝐀𝐆𝐄𝐑 𝐀𝐃𝐌𝐈𝐍</option><option value="admin">🎭 LZ Admin</option></select>
+    <select id="permissionsRole" class="field" style="margin-bottom:12px"><option value="member">👤 Member</option><option value="owner" hidden>👑 LZ Owner</option><option value="co_owner">💎 LZ Co Owner</option><option value="manager_admin">𝐌𝐀𝐍𝐀𝐆𝐄𝐑 𝐀𝐃𝐌𝐈𝐍</option><option value="admin">🎭 LZ Admin</option><option value="w_edit">🥇 W EDIT</option></select>
     <p style="font-size:10px;color:var(--muted);line-height:1.9">الرتب تحفظ في Supabase عبر السيرفر. دخول الداشبورد للمالك ونائبه فقط.</p>
     <div class="form-actions"><button class="btn btn-primary" type="submit">حفظ الرتبة</button><button class="btn btn-secondary" type="button" id="permissionsCancel">إلغاء</button></div>
   </form>
@@ -633,7 +639,8 @@ tbody tr:last-child td{border-bottom:none}
   owner: '👑 LZ Owner',
   co_owner: '💎 LZ Co Owner',
   manager_admin: '𝐌𝐀𝐍𝐀𝐆𝐄𝐑 𝐀𝐃𝐌𝐈𝐍',
-  admin: '🎭 LZ Admin'
+  admin: '🎭 LZ Admin',
+  w_edit: '🥇 W EDIT'
 };
   let editingRoleId = null;
   const API = 'https://lz-editor-qoa6.onrender.com';
@@ -643,7 +650,8 @@ tbody tr:last-child td{border-bottom:none}
   let currentRole = null;
   let currentIsPrimaryOwner = false;
   let remoteDesigners = [];
-  const allowedRoles = ['member','co_owner','manager_admin','admin','owner'];
+  const allowedRoles = ['member','co_owner','manager_admin','admin','owner','w_edit'];
+  let pendingBanDesigner = null;
   async function apiRequest(path, options = {}) {
     if (!sb) throw new Error('Supabase غير جاهز');
     let { data: { session }, error: sessionError } = await sb.auth.getSession();
@@ -1161,7 +1169,7 @@ tbody tr:last-child td{border-bottom:none}
   $('badgeAdminForm').addEventListener('submit', async event => {
     event.preventDefault(); const button=event.target.querySelector('[type="submit"]'); button.disabled=true;
     try {
-      await apiRequest('/api/community/badges/award',{method:'POST',body:JSON.stringify({user_id:$('badgeUser').value,name:$('badgeName').value.trim(),icon:$('badgeIcon').value.trim()||'🏅',description:$('badgeDescription').value.trim()})});
+      await apiRequest('/api/community/badges/award',{method:'POST',body:JSON.stringify({user_id:$('badgeUser').value,name:$('badgePreset').value.split('|')[0],icon:$('badgePreset').value.split('|')[1]||'🏅',description:$('badgeDescription').value.trim()})});
       event.target.reset(); toast('تم منح الشارة وإرسال إشعار للعضو');
     } catch(error) { toast('تعذر منح الشارة: '+error.message); }
     finally { button.disabled=false; }
@@ -1193,6 +1201,18 @@ tbody tr:last-child td{border-bottom:none}
 
   $('refreshBans').addEventListener('click', loadBans);
   $('permissionsCancel').addEventListener('click', () => $('permissionsDialog').close());
+  $('banCancel').addEventListener('click', () => { $('banDialog').close(); pendingBanDesigner = null; });
+  $('banDurationUnit').addEventListener('change', () => { $('banDurationAmount').disabled = $('banDurationUnit').value === 'permanent'; });
+  $('banForm').addEventListener('submit', async event => {
+    event.preventDefault(); const designer = pendingBanDesigner; if (!designer) return;
+    const reason = $('banReason').value.trim(); const unit = $('banDurationUnit').value;
+    if (!reason) return toast('اكتب سبب الحظر');
+    const factors = {hours:3600000, days:86400000, weeks:604800000}; let expires_at = null;
+    if (unit !== 'permanent') { const amount = Number($('banDurationAmount').value); const max = unit === 'hours' ? 876000 : unit === 'days' ? 36500 : 5200; if (!Number.isSafeInteger(amount) || amount < 1 || amount > max) return toast('أدخل مدة صحيحة'); expires_at = new Date(Date.now() + amount * factors[unit]).toISOString(); }
+    const submit = event.target.querySelector('[type=submit]'); submit.disabled = true;
+    try { await apiRequest('/api/bans/' + encodeURIComponent(designer.id), {method:'PUT',body:JSON.stringify({reason,expires_at})}); $('banDialog').close(); pendingBanDesigner = null; await loadSharedContent(); await loadRemoteDesigners(); await loadBans(); toast('تم حظر المصمم بنجاح'); }
+    catch(error) { toast('فشل الحظر: ' + error.message); } finally { submit.disabled = false; }
+  });
   $('permissionsForm').addEventListener('submit', async event => {
     event.preventDefault();
     const designer = remoteDesigners.find(d => d.id === editingRoleId);
@@ -1220,32 +1240,11 @@ tbody tr:last-child td{border-bottom:none}
       const designer = remoteDesigners.find(d => d.id === banButton.dataset.banDesigner);
       if (!designer) return;
       if (designer.role === 'owner') return toast('لا يمكن حظر المالك');
-      const reason = prompt(`سبب حظر ${designer.name}:`, 'مخالفة قوانين الموقع');
-      if (reason === null) return;
-      const unitText = prompt(`اختر وحدة مدة الحظر:\n1 = ساعات\n2 = أيام\n3 = أسابيع\n0 = حظر دائم`, '2');
-      if (unitText === null) return;
-      const unitChoice = unitText.trim();
-      let expires_at = null;
-      if (unitChoice !== '0') {
-        const units = { '1': { label: 'ساعة', ms: 60 * 60 * 1000, max: 876000 }, '2': { label: 'يوم', ms: 24 * 60 * 60 * 1000, max: 36500 }, '3': { label: 'أسبوع', ms: 7 * 24 * 60 * 60 * 1000, max: 5200 } };
-        const selectedUnit = units[unitChoice];
-        if (!selectedUnit) return toast('اختر 1 أو 2 أو 3 أو 0');
-        const amountText = prompt(`أدخل عدد ${selectedUnit.label}(ات):`, unitChoice === '2' ? '7' : '1');
-        if (amountText === null) return;
-        const amount = Number(amountText.trim());
-        if (!Number.isSafeInteger(amount) || amount < 1 || amount > selectedUnit.max) return toast('أدخل مدة صحيحة ضمن الحد المسموح');
-        expires_at = new Date(Date.now() + amount * selectedUnit.ms).toISOString();
-      }
-      banButton.disabled = true;
-      try {
-        await apiRequest('/api/bans/' + encodeURIComponent(designer.id), {
-          method:'PUT', body:JSON.stringify({reason, expires_at})
-        });
-        await loadSharedContent();
-      await loadRemoteDesigners();
-        toast('تم حظر المصمم بنجاح');
-      } catch (error) { toast('فشل الحظر: ' + error.message); }
-      finally { banButton.disabled = false; }
+      pendingBanDesigner = designer;
+      $('banTargetName').textContent = `سيتم حظر: ${designer.name}`;
+      $('banReason').value = 'مخالفة قوانين الموقع';
+      $('banDurationUnit').value = 'days'; $('banDurationAmount').value = '7';
+      $('banDialog').showModal();
       return;
     }
     const unbanButton = event.target.closest('[data-unban-designer]');
