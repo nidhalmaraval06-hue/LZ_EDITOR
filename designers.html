@@ -2126,7 +2126,7 @@ select.field option{background:#151020}
       const parsed = await response.json();
       data = { ...parsed, designers:readArray(parsed,'designers'), works:readArray(parsed,'works'), awards:readArray(parsed,'awards'), giveaways:readArray(parsed,'giveaways'), winners:readArray(parsed,'winners'), streamers:readArray(parsed,'streamers') };
     } catch(error) { console.error('Shared content:',error); toast('تعذر تحميل البيانات المشتركة من السيرفر.'); data={designers:[],works:[],awards:[],giveaways:[],winners:[],streamers:[]}; }
-    mergeDesigners(); updateStats(); updateSpecialties(); renderDesigners(); renderStreamers(); autoFetchStreamerBanners(); renderWorks(); renderAwards(); renderGiveaways(); renderWinners();
+    mergeDesigners(); updateStats(); updateSpecialties(); renderDesigners(); renderStreamers(); renderWorks(); renderAwards(); renderGiveaways(); renderWinners();
   }
 
   /* NAVIGATION */
@@ -2357,7 +2357,7 @@ window.addEventListener('hashchange', () => {
       const url = safeURL(item.url);
       const kick = item.platform === 'kick';
       const fallback = kick ? 'KICK' : '<i class="fa-brands fa-tiktok"></i>';
-      const banner = safeURL(item.bannerUrl || item.banner_url || item.banner || item.coverUrl || '');
+      const banner = image;
       const avatar = image
         ? `<img class="streamer-avatar" src="${escapeHTML(image)}" alt="${escapeHTML(item.name || 'Streamer')}" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'"><div class="designer-fallback" style="display:none;margin:0 auto 10px;border:3px solid var(--streamer-accent)">${kick ? 'KICK' : 'LZ'}</div>`
         : `<div class="designer-fallback streamer-avatar" style="display:grid;margin:0 auto 10px">${fallback}</div>`;
