@@ -215,6 +215,34 @@ async function getValidTikTokToken(connection) {
   await saveTikTokConnection(connection.user_id, refreshed);
   return refreshed.access_token;
 }
+async function resolveTikTokVideoUrl(raw) {
+  let current;
+  try { current = new URL(String(raw || '').trim()); } catch { throw new Error('رابط TikTok غير صالح'); }
+  const allowed = host => host === 'tiktok.com' || host.endsWith('.tiktok.com');
+  if (current.protocol !== 'https:' || !allowed(current.hostname.toLowerCase())) throw new Error('يجب أن يكون الرابط من TikTok');
+  // Expand vm.tiktok.com / vt.tiktok.com safely so the video ID can be queried.
+  for (let hop = 0; hop < 6 && !/\/video\/\d+/.test(current.pathname); hop++) {
+    const response = await fetch(current.href, { method: 'GET', redirect: 'manual', headers: { 'User-Agent': 'Mozilla/5.0 (compatible; LZEditors/1.0)', 'Range': 'bytes=0-0' }, signal: AbortSignal.timeout(12000) });
+    if (response.status >= 300 && response.status < 400) {
+      const location = response.headers.get('location');
+      if (!location) break;
+      const next = new URL(location, current);
+      if (next.protocol !== 'https:' || !allowed(next.hostname.toLowerCase())) throw new Error('رابط التحويل لا ينتمي إلى TikTok');
+      current = next;
+      continue;
+    }
+    if (response.body) await response.body.cancel().catch(() => {});
+    if (response.url) {
+      const finalUrl = new URL(response.url);
+      if (finalUrl.protocol === 'https:' && allowed(finalUrl.hostname.toLowerCase())) current = finalUrl;
+    }
+    break;
+  }
+  current.hash = '';
+  if (!/\/video\/\d+/.test(current.pathname)) throw new Error('تعذر استخراج رقم الفيديو من الرابط القصير. أرسل رابط TikTok الكامل للفيديو');
+  return current.href;
+}
+
 async function queryTikTokVideos(accessToken, videoIds) {
   const response = await fetch('https://open.tiktokapis.com/v2/video/query/?fields=id,like_count', {
     method: 'POST', headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
@@ -240,8 +268,21 @@ async function syncTikTokContestLikes() {
       try {
         const connection = await getTikTokConnection(userId); if (!connection) continue;
         const token = await getValidTikTokToken(connection);
-        for (let i = 0; i < userEntries.length; i += 20) {
-          const batch = userEntries.slice(i, i + 20).map(entry => ({ entry, id: (entry.video_url.match(/\/video\/(\d+)/) || [])[1] })).filter(item => item.id);
+        const normalizedEntries = [];
+        for (const entry of userEntries) {
+          try {
+            let videoUrl = entry.video_url;
+            let id = (String(videoUrl || '').match(/\/video\/(\d+)/) || [])[1];
+            if (!id) {
+              videoUrl = await resolveTikTokVideoUrl(videoUrl);
+              id = (videoUrl.match(/\/video\/(\d+)/) || [])[1];
+              if (id) await supabase.from('lz_contest_entries').update({ video_url: videoUrl }).eq('id', entry.id);
+            }
+            if (id) normalizedEntries.push({ entry, id });
+          } catch (resolveError) { console.warn('TikTok short video URL skipped:', resolveError.message); }
+        }
+        for (let i = 0; i < normalizedEntries.length; i += 20) {
+          const batch = normalizedEntries.slice(i, i + 20);
           if (!batch.length) continue;
           const videos = await queryTikTokVideos(token, batch.map(item => item.id));
           const byId = new Map(videos.map(video => [String(video.id), video]));
@@ -1405,12 +1446,8 @@ app.post('/api/community/contests/:id/entries', auth, requireOnboarding, async (
   try {
     const raw = String(req.body?.video_url || '').trim();
     let url;
-    try { url = new URL(raw); } catch { return fail(res, 400, 'رابط فيديو TikTok غير صحيح'); }
-    const host = url.hostname.toLowerCase();
-    const isTikTok = host === 'tiktok.com' || host.endsWith('.tiktok.com');
-    const hasVideoPath = /\/@[A-Za-z0-9._]+\/video\/\d+/.test(url.pathname);
-    const isShortShare = host === 'vm.tiktok.com' || host === 'vt.tiktok.com';
-    if (url.protocol !== 'https:' || !isTikTok || (!hasVideoPath && !isShortShare)) return fail(res, 400, 'أرسل رابط فيديو TikTok عاماً وصحيحاً');
+    try { url = new URL(await resolveTikTokVideoUrl(raw)); }
+    catch (resolveError) { return fail(res, 400, resolveError.message || 'أرسل رابط فيديو TikTok كاملاً وصحيحاً'); }
     const { data: row, error: contentError } = await supabase.from('lz_site_content').select('content').eq('id', 1).maybeSingle();
     if (contentError) throw contentError;
     const contest = (row?.content?.giveaways || []).find(g => String(g.id) === String(req.params.id) && g.type === 'tiktok_contest');
@@ -1429,7 +1466,7 @@ app.get('/api/community/contests/entries', auth, requireOwnerOrCoOwner, async (_
     // Load entries and profiles separately: this avoids relying on a Supabase
     // foreign-key relationship being present in PostgREST's schema cache.
     const { data: entries, error } = await supabase.from('lz_contest_entries')
-      .select('id,contest_id,user_id,video_url,likes_count,likes_updated_at,created_at')
+      .select('id,contest_id,user_id,video_url,likes_count,likes_updated_at,likes_source,created_at')
       .order('created_at', { ascending: false }).limit(500);
     if (error) throw error;
     const userIds = [...new Set((entries || []).map(row => row.user_id).filter(Boolean))];

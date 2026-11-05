@@ -1282,6 +1282,7 @@ tbody tr:last-child td{border-bottom:none}
             <strong>${index+1}. ${escapeHTML(name)}</strong>
             <small>🎬 ${escapeHTML(contestTitle)} · ${escapeHTML(date)}</small>
             <small>❤️ ${Number(entry.likes_count||0).toLocaleString('ar')} إعجاب على الفيديو المشارك</small>
+            ${entry.likes_source === 'pending_sync' ? '<small style="color:#f0bd65">بانتظار بيانات الإعجابات: يلزم ربط حساب صاحب الفيديو عبر TikTok الرسمي أو إدخال العدد يدوياً.</small>' : `<small style="color:#a98be8">${entry.likes_updated_at ? 'آخر تحديث: '+escapeHTML(new Date(entry.likes_updated_at).toLocaleString('ar')) : 'مصدر النقاط: '+escapeHTML(entry.likes_source || 'غير محدد')}</small>`}
             ${videoURL ? `<a class="contest-card-link" href="${escapeHTML(videoURL)}" target="_blank" rel="noopener noreferrer">${escapeHTML(videoURL)}</a>` : '<small>رابط الفيديو غير صالح</small>'}
             <div class="contest-card-actions">
               ${videoURL ? `<a class="btn btn-secondary btn-small" href="${escapeHTML(videoURL)}" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-play"></i> مشاهدة الفيديو</a>` : ''}

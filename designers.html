@@ -2503,7 +2503,7 @@ window.addEventListener('hashchange', () => {
     const contestWorks = contestVideoWorks.map(entry => {
       const contest = data.giveaways.find(g => String(g.id) === String(entry.contest_id));
       const author = entry.profile?.discord_username || 'مصمم LZ';
-      return { id:entry.id, name:'فيديو مشاركة في ' + (contest?.title || contest?.name || 'Giveaway'), title:'فيديو مشاركة', designerName:author, description:'فيديو مقدم للمشاركة في المسابقة · ❤️ ' + Number(entry.likes_count || 0).toLocaleString('ar') + ' إعجاب', url:entry.video_url, created_at:entry.created_at, isContestEntry:true };
+      return { id:entry.id, name:'فيديو مشاركة في ' + (contest?.title || contest?.name || 'Giveaway'), title:'فيديو مشاركة', designerName:author, description:'فيديو مقدم للمشاركة في المسابقة · ❤️ ' + Number(entry.likes_count || 0).toLocaleString('ar') + ' إعجاب' + (entry.likes_source === 'pending_sync' ? ' · بانتظار مزامنة الإعجابات' : ''), url:entry.video_url, created_at:entry.created_at, isContestEntry:true };
     });
     const allWorks = [...contestWorks, ...data.works];
     const filtered = allWorks.filter(item => {
