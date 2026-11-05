@@ -356,7 +356,7 @@ tbody tr:last-child td{border-bottom:none}
       <button data-page="streamers"><i class="fa-solid fa-tower-broadcast"></i> الستريمرز</button>
       <button data-page="bans"><i class="fa-solid fa-ban"></i> المحظورون وBAN</button>
       <button data-page="works"><i class="fa-solid fa-images"></i> أعمال المصممين</button>
-      <button data-page="contestVideos"><i class="fa-brands fa-tiktok"></i> فيديوهات المسابقة</button>
+      <button data-page="contestVideos"><i class="fa-brands fa-tiktok"></i> ✓・𝐄𝐃𝐈𝐓𝐒・👑</button>
       <button data-page="awards"><i class="fa-solid fa-trophy"></i> الجوائز والشارات</button>
       <button data-page="giveaway"><i class="fa-solid fa-gift"></i> Giveaway</button>
       <button data-page="manage"><i class="fa-solid fa-square-poll-vertical"></i> التصويت والشارات</button>
@@ -604,7 +604,7 @@ tbody tr:last-child td{border-bottom:none}
 
     <!-- CONTEST VIDEOS -->
     <section class="page" id="page-contestVideos">
-      <div class="section-heading"><div><h3>فيديوهات المسابقة المشاركة</h3><p>إدارة روابط فيديوهات المشاركين وتعديل عدد الإعجابات بجانب كل فيديو.</p></div><button class="btn btn-secondary btn-small" id="refreshContestEntries" type="button"><i class="fa-solid fa-rotate"></i> تحديث</button></div>
+      <div class="section-heading"><div><h3>✓・𝐄𝐃𝐈𝐓𝐒・👑</h3><p>فيديوهات المسابقة مرتبة باسم المصمم صاحب كل فيديو، مع إمكانية المشاهدة وتعديل عدد الإعجابات.</p></div><button class="btn btn-secondary btn-small" id="refreshContestEntries" type="button"><i class="fa-solid fa-rotate"></i> تحديث</button></div>
       <div class="panel contest-admin-panel" style="margin-top:15px">
         <div id="contestEntriesAdmin" class="contest-admin-grid"><small>اضغط تحديث لعرض فيديوهات المشاركين.</small></div>
       </div>
@@ -1289,7 +1289,7 @@ tbody tr:last-child td{border-bottom:none}
             <small>🎬 ${escapeHTML(contestTitle)} · ${escapeHTML(date)}</small>
             <small>❤️ ${Number(entry.likes_count||0).toLocaleString('ar')} إعجاب على الفيديو المشارك</small>
             ${entry.likes_source === 'pending_sync' ? '<small style="color:#f0bd65">بانتظار بيانات الإعجابات: يلزم ربط حساب صاحب الفيديو عبر TikTok الرسمي أو إدخال العدد يدوياً.</small>' : `<small style="color:#a98be8">${entry.likes_updated_at ? 'آخر تحديث: '+escapeHTML(new Date(entry.likes_updated_at).toLocaleString('ar')) : 'مصدر النقاط: '+escapeHTML(entry.likes_source || 'غير محدد')}</small>`}
-            ${videoURL ? `<div class="contest-card-link" style="direction:rtl;text-align:right">رابط مشاركة ${escapeHTML(name)}</div>` : '<small>رابط الفيديو غير صالح</small>'}
+            ${videoURL ? `<div class="contest-card-link" style="direction:rtl;text-align:right">فيديو المصمم: ${escapeHTML(name)}</div>` : '<small>رابط الفيديو غير صالح</small>'}
             <div class="contest-card-actions" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
               ${videoURL ? `<a class="btn btn-secondary btn-small" href="${escapeHTML(videoURL)}" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-play"></i> مشاهدة فيديو ${escapeHTML(name)}</a>` : ''}
               <label style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:12px">❤️ إجمالي الإعجابات
