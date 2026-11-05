@@ -1182,20 +1182,36 @@ app.get('/api/community/badges', async (_req, res, next) => {
 });
 app.get('/api/community/badges/earned', async (_req, res, next) => {
   try {
-    const { data, error } = await supabase.from('lz_user_badges')
-      .select('id,user_id,badge_id,created_at,badge:lz_badges(id,code,name,icon,description)')
-      .order('created_at', { ascending: false }).limit(2000);
-    if (error) throw error;
-    res.json(data || []);
+    // Fetch assignments and badge definitions separately. This avoids relying
+    // on a PostgREST foreign-key relationship that may be absent from schema cache.
+    const { data: awards, error: awardsError } = await supabase.from('lz_user_badges')
+      .select('id,user_id,badge_id,created_at').order('created_at', { ascending: false }).limit(2000);
+    if (awardsError) throw awardsError;
+    const badgeIds = [...new Set((awards || []).map(row => row.badge_id).filter(Boolean))];
+    let badgeMap = new Map();
+    if (badgeIds.length) {
+      const { data: definitions, error: definitionsError } = await supabase.from('lz_badges')
+        .select('id,code,name,icon,description').in('id', badgeIds);
+      if (definitionsError) throw definitionsError;
+      badgeMap = new Map((definitions || []).map(badge => [String(badge.id), badge]));
+    }
+    res.json((awards || []).map(row => ({ ...row, badge: badgeMap.get(String(row.badge_id)) || null })));
   } catch (error) { next(error); }
 });
 app.get('/api/community/me/badges', auth, async (req, res, next) => {
   try {
-    const { data, error } = await supabase.from('lz_user_badges')
-      .select('created_at,badge:lz_badges(id,code,name,description,icon)')
-      .eq('user_id', req.user.id).order('created_at', { ascending: false });
-    if (error) throw error;
-    res.json(data || []);
+    const { data: awards, error: awardsError } = await supabase.from('lz_user_badges')
+      .select('badge_id,created_at').eq('user_id', req.user.id).order('created_at', { ascending: false });
+    if (awardsError) throw awardsError;
+    const badgeIds = [...new Set((awards || []).map(row => row.badge_id).filter(Boolean))];
+    let badgeMap = new Map();
+    if (badgeIds.length) {
+      const { data: definitions, error: definitionsError } = await supabase.from('lz_badges')
+        .select('id,code,name,description,icon').in('id', badgeIds);
+      if (definitionsError) throw definitionsError;
+      badgeMap = new Map((definitions || []).map(badge => [String(badge.id), badge]));
+    }
+    res.json((awards || []).map(row => ({ created_at: row.created_at, badge: badgeMap.get(String(row.badge_id)) || null })).filter(row => row.badge));
   } catch (error) { next(error); }
 });
 app.post('/api/community/badges/award', auth, requireOwnerOrCoOwner, async (req, res, next) => {
@@ -1248,10 +1264,10 @@ app.delete('/api/community/badges/award', auth, requireOwnerOrCoOwner, async (re
     const badgeId = String(req.body?.badge_id || '');
     if (!uuid(target) || !uuid(badgeId)) return fail(res, 400, 'اختر العضو والشارة بشكل صحيح');
     const { data, error } = await supabase.from('lz_user_badges').delete()
-      .eq('user_id', target).eq('badge_id', badgeId).select('id').maybeSingle();
+      .eq('user_id', target).eq('badge_id', badgeId).select('id');
     if (error) throw error;
-    if (!data) return fail(res, 404, 'هذه الشارة غير ممنوحة لهذا العضو');
-    res.json({ ok: true });
+    if (!data?.length) return fail(res, 404, 'هذه الشارة غير ممنوحة لهذا العضو');
+    res.json({ ok: true, removed: data.length });
   } catch (error) { next(error); }
 });
 
@@ -1410,9 +1426,23 @@ app.post('/api/community/contests/:id/entries', auth, requireOnboarding, async (
 });
 app.get('/api/community/contests/entries', auth, requireOwnerOrCoOwner, async (_req, res, next) => {
   try {
-    const { data, error } = await supabase.from('lz_contest_entries').select('id,contest_id,user_id,video_url,likes_count,likes_updated_at,created_at,profile:profiles(discord_username)').order('created_at', { ascending: false }).limit(500);
+    // Load entries and profiles separately: this avoids relying on a Supabase
+    // foreign-key relationship being present in PostgREST's schema cache.
+    const { data: entries, error } = await supabase.from('lz_contest_entries')
+      .select('id,contest_id,user_id,video_url,likes_count,likes_updated_at,created_at')
+      .order('created_at', { ascending: false }).limit(500);
     if (error) throw error;
-    res.json(data || []);
+    const userIds = [...new Set((entries || []).map(row => row.user_id).filter(Boolean))];
+    let profiles = [];
+    if (userIds.length) {
+      const result = await supabase.from('profiles')
+        .select('id,discord_username,discord_avatar_url').in('id', userIds);
+      if (result.error) throw result.error;
+      profiles = result.data || [];
+    }
+    const profileById = new Map(profiles.map(profile => [String(profile.id), profile]));
+    res.set('Cache-Control', 'no-store');
+    res.json((entries || []).map(entry => ({ ...entry, profile: profileById.get(String(entry.user_id)) || null })));
   } catch (error) { next(error); }
 });
 app.get('/api/community/contests/:id/entries', async (req, res, next) => {

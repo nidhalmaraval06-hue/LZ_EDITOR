@@ -316,6 +316,19 @@ tbody tr:last-child td{border-bottom:none}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
 }
+
+.contest-admin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.contest-video-admin-card{overflow:hidden;border:1px solid rgba(169,104,255,.28);border-radius:18px;background:linear-gradient(145deg,rgba(32,16,57,.98),rgba(13,10,25,.98));box-shadow:0 10px 28px rgba(0,0,0,.22);min-width:0}
+.contest-video-admin-card .contest-card-art{height:116px;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 20%,#7738c9 0,#29104d 46%,#100a1e 100%);display:flex;align-items:center;justify-content:center}
+.contest-video-admin-card .contest-card-art img{width:100%;height:100%;object-fit:cover;opacity:.88}
+.contest-video-admin-card .contest-card-art:after{content:'LZ EDITORS · VIDEO ENTRY';position:absolute;bottom:9px;right:12px;font:800 10px Orbitron,sans-serif;letter-spacing:1px;color:#fff;text-shadow:0 2px 9px #000}
+.contest-video-admin-card .contest-card-body{padding:13px}
+.contest-video-admin-card .contest-card-body strong{display:block;color:#fff;font-size:13px;margin-bottom:6px;overflow-wrap:anywhere}
+.contest-video-admin-card .contest-card-body small{display:block;color:var(--muted);font-size:10px;line-height:1.8}
+.contest-video-admin-card .contest-card-link{display:block;color:#d7baff;font-size:10px;direction:ltr;text-align:left;overflow-wrap:anywhere;margin:9px 0}
+.contest-video-admin-card .contest-card-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
+.contest-video-admin-card .contest-card-actions .btn{flex:1;justify-content:center}
+
 </style>
 </head>
 
@@ -428,7 +441,6 @@ tbody tr:last-child td{border-bottom:none}
         <div id="chatLinksStatus" style="font-size:10px;color:var(--muted);margin-bottom:9px" role="status">جاري جلب الروابط من المحادثة...</div>
         <div id="chatLinksList" class="quick-list"></div>
       </div>
-      <div class="setting-note"><i class="fa-solid fa-circle-info"></i> هذه النسخة تحفظ البيانات محلياً في المتصفح فقط على نفس الجهاز. ليست قاعدة بيانات مشتركة ولا تسجيل دخول آمن؛ سنربطها بالخادم في المرحلة التالية.</div>
     </section>
 
     <!-- DESIGNERS -->
@@ -439,7 +451,6 @@ tbody tr:last-child td{border-bottom:none}
         <select class="field" id="designerFilter" style="max-width:180px"><option value="all">كل التخصصات</option><option value="تصميم">تصميم</option><option value="مونتاج">مونتاج</option><option value="3D">3D</option><option value="أخرى">أخرى</option></select>
       </div>
       <div class="card-grid" id="designerGrid"></div>
-      <div class="setting-note">الصلاحيات هنا للتجربة المحلية فقط؛ لا تمنح وصولاً فعلياً للإدارة حتى يتم ربط تسجيل الدخول والتحقق من المدير في Supabase.</div>
       <div class="panel empty-state" id="designerEmpty"><div class="empty-icon"><i class="fa-solid fa-users"></i></div><h3>ما زال ما ضفنا حتى مصمم</h3><p>ستظهر هنا حسابات المصممين الموجودة في البيانات الحالية.</p></div>
     </section>
 
@@ -474,7 +485,6 @@ tbody tr:last-child td{border-bottom:none}
           <tr><td>💎</td><td>عضو مميز</td><td>شارة تقديرية يحددها فريق الإدارة</td></tr>
         </tbody></table></div>
       </div>
-      <div class="setting-note"><i class="fa-solid fa-circle-info"></i> اختيار الفائزين في هذه النسخة يدوي من الإدارة. لا يوجد تصويت أو ترتيب تلقائي حالياً.</div>
     </section>
 
     <!-- GIVEAWAY -->
@@ -588,12 +598,10 @@ tbody tr:last-child td{border-bottom:none}
         <div class="form-actions"><button class="btn btn-secondary" id="removeMemberBadge" type="button">حذف الشارة المحددة فقط</button></div>
       </div>
       </div>
-      <div class="panel" style="margin-top:15px">
-        <div class="panel-head"><h3><i class="fa-brands fa-tiktok" style="margin-left:7px"></i> مراجعة نقاط إعجابات TikTok</h3><button class="btn btn-secondary btn-small" id="refreshContestEntries" type="button">تحديث المشاركات</button></div>
-        <p style="color:var(--muted);font-size:11px;line-height:1.8;margin-bottom:12px">يعرض هذا الجدول إعجابات الفيديو المشارك نفسه فقط، وليس إعجابات حساب المصمم. بعد ربط صاحب الفيديو لحسابه عبر TikTok الرسمي، تتم محاولة مزامنة like_count كل دقيقة، حسب حدود TikTok API وتوفر الخدمة. يتم ترتيب المشاركات من الأعلى إلى الأقل.</p>
-        <div id="contestEntriesAdmin" class="quick-list"><small>اضغط تحديث المشاركات لعرض فيديوهات المسابقة.</small></div>
+      <div class="panel contest-admin-panel" style="margin-top:15px">
+        <div class="panel-head"><h3><i class="fa-solid fa-clapperboard" style="color:#c49aff;margin-left:7px"></i> فيديوهات المسابقة المشاركة</h3><button class="btn btn-secondary btn-small" id="refreshContestEntries" type="button"><i class="fa-solid fa-rotate"></i> تحديث</button></div>
+        <div id="contestEntriesAdmin" class="contest-admin-grid"><small>اضغط تحديث لعرض فيديوهات المشاركين.</small></div>
       </div>
-      <div class="setting-note"><i class="fa-solid fa-triangle-exclamation"></i> البيانات المشتركة تُحفظ في Supabase عبر الخادم. صلاحيات الإدارة والتحقق من الحساب تتم في Backend؛ لا تضع مفاتيح Service Role داخل ملفات HTML.</div>
     </section>
 
 
@@ -780,6 +788,7 @@ tbody tr:last-child td{border-bottom:none}
       document.querySelector('.profile-role').textContent = me.role.toUpperCase();
       await loadSharedContent();
       await loadRemoteDesigners();
+      await loadContestEntriesAdmin();
     } catch (error) {
       console.error('Dashboard authentication:', error);
       const loading = document.getElementById('authLoading');
@@ -836,6 +845,7 @@ tbody tr:last-child td{border-bottom:none}
   function loadData() { return defaultData(); }
 
   let data = loadData();
+  let contestVideoEntries = [];
   async function loadSharedContent() {
     const response = await fetch(API + '/api/site-content', { cache: 'no-store' });
     if (!response.ok) throw new Error('تعذر تحميل بيانات Supabase');
@@ -969,8 +979,15 @@ tbody tr:last-child td{border-bottom:none}
       (`${w.title} ${w.description} ${w.designerName}`.toLowerCase().includes(query)) &&
       (filter === 'all' || w.type === filter)
     );
+    const submittedVideos = contestVideoEntries.filter(entry => {
+      const name = entry.profile?.discord_username || entry.user_id || '';
+      const contest = data.giveaways.find(item => String(item.id) === String(entry.contest_id));
+      const title = contest?.title || contest?.name || 'فيديو مسابقة';
+      return (filter === 'all' || filter === 'فيديو') &&
+        (`${name} ${title} TikTok فيديو مشاركة`.toLowerCase().includes(query));
+    });
 
-    $('workGrid').innerHTML = filtered.map(w => {
+    $('workGrid').innerHTML = [...filtered.map(w => {
       const image = safeURL(w.image);
       const url = safeURL(w.link);
       const thumbnail = image
@@ -990,9 +1007,26 @@ tbody tr:last-child td{border-bottom:none}
           <div class="card-actions"><button class="btn btn-danger btn-small" data-delete-work="${escapeHTML(w.id)}"><i class="fa-solid fa-trash"></i> حذف العمل</button></div>
         </div>
       </article>`;
-    }).join('');
+    }), ...submittedVideos.map(entry => {
+      const videoURL = safeURL(entry.video_url);
+      const designerName = entry.profile?.discord_username || 'مصمم LZ';
+      const contest = data.giveaways.find(item => String(item.id) === String(entry.contest_id));
+      const contestTitle = contest?.title || contest?.name || 'مسابقة فيديو';
+      const date = entry.created_at ? new Date(entry.created_at).toLocaleDateString('ar') : '';
+      return `<article class="work-card contest-submission-card">
+        <div class="work-thumb" style="display:grid;place-items:center;background:linear-gradient(135deg,#190b35,#5721a0);color:#fff"><i class="fa-brands fa-tiktok" style="font-size:42px"></i></div>
+        <div class="work-body">
+          <h3>🎬 فيديو مشاركة في ${escapeHTML(contestTitle)}</h3>
+          <p>بواسطة: ${escapeHTML(designerName)} · مشاركة مسابقة</p>
+          <p>تاريخ المشاركة: ${escapeHTML(date)} · ❤️ ${Number(entry.likes_count || 0).toLocaleString('ar')} إعجاب</p>
+          <div class="work-meta"><span class="badge badge-purple">فيديو مشارك</span><span class="badge badge-gold">مسابقة</span>
+            ${videoURL ? `<a class="btn btn-secondary btn-small" href="${escapeHTML(videoURL)}" target="_blank" rel="noopener noreferrer">مشاهدة الفيديو <i class="fa-solid fa-arrow-up-left-from-square"></i></a>` : '<span class="badge badge-muted">رابط غير صالح</span>'}
+          </div>
+        </div>
+      </article>`;
+    })].join('');
 
-    $('workEmpty').style.display = filtered.length ? 'none' : 'block';
+    $('workEmpty').style.display = (filtered.length + submittedVideos.length) ? 'none' : 'block';
   }
 
   function latestAward(type) {
@@ -1211,9 +1245,7 @@ tbody tr:last-child td{border-bottom:none}
     select.disabled=true;
     select.innerHTML='<option value="">جاري تحميل شارات العضو...</option>';
     try {
-      const response = await fetch(API + '/api/community/badges/earned', {cache:'no-store'});
-      if (!response.ok) throw new Error('HTTP ' + response.status);
-      allEarnedBadgesForAdmin = await response.json();
+      allEarnedBadgesForAdmin = await apiRequest('/api/community/badges/earned');
       const rows = allEarnedBadgesForAdmin.filter(row => String(row.user_id) === String(memberId) && row.badge?.id);
       select.innerHTML = rows.map(row => `<option value="${escapeHTML(row.badge.id)}">${escapeHTML((row.badge.icon || '🏅')+' '+row.badge.name)}</option>`).join('') || '<option value="">لا توجد شارات لهذا العضو</option>';
       select.disabled = !rows.length;
@@ -1222,13 +1254,13 @@ tbody tr:last-child td{border-bottom:none}
   $('removeBadgeUser')?.addEventListener('change', refreshMemberBadgeOptions);
   $('removeMemberBadge')?.addEventListener('click', async () => {
     const userId=$('removeBadgeUser').value, badgeId=$('badgeRemoveSelect').value;
-    if (!userId || !badgeId) return toast('اختر العضو والشارة أولاً');
+    if (!userId || !badgeId) return toast('تعذرت إزالة الشارة: اختر العضو والشارة بشكل صحيح.');
     if (!confirm('هل تريد إزالة هذه الشارة من العضو؟')) return;
     const button=$('removeMemberBadge'); button.disabled=true;
     try {
       await apiRequest('/api/community/badges/award',{method:'DELETE',body:JSON.stringify({user_id:userId,badge_id:badgeId})});
       toast('تمت إزالة الشارة بنجاح'); await refreshMemberBadgeOptions();
-    } catch(error) { toast('تعذرت إزالة الشارة: '+error.message); }
+    } catch(error) { toast('تعذرت إزالة الشارة: '+(error.message || 'تحقق من اختيار العضو والشارة وصلاحياتك.')); }
     finally { button.disabled=false; }
   });
 
@@ -1236,7 +1268,28 @@ tbody tr:last-child td{border-bottom:none}
     const box=$('contestEntriesAdmin'); box.innerHTML='<small>جاري تحميل المشاركات...</small>';
     try {
       const entries=await apiRequest('/api/community/contests/entries');
-      box.innerHTML=entries.sort((a,b)=>Number(b.likes_count||0)-Number(a.likes_count||0)).map((entry,index)=>`<article class="quick-action" style="align-items:center;cursor:default"><div style="flex:1;min-width:0"><strong>#${index+1} · ${escapeHTML(entry.profile?.discord_username || entry.user_id)}</strong><small>❤️ ${Number(entry.likes_count||0).toLocaleString('ar')} إعجاب على الفيديو · ${escapeHTML(entry.contest_id)} · آخر تحديث: ${entry.likes_updated_at ? escapeHTML(new Date(entry.likes_updated_at).toLocaleString('ar')) : 'لم يُحدّث بعد'}</small><a href="${escapeHTML(entry.video_url)}" target="_blank" rel="noopener noreferrer" style="display:block;direction:ltr;overflow-wrap:anywhere;color:#cbaaff;font-size:10px">فتح الفيديو المشارك</a></div><button class="btn btn-secondary btn-small" data-set-contest-likes="${entry.id}">تصحيح يدوي</button></article>`).join('') || '<small>لا توجد فيديوهات مشاركة حالياً.</small>';
+      contestVideoEntries = Array.isArray(entries) ? entries : [];
+      renderWorks();
+      box.innerHTML=contestVideoEntries.slice().sort((a,b)=>Number(b.likes_count||0)-Number(a.likes_count||0)).map((entry,index)=>{
+        const videoURL=safeURL(entry.video_url);
+        const name=entry.profile?.discord_username || entry.user_id || 'مصمم LZ';
+        const contest=data.giveaways.find(item=>String(item.id)===String(entry.contest_id));
+        const contestTitle=contest?.title || contest?.name || 'مسابقة فيديو';
+        const date=entry.created_at ? new Date(entry.created_at).toLocaleDateString('ar') : '—';
+        return `<article class="contest-video-admin-card">
+          <div class="contest-card-art"><img src="participation-video-badge.png" alt="شارة مشاركة LZ EDITORS" loading="lazy" onerror="this.style.display='none'"></div>
+          <div class="contest-card-body">
+            <strong>${index+1}. ${escapeHTML(name)}</strong>
+            <small>🎬 ${escapeHTML(contestTitle)} · ${escapeHTML(date)}</small>
+            <small>❤️ ${Number(entry.likes_count||0).toLocaleString('ar')} إعجاب على الفيديو المشارك</small>
+            ${videoURL ? `<a class="contest-card-link" href="${escapeHTML(videoURL)}" target="_blank" rel="noopener noreferrer">${escapeHTML(videoURL)}</a>` : '<small>رابط الفيديو غير صالح</small>'}
+            <div class="contest-card-actions">
+              ${videoURL ? `<a class="btn btn-secondary btn-small" href="${escapeHTML(videoURL)}" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-play"></i> مشاهدة الفيديو</a>` : ''}
+              <button class="btn btn-secondary btn-small" data-set-contest-likes="${escapeHTML(entry.id)}">تصحيح الإعجابات</button>
+            </div>
+          </div>
+        </article>`;
+      }).join('') || '<small>لا توجد فيديوهات مشاركة حالياً.</small>';
     } catch(error) { box.textContent='تعذر التحميل: '+error.message; }
   }
   $('refreshContestEntries')?.addEventListener('click',loadContestEntriesAdmin);
