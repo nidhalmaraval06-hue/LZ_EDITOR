@@ -587,7 +587,7 @@ tbody tr:last-child td{border-bottom:none}
       </div>
       <div class="panel" style="margin-top:15px">
         <div class="panel-head"><h3><i class="fa-brands fa-tiktok" style="margin-left:7px"></i> مراجعة نقاط إعجابات TikTok</h3><button class="btn btn-secondary btn-small" id="refreshContestEntries" type="button">تحديث المشاركات</button></div>
-        <p style="color:var(--muted);font-size:11px;line-height:1.8;margin-bottom:12px">عدد الإعجابات هنا يحتاج إدخالاً موثقاً من الإدارة حالياً. التحديث الآلي يتطلب تطبيق TikTok معتمد وربط OAuth لكل صاحب فيديو؛ لا يمكن للموقع قراءة كل إعجابات أي فيديو تلقائياً بمجرد الرابط.</p>
+        <p style="color:var(--muted);font-size:11px;line-height:1.8;margin-bottom:12px">يعرض هذا الجدول إعجابات الفيديو المشارك نفسه فقط، وليس إعجابات حساب المصمم. بعد ربط صاحب الفيديو لحسابه عبر TikTok الرسمي، تتم مزامنة like_count تلقائياً تقريباً كل 30 دقيقة. يتم ترتيب المشاركات من الأعلى إلى الأقل.</p>
         <div id="contestEntriesAdmin" class="quick-list"><small>اضغط تحديث المشاركات لعرض فيديوهات المسابقة.</small></div>
       </div>
       <div class="setting-note"><i class="fa-solid fa-triangle-exclamation"></i> البيانات المشتركة تُحفظ في Supabase عبر الخادم. صلاحيات الإدارة والتحقق من الحساب تتم في Backend؛ لا تضع مفاتيح Service Role داخل ملفات HTML.</div>
@@ -1177,7 +1177,7 @@ tbody tr:last-child td{border-bottom:none}
     const box=$('contestEntriesAdmin'); box.innerHTML='<small>جاري تحميل المشاركات...</small>';
     try {
       const entries=await apiRequest('/api/community/contests/entries');
-      box.innerHTML=entries.map(entry=>`<article class="quick-action" style="align-items:center;cursor:default"><div style="flex:1;min-width:0"><strong>${escapeHTML(entry.profile?.discord_username || entry.user_id)}</strong><small>❤️ ${Number(entry.likes_count||0).toLocaleString('ar')} إعجاب · ${escapeHTML(entry.contest_id)}</small><a href="${escapeHTML(entry.video_url)}" target="_blank" rel="noopener noreferrer" style="display:block;direction:ltr;overflow-wrap:anywhere;color:#cbaaff;font-size:10px">${escapeHTML(entry.video_url)}</a></div><button class="btn btn-secondary btn-small" data-set-contest-likes="${entry.id}">تحديث النقاط</button></article>`).join('') || '<small>لا توجد فيديوهات مشاركة حالياً.</small>';
+      box.innerHTML=entries.sort((a,b)=>Number(b.likes_count||0)-Number(a.likes_count||0)).map((entry,index)=>`<article class="quick-action" style="align-items:center;cursor:default"><div style="flex:1;min-width:0"><strong>#${index+1} · ${escapeHTML(entry.profile?.discord_username || entry.user_id)}</strong><small>❤️ ${Number(entry.likes_count||0).toLocaleString('ar')} إعجاب على الفيديو · ${escapeHTML(entry.contest_id)} · آخر تحديث: ${entry.likes_updated_at ? escapeHTML(new Date(entry.likes_updated_at).toLocaleString('ar')) : 'لم يُحدّث بعد'}</small><a href="${escapeHTML(entry.video_url)}" target="_blank" rel="noopener noreferrer" style="display:block;direction:ltr;overflow-wrap:anywhere;color:#cbaaff;font-size:10px">فتح الفيديو المشارك</a></div><button class="btn btn-secondary btn-small" data-set-contest-likes="${entry.id}">تصحيح يدوي</button></article>`).join('') || '<small>لا توجد فيديوهات مشاركة حالياً.</small>';
     } catch(error) { box.textContent='تعذر التحميل: '+error.message; }
   }
   $('refreshContestEntries')?.addEventListener('click',loadContestEntriesAdmin);

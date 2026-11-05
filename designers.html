@@ -2611,7 +2611,7 @@ window.addEventListener('hashchange', () => {
       if (item.type === 'tiktok_contest') {
         actions.innerHTML = `<button class="btn btn-primary" data-contest-submit="${escapeHTML(item.id)}">إرسال فيديو TikTok للمسابقة</button><span class="badge badge-gold">كل إعجاب = نقطة</span>`;
         const list = document.createElement('div'); list.style.marginTop='12px'; list.innerHTML='<b>الفيديوهات المشاركة وترتيب النقاط</b>';
-        const entries = document.createElement('div'); list.appendChild(entries); card.appendChild(actions); card.appendChild(list); loadContestEntries(item.id, entries);
+        const entries = document.createElement('div'); entries.dataset.contestEntryList = item.id; list.appendChild(entries); card.appendChild(actions); card.appendChild(list); loadContestEntries(item.id, entries);
       } else {
         actions.innerHTML = `<button class="btn btn-primary" data-giveaway-join="${escapeHTML(item.id)}">المشاركة في السحب</button>`;
         card.appendChild(actions);
