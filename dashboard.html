@@ -1240,11 +1240,20 @@ tbody tr:last-child td{border-bottom:none}
       if (designer.role === 'owner') return toast('لا يمكن حظر المالك');
       const reason = prompt(`سبب حظر ${designer.name}:`, 'مخالفة قوانين الموقع');
       if (reason === null) return;
-      const daysText = prompt('مدة الحظر بالأيام. اكتب 0 أو اتركه فارغاً للحظر الدائم:', '7');
-      if (daysText === null) return;
-      const days = daysText.trim() === '' ? 0 : Number(daysText);
-      if (!Number.isInteger(days) || days < 0 || days > 36500) return toast('أدخل عدد أيام صحيحاً');
-      const expires_at = days === 0 ? null : new Date(Date.now() + days * 86400000).toISOString();
+      const unitText = prompt(`اختر وحدة مدة الحظر:\n1 = ساعات\n2 = أيام\n3 = أسابيع\n0 = حظر دائم`, '2');
+      if (unitText === null) return;
+      const unitChoice = unitText.trim();
+      let expires_at = null;
+      if (unitChoice !== '0') {
+        const units = { '1': { label: 'ساعة', ms: 60 * 60 * 1000, max: 876000 }, '2': { label: 'يوم', ms: 24 * 60 * 60 * 1000, max: 36500 }, '3': { label: 'أسبوع', ms: 7 * 24 * 60 * 60 * 1000, max: 5200 } };
+        const selectedUnit = units[unitChoice];
+        if (!selectedUnit) return toast('اختر 1 أو 2 أو 3 أو 0');
+        const amountText = prompt(`أدخل عدد ${selectedUnit.label}(ات):`, unitChoice === '2' ? '7' : '1');
+        if (amountText === null) return;
+        const amount = Number(amountText.trim());
+        if (!Number.isSafeInteger(amount) || amount < 1 || amount > selectedUnit.max) return toast('أدخل مدة صحيحة ضمن الحد المسموح');
+        expires_at = new Date(Date.now() + amount * selectedUnit.ms).toISOString();
+      }
       banButton.disabled = true;
       try {
         await apiRequest('/api/bans/' + encodeURIComponent(designer.id), {

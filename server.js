@@ -280,8 +280,7 @@ async function auth(req, res, next) {
           ban: { reason: ban.reason || '', expires_at: ban.expires_at }
         });
       }
-      const { error: cleanupError } = await supabase.from('lz_user_bans').delete().eq('user_id', req.user.id);
-      if (cleanupError) console.warn('Expired ban cleanup failed:', cleanupError.message);
+      await supabase.from('lz_user_bans').delete().eq('user_id', req.user.id);
     }
 
     next();
@@ -1007,7 +1006,7 @@ app.get('/api/bans', auth, requireOwnerOrCoOwner, async (_req, res, next) => {
 app.put('/api/bans/:userId', auth, requireOwnerOrCoOwner, async (req, res, next) => {
   try {
     const target = req.params.userId;
-    const reason = String(req.body?.reason || 'مخالفة قوانين الموقع').trim().slice(0, 500);
+    const reason = String(req.body?.reason || '').trim().slice(0, 500);
     const expiresAt = req.body?.expires_at ?? null;
     if (!uuid(target)) return fail(res, 400, 'Invalid user ID');
     if (target === process.env.OWNER_USER_ID) return fail(res, 403, 'لا يمكن حظر المالك');
@@ -1016,7 +1015,6 @@ app.put('/api/bans/:userId', auth, requireOwnerOrCoOwner, async (req, res, next)
     }
     const requesterRole = await getRole(req.user.id);
     const targetRole = await getRole(target);
-    if (targetRole === 'owner') return fail(res, 403, 'لا يمكن حظر حساب يحمل رتبة Owner');
     if (['co_owner', 'manager_admin'].includes(targetRole) && requesterRole !== 'owner') {
       return fail(res, 403, 'المالك فقط يمكنه حظر Co Owner أو Manager Admin');
     }
@@ -1200,7 +1198,8 @@ app.post('/api/community/badges/award', auth, requireOwnerOrCoOwner, async (req,
     if (badgeError) throw badgeError;
     const { error } = await supabase.from('lz_user_badges').upsert({ user_id: target, badge_id: badge.id, awarded_by: req.user.id }, { onConflict: 'user_id,badge_id' });
     if (error) throw error;
-    await notifyUser(target, 'حصلت على شارة جديدة!', `${icon} ${name}${description ? ' — ' + description : ''}`, 'badge');
+    try { await notifyUser(target, 'حصلت على شارة جديدة!', `${icon} ${name}${description ? ' — ' + description : ''}`, 'badge'); }
+    catch (noticeError) { console.error('Badge awarded, but notification was skipped:', noticeError); }
     res.json({ ok: true, badge });
   } catch (error) { next(error); }
 });
@@ -1230,14 +1229,23 @@ app.post('/api/community/polls', auth, requireOwnerOrCoOwner, async (req, res, n
     const { data: poll, error } = await supabase.from('lz_polls').insert({ question, ends_at: endsAt, created_by: req.user.id }).select('id,question,ends_at,active,created_at').single();
     if (error) throw error;
     const { error: optionError } = await supabase.from('lz_poll_options').insert(options.map(label => ({ poll_id: poll.id, label })));
-    if (optionError) throw optionError;
-    const { data: profiles, error: profilesError } = await supabase.from('profiles').select('id').eq('onboarding_completed', true).limit(1000);
-    if (profilesError) throw profilesError;
-    if ((profiles || []).length) {
-      const notices = profiles.map(profile => ({ user_id: profile.id, title: 'تصويت جديد في LZ EDITORS', body: question, type: 'poll' }));
-      const { error: noticeError } = await supabase.from('lz_notifications').insert(notices);
-      if (noticeError) throw noticeError;
+    if (optionError) {
+      // Avoid leaving an empty poll if option insertion fails.
+      const { error: cleanupError } = await supabase.from('lz_polls').delete().eq('id', poll.id);
+      if (cleanupError) console.error('Poll cleanup failed:', cleanupError);
+      throw optionError;
     }
+    // Notifications are supplementary: a missing notification column/table must not
+    // make an otherwise successfully-created poll appear to fail.
+    try {
+      const { data: profiles, error: profilesError } = await supabase.from('profiles').select('id').eq('onboarding_completed', true).limit(1000);
+      if (profilesError) throw profilesError;
+      if ((profiles || []).length) {
+        const notices = profiles.map(profile => ({ user_id: profile.id, title: 'تصويت جديد في LZ EDITORS', body: question, type: 'poll' }));
+        const { error: noticeError } = await supabase.from('lz_notifications').insert(notices);
+        if (noticeError) throw noticeError;
+      }
+    } catch (noticeError) { console.error('Poll created, but notifications were skipped:', noticeError); }
     res.status(201).json({ ...poll, options });
   } catch (error) { next(error); }
 });
@@ -1385,7 +1393,7 @@ app.use((error, _req, res, _next) => {
     return res.status(413).json({ error: 'حجم البيانات كبير. قلّل حجم صورة المسابقة وحاول مجدداً.' });
   }
   const code = error?.code;
-  if (code === '42703' || code === 'PGRST204') {
+  if (code === '42703' || code === 'PGRST204' || code === 'PGRST200' || code === 'PGRST201') {
     return res.status(500).json({ error: 'قاعدة البيانات ناقصها عمود أو تحديث. شغّل migration.sql في Supabase SQL Editor ثم أعد تشغيل السيرفر.' });
   }
   if (code === '23505') {
