@@ -25,7 +25,7 @@ if(!session?.access_token){login.hidden=false;logout.hidden=true;say('الجلس
 login.hidden=true;logout.hidden=false;say('جاري التحقق من صلاحيات الحساب...');
 let r=await fetch(API+'/api/me',{headers:{Authorization:'Bearer '+session.access_token}});let payload=await r.json().catch(()=>({}));
 if(r.status===401 && session?.refresh_token){const refreshed=await db.auth.refreshSession();if(refreshed.data?.session?.access_token){session=refreshed.data.session;r=await fetch(API+'/api/me',{headers:{Authorization:'Bearer '+session.access_token}});payload=await r.json().catch(()=>({}));}}
-if(!r.ok){if(payload.code==='USER_BANNED'){say('حسابك محظور. السبب: '+(payload.ban?.reason||'غير محدد')+'. يمكنك التواصل مع مسؤول الطعون عبر Discord.');const link=document.createElement('a');link.href='https://discord.com/channels/1528679532637454376/1565737674357342228';link.target='_blank';link.rel='noopener noreferrer';link.textContent='تقديم طعن في قناة Discord';link.style.cssText='display:block;color:#d5baff;margin-top:8px';status.appendChild(link);return;}throw Error(payload.error||'تعذر التحقق من السيرفر ('+r.status+').');}
+if(!r.ok){if(payload.code==='USER_BANNED'){try{sessionStorage.setItem('lz_ban_info',JSON.stringify(payload.ban||{}));}catch{}location.replace('/banned.html');return;}throw Error(payload.error||'تعذر التحقق من السيرفر ('+r.status+').');}
 const me=payload;if(!['owner','co_owner','manager_admin'].includes(me.role)){say('الحساب مسجّل، لكن لا يملك صلاحية Owner أو Co Owner أو Manager Admin.');return}
 say('تم التحقق ✓ جاري فتح لوحة الإدارة...');location.replace('/dashboard.html');
 }catch(e){login.hidden=false;logout.hidden=false;say('خطأ: '+e.message+' — سجّل الدخول مجددًا إذا كنت تستعمل أيقونة الهاتف.')}}

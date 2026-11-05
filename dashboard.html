@@ -622,7 +622,7 @@ tbody tr:last-child td{border-bottom:none}
     <h3 id="permissionsTitle" style="margin-bottom:9px">صلاحيات المصمم</h3>
     <p id="permissionsName" style="font-size:12px;color:var(--muted);margin-bottom:15px"></p>
     <label for="permissionsRole" style="display:block;font-size:11px;margin-bottom:7px">اختر الرتبة</label>
-    <select id="permissionsRole" class="field" style="margin-bottom:12px"><option value="member">👤 Member</option><option value="co_owner">💎 LZ Co Owner</option><option value="manager_admin">𝐌𝐀𝐍𝐀𝐆𝐄𝐑 𝐀𝐃𝐌𝐈𝐍</option><option value="admin">🎭 LZ Admin</option></select>
+    <select id="permissionsRole" class="field" style="margin-bottom:12px"><option value="member">👤 Member</option><option value="owner" hidden>👑 LZ Owner</option><option value="co_owner">💎 LZ Co Owner</option><option value="manager_admin">𝐌𝐀𝐍𝐀𝐆𝐄𝐑 𝐀𝐃𝐌𝐈𝐍</option><option value="admin">🎭 LZ Admin</option></select>
     <p style="font-size:10px;color:var(--muted);line-height:1.9">الرتب تحفظ في Supabase عبر السيرفر. دخول الداشبورد للمالك ونائبه فقط.</p>
     <div class="form-actions"><button class="btn btn-primary" type="submit">حفظ الرتبة</button><button class="btn btn-secondary" type="button" id="permissionsCancel">إلغاء</button></div>
   </form>
@@ -647,7 +647,7 @@ tbody tr:last-child td{border-bottom:none}
   const sb = window.supabase?.createClient(SB_URL, SB_KEY);
   let currentRole = null;
   let remoteDesigners = [];
-  const allowedRoles = ['member','co_owner','manager_admin','admin'];
+  const allowedRoles = ['member','co_owner','manager_admin','admin','owner'];
   async function apiRequest(path, options = {}) {
     if (!sb) throw new Error('Supabase غير جاهز');
     let { data: { session }, error: sessionError } = await sb.auth.getSession();
@@ -1216,7 +1216,8 @@ tbody tr:last-child td{border-bottom:none}
     const designer = remoteDesigners.find(d => d.id === editingRoleId);
     const role = $('permissionsRole').value;
     if (!designer || !allowedRoles.includes(role)) return toast('رتبة غير مسموحة');
-    if (designer.role === 'owner' && currentRole !== 'owner') return toast('المالك فقط يمكنه تعديل هذه الرتبة');
+    if (designer.role === 'owner' && currentRole !== 'owner') return toast('المالك الأساسي فقط يمكنه تعديل رتبة Owner');
+    if (role === 'owner' && currentRole !== 'owner') return toast('المالك الأساسي فقط يمكنه منح رتبة Owner');
     if (['co_owner','manager_admin'].includes(role) && currentRole !== 'owner') return toast('المالك فقط يمنح رتبة Co Owner أو Manager Admin');
     const submit = event.target.querySelector('[type="submit"]');
     submit.disabled = true;
@@ -1297,8 +1298,10 @@ tbody tr:last-child td{border-bottom:none}
     if (roleDesigner) {
       const designer = remoteDesigners.find(d => d.id === roleDesigner.dataset.roleDesigner);
       if (designer) {
-        if (designer.role === 'owner') return toast('رتبة المالك ثابتة');
+        if (designer.role === 'owner' && currentRole !== 'owner') return toast('رتبة Owner لا يعدلها إلا المالك الأساسي');
         editingRoleId = designer.id;
+        const ownerOption = $('permissionsRole').querySelector('option[value="owner"]');
+        if (ownerOption) ownerOption.hidden = currentRole !== 'owner';
         $('permissionsName').textContent = designer.name;
         $('permissionsRole').value = roleLabels[designer.role] ? designer.role : 'member';
         $('permissionsDialog').showModal();

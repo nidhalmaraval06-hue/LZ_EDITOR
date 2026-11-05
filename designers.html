@@ -1918,6 +1918,18 @@ select.field option{background:#151020}
     const {data:{user},error} = await db.auth.getUser();
     if(error) console.error(error);
     currentUser=user || null;
+    if (currentUser) {
+      try {
+        const token = await getValidAccessToken();
+        const check = await fetch('https://lz-editor-qoa6.onrender.com/api/me', {headers:{Authorization:'Bearer '+token}, cache:'no-store'});
+        const payload = await check.json().catch(()=>({}));
+        if (check.status === 403 && payload.code === 'USER_BANNED') {
+          try { sessionStorage.setItem('lz_ban_info', JSON.stringify(payload.ban || {})); } catch {}
+          location.replace('/banned.html');
+          return;
+        }
+      } catch (banCheckError) { console.warn('Ban status check:', banCheckError); }
+    }
     $('discordLogin').style.display=currentUser?'none':'';
     $('discordLogout').style.display=currentUser?'':'none';
     $('chatUsername').readOnly=!!currentUser;

@@ -46,7 +46,8 @@ const pages = [
   'login-dashboard.html',
   'login-designers.html',
   'dashboard.html',
-  'designers.html'
+  'designers.html',
+  'banned.html'
 ];
 
 app.get('/', (_req, res) => {
@@ -1056,11 +1057,15 @@ app.put(
         return fail(res, 400, 'Invalid user or role');
       }
 
-      if (target === process.env.OWNER_USER_ID || role === 'owner') {
-        return fail(res, 403, 'Use the Discord ID Owner assignment endpoint; primary Owner is protected');
+      // The primary Owner configured in OWNER_USER_ID is immutable.
+      if (target === process.env.OWNER_USER_ID) {
+        return fail(res, 403, 'لا يمكن تغيير رتبة المالك الأساسي المحدد في إعدادات السيرفر');
       }
 
       const requesterRole = await getRole(req.user.id);
+      if (role === 'owner' && requesterRole !== 'owner') {
+        return fail(res, 403, 'المالك الأساسي فقط يمكنه منح رتبة Owner');
+      }
 
       if (
         requesterRole !== 'owner' &&
@@ -1074,8 +1079,8 @@ app.put(
       }
 
       const existingTargetRole = await getRole(target);
-      if (requesterRole !== 'owner' && ['co_owner', 'manager_admin'].includes(existingTargetRole)) {
-        return fail(res, 403, 'Only Owner may change this administrator role');
+      if (requesterRole !== 'owner' && ['owner', 'co_owner', 'manager_admin'].includes(existingTargetRole)) {
+        return fail(res, 403, 'Only primary Owner may change this administrator role');
       }
 
       const { data: profile, error: profileError } = await supabase
@@ -1191,13 +1196,37 @@ app.post('/api/community/badges/award', auth, requireOwnerOrCoOwner, async (req,
     const description = String(req.body?.description || '').trim().slice(0,240);
     const icon = String(req.body?.icon || '🏅').slice(0,12);
     if (!uuid(target) || !name) return fail(res, 400, 'اختر عضواً واكتب اسم الشارة');
-    const code = 'custom_' + Buffer.from(name.toLowerCase()).toString('hex').slice(0,48);
-    const { data: badge, error: badgeError } = await supabase.from('lz_badges')
-      .upsert({ code, name, description, icon, active: true }, { onConflict: 'code' })
-      .select('id,name,icon,description').single();
-    if (badgeError) throw badgeError;
-    const { error } = await supabase.from('lz_user_badges').upsert({ user_id: target, badge_id: badge.id, awarded_by: req.user.id }, { onConflict: 'user_id,badge_id' });
-    if (error) throw error;
+    const code = 'custom_' + Buffer.from(name.toLowerCase(), 'utf8').toString('hex').slice(0,48);
+
+    // Avoid PostgREST ON CONFLICT inference problems on older databases that
+    // only have a partial unique index for lz_badges.code.
+    let { data: badge, error: lookupError } = await supabase.from('lz_badges')
+      .select('id,name,icon,description').eq('code', code).maybeSingle();
+    if (lookupError) throw lookupError;
+    if (badge) {
+      const { data: updatedBadge, error: updateBadgeError } = await supabase.from('lz_badges')
+        .update({ name, description, icon, active: true }).eq('id', badge.id)
+        .select('id,name,icon,description').single();
+      if (updateBadgeError) throw updateBadgeError;
+      badge = updatedBadge;
+    } else {
+      const { data: insertedBadge, error: insertBadgeError } = await supabase.from('lz_badges')
+        .insert({ code, name, description, icon, active: true })
+        .select('id,name,icon,description').single();
+      if (insertBadgeError) throw insertBadgeError;
+      badge = insertedBadge;
+    }
+
+    // Award idempotently. If an older schema lacks the expected unique index,
+    // fall back to an existence check followed by insert.
+    const { data: existingAward, error: awardLookupError } = await supabase.from('lz_user_badges')
+      .select('id').eq('user_id', target).eq('badge_id', badge.id).maybeSingle();
+    if (awardLookupError) throw awardLookupError;
+    if (!existingAward) {
+      const { error: awardInsertError } = await supabase.from('lz_user_badges')
+        .insert({ user_id: target, badge_id: badge.id, awarded_by: req.user.id });
+      if (awardInsertError && awardInsertError.code !== '23505') throw awardInsertError;
+    }
     try { await notifyUser(target, 'حصلت على شارة جديدة!', `${icon} ${name}${description ? ' — ' + description : ''}`, 'badge'); }
     catch (noticeError) { console.error('Badge awarded, but notification was skipped:', noticeError); }
     res.json({ ok: true, badge });
