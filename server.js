@@ -454,21 +454,21 @@ async function refreshStreamerLiveStatuses() {
         const streamer = queue[index];
         const handle = streamerHandle(streamer);
         if (!handle || !['kick', 'tiktok'].includes(streamer.platform)) {
-          statuses[index] = { id: streamer.id, isLive: null };
+          statuses[index] = { id: streamer.id, platform: streamer.platform || null, handle: handle || null, isLive: null, viewerCount: null };
           continue;
         }
         try {
           const liveInfo = streamer.platform === 'kick' ? await getKickLiveInfo(handle) : await getTikTokLiveInfo(handle);
-          statuses[index] = { id: streamer.id, isLive: liveInfo.isLive, viewerCount: liveInfo.viewerCount, checkedAt: new Date().toISOString() };
+          statuses[index] = { id: String(streamer.id), platform: streamer.platform, handle: String(handle).toLowerCase(), isLive: liveInfo.isLive === true, viewerCount: liveInfo.viewerCount, checkedAt: new Date().toISOString() };
         } catch (error) {
           console.warn(`LIVE status check failed for ${streamer.platform} streamer ${handle}:`, error.message);
-          statuses[index] = { id: streamer.id, isLive: null, viewerCount: null, checkedAt: new Date().toISOString() };
+          statuses[index] = { id: String(streamer.id), platform: streamer.platform, handle: String(handle).toLowerCase(), isLive: null, viewerCount: null, checkedAt: new Date().toISOString() };
         }
       }
     };
     await Promise.all(Array.from({ length: Math.min(4, queue.length) }, worker));
     streamerLiveCache.value = { statuses, checkedAt: new Date().toISOString() };
-    streamerLiveCache.expiresAt = Date.now() + 60 * 1000;
+    streamerLiveCache.expiresAt = Date.now() + 20 * 1000;
     return streamerLiveCache.value;
   })();
   try { return await streamerLiveCache.pending; }
@@ -480,7 +480,7 @@ app.get('/api/streamers/live', async (_req, res, next) => {
     const result = streamerLiveCache.value && streamerLiveCache.expiresAt > Date.now()
       ? streamerLiveCache.value
       : await refreshStreamerLiveStatuses();
-    res.set('Cache-Control', 'public, max-age=30').json(result);
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate').json(result);
   } catch (error) { next(error); }
 });
 

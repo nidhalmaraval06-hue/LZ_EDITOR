@@ -1269,7 +1269,29 @@ select.field option{background:#151020}
   }
 }
 
-    .lz-live-badge{display:inline-flex;align-items:center;gap:6px;margin-inline-start:7px;padding:4px 9px;border-radius:999px;font-size:11px;font-weight:900;vertical-align:middle;letter-spacing:.4px}
+    /* STREAMER CHANNEL BANNERS */
+    .streamer-card{--streamer-accent:#a879ef;position:relative!important;isolation:isolate;min-height:290px;padding:0!important;text-align:center;overflow:hidden;border:1px solid color-mix(in srgb,var(--streamer-accent) 65%,transparent)!important;background:#09070f!important;box-shadow:0 10px 34px rgba(0,0,0,.32)}
+    .streamer-card.kick{--streamer-accent:#39ff14}
+    .streamer-card.tiktok{--streamer-accent:#ff304f}
+    .streamer-cover{position:absolute;inset:0 0 auto;height:165px;z-index:-2;overflow:hidden;background:radial-gradient(ellipse at 50% 0,color-mix(in srgb,var(--streamer-accent) 38%,transparent),transparent 68%),linear-gradient(135deg,#160d22,#08070c 70%)}
+    .streamer-cover img{width:100%;height:100%;object-fit:cover;opacity:.56;filter:saturate(1.15);}
+    .streamer-card:before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(5,4,9,.08) 0%,rgba(5,4,9,.48) 34%,#09070f 62%);pointer-events:none}
+    .streamer-card:after{content:'';position:absolute;z-index:-1;right:18px;top:18px;width:100px;height:100px;opacity:.16;pointer-events:none;background:var(--streamer-accent);mask:var(--streamer-mark) center/contain no-repeat;-webkit-mask:var(--streamer-mark) center/contain no-repeat}
+    .streamer-card.kick{--streamer-mark:none}
+    .streamer-card.tiktok{--streamer-mark:none}
+    .streamer-brand-watermark{position:absolute;top:20px;right:22px;font:1000 52px Orbitron,sans-serif;color:var(--streamer-accent);opacity:.2;letter-spacing:-5px;pointer-events:none}
+    .streamer-card-inner{position:relative;z-index:1;padding:116px 18px 18px}
+    .streamer-card .streamer-avatar{width:92px;height:92px;border-radius:50%;object-fit:cover;margin:0 auto 10px;border:3px solid var(--streamer-accent);box-shadow:0 0 0 5px rgba(0,0,0,.62),0 0 22px color-mix(in srgb,var(--streamer-accent) 60%,transparent);background:#100c18}
+    .streamer-card .streamer-platform{display:inline-flex;align-items:center;gap:7px;margin:0 auto 10px;padding:6px 12px;border-radius:999px;background:rgba(0,0,0,.76);border:1px solid color-mix(in srgb,var(--streamer-accent) 75%,transparent);color:var(--streamer-accent);font-size:11px;font-weight:900}
+    .streamer-card h3{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:4px;color:#fff}
+    .streamer-card .streamer-viewers{color:#fff!important;text-shadow:0 1px 8px #000}
+    .streamer-card .streamer-specialty{color:#d8cce7}
+    .streamer-card .social-link{border-color:var(--streamer-accent);color:var(--streamer-accent)}
+    .streamer-card .lz-live-badge.kick{background:rgba(20,90,10,.7)}
+    .streamer-card .lz-live-badge.tiktok{background:rgba(100,5,20,.7)}
+    @media(max-width:540px){.streamer-card{min-height:275px}.streamer-cover{height:150px}.streamer-card-inner{padding-top:105px}}
+
+    .lz-live-badge{display:inline-flex!important;visibility:visible!important;opacity:1!important;align-items:center;gap:6px;margin-inline-start:7px;padding:4px 9px;border-radius:999px;font-size:11px;font-weight:900;vertical-align:middle;letter-spacing:.4px;white-space:nowrap}
     .lz-live-badge.kick{background:rgba(83,255,35,.15);border:1px solid rgba(83,255,35,.7);color:#58ff32;box-shadow:0 0 12px rgba(83,255,35,.18)}
     .lz-live-badge.kick i{background:#39ff14;box-shadow:0 0 9px #39ff14}
     .lz-live-badge.tiktok{background:rgba(255,35,65,.16);border:1px solid rgba(255,55,80,.72);color:#ff4058;box-shadow:0 0 12px rgba(255,35,65,.18)}
@@ -2271,14 +2293,33 @@ window.addEventListener('hashchange', () => {
   let streamerLiveStatuses = {};
   let streamerLiveLastChecked = 0;
 
-  async function refreshStreamerLiveStatuses(){
-    if(Date.now() - streamerLiveLastChecked < 30000) return;
-    streamerLiveLastChecked = Date.now();
+  function normalizeStreamerHandle(value, platform){
+    const raw = String(value || '').trim();
+    if(!raw) return '';
     try {
-      const response = await fetch('/api/streamers/live', { cache: 'no-store' });
-      if(!response.ok) throw new Error('LIVE status request failed');
+      const url = new URL(raw.startsWith('http') ? raw : `https://${raw}`);
+      const parts = url.pathname.split('/').filter(Boolean);
+      return String(platform).toLowerCase() === 'kick'
+        ? String(parts[0] || '').replace(/^@/, '').toLowerCase()
+        : String((url.pathname.match(/^\/@([^/]+)/)?.[1]) || parts[0] || '').replace(/^@/, '').toLowerCase();
+    } catch { return raw.replace(/^@/, '').replace(/\/$/, '').toLowerCase(); }
+  }
+
+  async function refreshStreamerLiveStatuses(force = false){
+    if(!force && Date.now() - streamerLiveLastChecked < 30000) return;
+    try {
+      const response = await fetch('/api/streamers/live?ts=' + Date.now(), { cache: 'no-store' });
+      if(!response.ok) throw new Error('LIVE status request failed: ' + response.status);
       const result = await response.json();
-      streamerLiveStatuses = Object.fromEntries((result.statuses || []).map(item => [String(item.id), { isLive: item.isLive, viewerCount: item.viewerCount }]));
+      const byId = {};
+      const byHandle = {};
+      (result.statuses || []).forEach(item => {
+        const info = { isLive: item.isLive === true, viewerCount: item.viewerCount, platform: item.platform || '' };
+        if(item.id != null) byId[String(item.id)] = info;
+        if(item.handle && item.platform) byHandle[String(item.platform).toLowerCase() + ':' + String(item.handle).replace(/^@/, '').toLowerCase()] = info;
+      });
+      streamerLiveStatuses = { byId, byHandle };
+      streamerLiveLastChecked = Date.now();
       renderStreamers();
     } catch(error) { console.warn('Streamer LIVE status:', error); }
   }
@@ -2300,19 +2341,27 @@ window.addEventListener('hashchange', () => {
       const url = safeURL(item.url);
       const kick = item.platform === 'kick';
       const fallback = kick ? 'KICK' : '<i class="fa-brands fa-tiktok"></i>';
+      const banner = safeURL(item.bannerUrl || item.banner_url || item.banner || item.coverUrl || '');
       const avatar = image
-        ? `<img src="${escapeHTML(image)}" alt="${escapeHTML(item.name || 'Streamer')}" loading="lazy" referrerpolicy="no-referrer" style="width:104px;height:104px;border-radius:50%;object-fit:cover;margin:0 auto 14px;border:3px solid #a879ef" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'"> <div class="designer-fallback" style="display:none;margin:0 auto 14px">${kick ? 'KICK' : 'LZ'}</div>`
-        : `<div class="designer-fallback" style="margin:0 auto 14px">${fallback}</div>`;
-      const liveInfo = streamerLiveStatuses[String(item.id)] || {};
+        ? `<img class="streamer-avatar" src="${escapeHTML(image)}" alt="${escapeHTML(item.name || 'Streamer')}" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'"><div class="designer-fallback" style="display:none;margin:0 auto 10px;border:3px solid var(--streamer-accent)">${kick ? 'KICK' : 'LZ'}</div>`
+        : `<div class="designer-fallback streamer-avatar" style="display:grid;margin:0 auto 10px">${fallback}</div>`;
+      const platformIcon = kick ? '<strong style="font:1000 18px Orbitron,sans-serif">K</strong>' : '<i class="fa-brands fa-tiktok" style="font-size:17px"></i>';
+      const liveKey = String(item.platform || '').toLowerCase() + ':' + normalizeStreamerHandle(item.url, item.platform);
+      const liveInfo = streamerLiveStatuses.byId?.[String(item.id)] || streamerLiveStatuses.byHandle?.[liveKey] || {};
       const isLive = liveInfo.isLive === true;
       const viewerCount = Number.isFinite(Number(liveInfo.viewerCount)) && liveInfo.viewerCount !== null ? Number(liveInfo.viewerCount) : null;
-      return `<article class="designer-card" style="text-align:center">
-        ${avatar}
-        <h3>${escapeHTML(item.name || 'Streamer')} ${isLive ? `<span class="lz-live-badge ${kick ? 'kick' : 'tiktok'}"><i></i> LIVE</span>` : ''}</h3>
-        ${isLive && viewerCount !== null ? `<div class="streamer-viewers" style="margin:8px 0 12px;color:#c9b4ef;font-size:13px;font-weight:700"><i class="fa-solid fa-eye" aria-hidden="true"></i> ${viewerCount.toLocaleString('en-US')} مشاهد</div>` : ''}
-        <div class="designer-specialty">${kick ? 'Kick Streamer' : 'TikTok Creator'}</div>
-        <div class="designer-badges"><span class="badge badge-purple"><i class="fa-solid fa-tower-broadcast"></i> STREAMER</span></div>
-        ${url ? `<div class="social-links" style="justify-content:center"><a class="social-link" href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer" aria-label="${kick ? 'Kick' : 'TikTok'}">${kick ? 'KICK' : '<i class="fa-brands fa-tiktok"></i>'}</a></div>` : ''}
+      return `<article class="designer-card streamer-card ${kick ? 'kick' : 'tiktok'}">
+        <div class="streamer-cover">${banner ? `<img src="${escapeHTML(banner)}" alt="غلاف ${escapeHTML(item.name || 'القناة')}" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}</div>
+        <div class="streamer-brand-watermark">${kick ? 'KICK' : '♪'}</div>
+        <div class="streamer-card-inner">
+          <div class="streamer-platform">${platformIcon} ${kick ? 'KICK CHANNEL' : 'TikTok CREATOR'}</div>
+          ${avatar}
+          <h3>${escapeHTML(item.name || 'Streamer')} ${isLive ? `<span class="lz-live-badge ${kick ? 'kick' : 'tiktok'}"><i></i> LIVE</span>` : ''}</h3>
+          ${isLive && viewerCount !== null ? `<div class="streamer-viewers" style="margin:8px 0 12px;font-size:13px;font-weight:800"><i class="fa-solid fa-eye" aria-hidden="true"></i> ${viewerCount.toLocaleString('en-US')} مشاهد</div>` : ''}
+          <div class="designer-specialty">${kick ? 'Kick Streamer' : 'TikTok Creator'}</div>
+          <div class="designer-badges"><span class="badge badge-purple"><i class="fa-solid fa-tower-broadcast"></i> STREAMER</span></div>
+          ${url ? `<div class="social-links" style="justify-content:center"><a class="social-link" href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer" aria-label="${kick ? 'Kick' : 'TikTok'}">${kick ? 'KICK' : '<i class="fa-brands fa-tiktok"></i>'}</a></div>` : ''}
+        </div>
       </article>`;
     }).join('');
     const empty = $('streamersEmpty');
@@ -2587,8 +2636,9 @@ window.addEventListener('hashchange', () => {
 
   $('searchInput').addEventListener('input', renderDesigners);
   $('streamerSearch')?.addEventListener('input', renderStreamers);
-  refreshStreamerLiveStatuses();
-  setInterval(refreshStreamerLiveStatuses, 60000);
+  refreshStreamerLiveStatuses(true);
+  setInterval(() => refreshStreamerLiveStatuses(true), 20000);
+  document.addEventListener('visibilitychange', () => { if(!document.hidden) refreshStreamerLiveStatuses(true); });
   $('specialtyFilter').addEventListener('change', renderDesigners);
   $('worksSearch').addEventListener('input', renderWorks);
 
