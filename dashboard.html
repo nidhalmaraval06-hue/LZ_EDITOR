@@ -356,7 +356,8 @@ tbody tr:last-child td{border-bottom:none}
       <button data-page="streamers"><i class="fa-solid fa-tower-broadcast"></i> الستريمرز</button>
       <button data-page="bans"><i class="fa-solid fa-ban"></i> المحظورون وBAN</button>
       <button data-page="works"><i class="fa-solid fa-images"></i> أعمال المصممين</button>
-      <button data-page="contestVideos"><i class="fa-brands fa-tiktok"></i> ✓・𝐄𝐃𝐈𝐓𝐒・👑</button>
+      <button data-page="contestVideos"><i class="fa-brands fa-tiktok"></i> فيديوهات المسابقة</button>
+      <button data-page="communityLinks"><i class="fa-solid fa-link"></i> ✓・𝐄𝐃𝐈𝐓𝐒・👑</button>
       <button data-page="awards"><i class="fa-solid fa-trophy"></i> الجوائز والشارات</button>
       <button data-page="giveaway"><i class="fa-solid fa-gift"></i> Giveaway</button>
       <button data-page="manage"><i class="fa-solid fa-square-poll-vertical"></i> التصويت والشارات</button>
@@ -437,7 +438,11 @@ tbody tr:last-child td{border-bottom:none}
           </div>
         </div>
       </div>
-      <div class="section-heading"><div><h3><i class="fa-solid fa-comments" style="color:#bd94ff;margin-left:7px"></i> روابط محادثة المجتمع</h3><p>روابط الأعضاء المنشورة في محادثة المجتمع، مع إظهار هوية المصمم دون كشف عنوان الرابط.</p></div><button class="btn btn-secondary btn-small" id="refreshChatLinks" type="button"><i class="fa-solid fa-rotate"></i> تحديث</button></div>
+    </section>
+
+    <!-- COMMUNITY CHAT LINKS -->
+    <section class="page" id="page-communityLinks">
+      <div class="section-heading"><div><h3><i class="fa-solid fa-link" style="color:#bd94ff;margin-left:7px"></i> ✓・𝐄𝐃𝐈𝐓𝐒・👑</h3><p>روابط محادثة المجتمع مرتبة باسم المصمم، مع إخفاء الرابط الخام وإتاحة فتحه بزر.</p></div><button class="btn btn-secondary btn-small" id="refreshChatLinks" type="button"><i class="fa-solid fa-rotate"></i> تحديث</button></div>
       <div class="panel" style="margin-bottom:18px">
         <div id="chatLinksStatus" style="font-size:10px;color:var(--muted);margin-bottom:9px" role="status">جاري جلب الروابط من المحادثة...</div>
         <div id="chatLinksList" class="quick-list"></div>
@@ -604,7 +609,7 @@ tbody tr:last-child td{border-bottom:none}
 
     <!-- CONTEST VIDEOS -->
     <section class="page" id="page-contestVideos">
-      <div class="section-heading"><div><h3>✓・𝐄𝐃𝐈𝐓𝐒・👑</h3><p>فيديوهات المسابقة مرتبة باسم المصمم صاحب كل فيديو، مع إمكانية المشاهدة وتعديل عدد الإعجابات.</p></div><button class="btn btn-secondary btn-small" id="refreshContestEntries" type="button"><i class="fa-solid fa-rotate"></i> تحديث</button></div>
+      <div class="section-heading"><div><h3>فيديوهات المسابقة المشاركة</h3><p>إدارة روابط فيديوهات المشاركين وتعديل عدد الإعجابات بجانب كل فيديو.</p></div><button class="btn btn-secondary btn-small" id="refreshContestEntries" type="button"><i class="fa-solid fa-rotate"></i> تحديث</button></div>
       <div class="panel contest-admin-panel" style="margin-top:15px">
         <div id="contestEntriesAdmin" class="contest-admin-grid"><small>اضغط تحديث لعرض فيديوهات المشاركين.</small></div>
       </div>
@@ -815,6 +820,7 @@ tbody tr:last-child td{border-bottom:none}
     bans:'المحظورون وBAN',
     works:'أعمال المصممين',
     contestVideos:'فيديوهات المسابقة',
+    communityLinks:'✓・𝐄𝐃𝐈𝐓𝐒・👑',
     awards:'الجوائز والشارات',
     giveaway:'Giveaway',
     polls:'التصويت والشارات',
@@ -895,6 +901,8 @@ tbody tr:last-child td{border-bottom:none}
     });
     $('topTitle').textContent = titles[name];
     if (name === 'bans') loadBans();
+    if (name === 'communityLinks') loadDashboardChatLinks();
+    if (name === 'contestVideos') loadContestEntriesAdmin();
     if (name === 'manage') loadAdminPolls();
     $('sidebar').classList.remove('open');
     window.scrollTo({ top:0, behavior:'smooth' });
@@ -1289,9 +1297,8 @@ tbody tr:last-child td{border-bottom:none}
             <small>🎬 ${escapeHTML(contestTitle)} · ${escapeHTML(date)}</small>
             <small>❤️ ${Number(entry.likes_count||0).toLocaleString('ar')} إعجاب على الفيديو المشارك</small>
             ${entry.likes_source === 'pending_sync' ? '<small style="color:#f0bd65">بانتظار بيانات الإعجابات: يلزم ربط حساب صاحب الفيديو عبر TikTok الرسمي أو إدخال العدد يدوياً.</small>' : `<small style="color:#a98be8">${entry.likes_updated_at ? 'آخر تحديث: '+escapeHTML(new Date(entry.likes_updated_at).toLocaleString('ar')) : 'مصدر النقاط: '+escapeHTML(entry.likes_source || 'غير محدد')}</small>`}
-            ${videoURL ? `<div class="contest-card-link" style="direction:rtl;text-align:right">فيديو المصمم: ${escapeHTML(name)}</div>` : '<small>رابط الفيديو غير صالح</small>'}
             <div class="contest-card-actions" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-              ${videoURL ? `<a class="btn btn-secondary btn-small" href="${escapeHTML(videoURL)}" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-play"></i> مشاهدة فيديو ${escapeHTML(name)}</a>` : ''}
+              ${videoURL ? `<a class="btn btn-secondary btn-small" href="${escapeHTML(videoURL)}" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-play"></i> مشاهدة الفيديو</a>` : ''}
               <label style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:12px">❤️ إجمالي الإعجابات
                 <input class="field" type="number" min="0" max="1000000000" step="1" inputmode="numeric" value="${Number(entry.last_observed_likes_count ?? entry.likes_count ?? 0)}" data-contest-likes-input="${escapeHTML(entry.id)}" style="width:130px;padding:8px">
               </label>
@@ -1471,7 +1478,9 @@ tbody tr:last-child td{border-bottom:none}
 
   $('clearData').addEventListener('click', () => toast('الحذف المحلي معطل؛ البيانات محفوظة في Supabase.'));
 
-  // روابط محادثة المجتمع: تظهر باسم وهوية LZ EDITORS، ويكون اسم المصمم هو نص الرابط.
+  // Read-only public chat feed: shared links appear on the dashboard.
+  const CHAT_API = 'https://gotgssqdkercujjzisdm.supabase.co/rest/v1/community_messages';
+  const CHAT_PUBLIC_KEY = 'sb_publishable_4NyoLY_J46KA6Lt2T4PNBg_Bzy8bT3r';
   let chatLinksBusy = false;
   async function loadDashboardChatLinks() {
     if (chatLinksBusy) return;
@@ -1479,27 +1488,34 @@ tbody tr:last-child td{border-bottom:none}
     $('refreshChatLinks').disabled = true;
     $('chatLinksStatus').textContent = 'جاري تحديث روابط المحادثة...';
     try {
-      const messages = await apiRequest('/api/messages?limit=100');
-      if (!Array.isArray(messages)) throw new Error('Invalid messages response');
+      const response = await fetch(CHAT_API + '?select=id,author_name,author_avatar,text,created_at&order=created_at.desc&limit=100', {
+        headers: { apikey: CHAT_PUBLIC_KEY, Accept: 'application/json' },
+        cache: 'no-store'
+      });
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      const messages = await response.json();
+      if (!Array.isArray(messages)) throw new Error('Invalid response');
       const links = messages.flatMap(message => {
-        const matches = String(message.text || '').match(/https?:\/\/[^\s<>"']+/gi) || [];
-        return matches.map(raw => ({ message, url: safeURL(raw.replace(/[),،.؛!?]+$/g, '')) }))
+        const originalText = String(message.text || '');
+        const matches = originalText.match(/https?:\/\/[^\s<>"']+/gi) || [];
+        const cleanText = originalText.replace(/https?:\/\/[^\s<>"']+/gi, '').replace(/\s+/g, ' ').trim();
+        return matches.map(raw => ({ message, cleanText, url: safeURL(raw.replace(/[),،.؛!?]+$/g, '')) }))
           .filter(entry => entry.url);
       });
       $('chatLinksStatus').textContent = links.length ? `${links.length} رابط من آخر ${messages.length} رسالة` : 'ما كاين حتى رابط في آخر رسائل المحادثة.';
-      $('chatLinksList').innerHTML = links.map(({message, url}) => {
-        const name = String(message.author_name || 'مصمم LZ');
+      $('chatLinksList').innerHTML = links.map(({message, cleanText, url}) => {
+        const name = String(message.author_name || 'عضو LZ');
         const avatar = safeURL(message.author_avatar);
         const when = message.created_at && !Number.isNaN(Date.parse(message.created_at))
           ? new Date(message.created_at).toLocaleString('ar-DZ') : '';
         return `<article class="quick-action" style="cursor:default;align-items:flex-start;overflow:hidden">
           ${avatar ? `<img src="${escapeHTML(avatar)}" alt="" loading="lazy" referrerpolicy="no-referrer" style="width:36px;height:36px;border-radius:11px;object-fit:cover;flex-shrink:0">` : '<i class="fa-brands fa-discord" style="font-size:25px"></i>'}
-          <div style="flex:1;min-width:0"><strong>✓・𝐄𝐃𝐈𝐓𝐒・👑</strong><small>${escapeHTML(when)}</small><a href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer" style="display:inline-block;color:#cbaaff;font-size:12px;margin-top:7px;text-decoration:underline">${escapeHTML(name)}</a></div>
-          <a class="btn btn-secondary btn-small" href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer" aria-label="فتح رابط المصمم"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+          <div style="flex:1;min-width:0"><strong>${escapeHTML(name)}</strong><small>${escapeHTML(when)}</small>${cleanText ? `<p style="font-size:12px;color:#e4dcf2;line-height:1.7;margin:6px 0 0;overflow-wrap:anywhere">${escapeHTML(cleanText)}</p>` : '<small>شارك رابطاً في محادثة المجتمع</small>'}</div>
+          <a class="btn btn-secondary btn-small" href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer" aria-label="فتح مشاركة المصمم">فتح المشاركة <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
         </article>`;
       }).join('');
     } catch (error) {
-      $('chatLinksStatus').textContent = 'تعذّر جلب الروابط: ' + error.message;
+      $('chatLinksStatus').textContent = 'تعذّر جلب الروابط. تأكد من وجود جدول community_messages وسماح RLS بالقراءة العامة.';
       $('chatLinksList').innerHTML = '';
       console.warn('Community chat feed:', error);
     } finally {
@@ -1508,10 +1524,8 @@ tbody tr:last-child td{border-bottom:none}
     }
   }
   $('refreshChatLinks').addEventListener('click', loadDashboardChatLinks);
-  document.querySelectorAll('[data-page="overview"]').forEach(btn => btn.addEventListener('click', loadDashboardChatLinks));
-  document.querySelectorAll('[data-page="contestVideos"]').forEach(btn => btn.addEventListener('click', loadContestEntriesAdmin));
-  document.addEventListener('visibilitychange', () => { if (!document.hidden && $('page-overview').classList.contains('active')) loadDashboardChatLinks(); });
-  setInterval(() => { if (!document.hidden && $('page-overview').classList.contains('active')) loadDashboardChatLinks(); }, 30000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && $('page-communityLinks').classList.contains('active')) loadDashboardChatLinks(); });
+  setInterval(() => { if (!document.hidden && $('page-communityLinks').classList.contains('active')) loadDashboardChatLinks(); }, 30000);
   loadDashboardChatLinks();
 
   renderAll();
