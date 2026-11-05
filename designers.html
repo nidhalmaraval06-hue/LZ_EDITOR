@@ -2608,14 +2608,6 @@ window.addEventListener('hashchange', () => {
     } catch(error) { $('notificationEmpty').style.display='block'; $('notificationEmpty').querySelector('p').textContent=error.message; }
   }
 
-  async function loadContestEntries(contestId, container) {
-    try {
-      const response = await fetch('/api/community/contests/'+encodeURIComponent(contestId)+'/entries', {cache:'no-store'});
-      if (!response.ok) throw new Error('تعذر تحميل المشاركات');
-      const entries = await response.json();
-      container.innerHTML = entries.map(entry => `<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--border)"><div><a href="${escapeHTML(safeURL(entry.video_url))}" target="_blank" rel="noopener noreferrer">مشاهدة فيديو TikTok</a><small style="display:block;color:var(--muted)">${escapeHTML(entry.profile?.discord_username || 'مشارك')} · ${entry.likes_source === 'tiktok_api' ? 'مزامنة TikTok الرسمية' : 'تحديث يدوي'}</small></div><b>❤️ ${Number(entry.likes_count || 0).toLocaleString('ar')} نقطة</b></div>`).join('') || '<small>لا توجد فيديوهات مشاركة بعد.</small>';
-    } catch(error) { container.textContent=error.message; }
-  }
 
   /* GIVEAWAYS */
 
@@ -2626,8 +2618,7 @@ window.addEventListener('hashchange', () => {
       const actions = document.createElement('div'); actions.className='content-meta';
       if (item.type === 'tiktok_contest') {
         actions.innerHTML = `<button class="btn btn-primary" data-contest-submit="${escapeHTML(item.id)}">إرسال فيديو TikTok للمسابقة</button><span class="badge badge-gold">كل إعجاب = نقطة</span>`;
-        const list = document.createElement('div'); list.style.marginTop='12px'; list.innerHTML='<b>الفيديوهات المشاركة وترتيب النقاط</b>';
-        const entries = document.createElement('div'); entries.dataset.contestEntryList = item.id; list.appendChild(entries); card.appendChild(actions); card.appendChild(list); loadContestEntries(item.id, entries);
+        card.appendChild(actions);
       } else {
         actions.innerHTML = `<button class="btn btn-primary" data-giveaway-join="${escapeHTML(item.id)}">المشاركة في السحب</button>`;
         card.appendChild(actions);

@@ -1284,9 +1284,12 @@ tbody tr:last-child td{border-bottom:none}
             <small>❤️ ${Number(entry.likes_count||0).toLocaleString('ar')} إعجاب على الفيديو المشارك</small>
             ${entry.likes_source === 'pending_sync' ? '<small style="color:#f0bd65">بانتظار بيانات الإعجابات: يلزم ربط حساب صاحب الفيديو عبر TikTok الرسمي أو إدخال العدد يدوياً.</small>' : `<small style="color:#a98be8">${entry.likes_updated_at ? 'آخر تحديث: '+escapeHTML(new Date(entry.likes_updated_at).toLocaleString('ar')) : 'مصدر النقاط: '+escapeHTML(entry.likes_source || 'غير محدد')}</small>`}
             ${videoURL ? `<a class="contest-card-link" href="${escapeHTML(videoURL)}" target="_blank" rel="noopener noreferrer">${escapeHTML(videoURL)}</a>` : '<small>رابط الفيديو غير صالح</small>'}
-            <div class="contest-card-actions">
+            <div class="contest-card-actions" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
               ${videoURL ? `<a class="btn btn-secondary btn-small" href="${escapeHTML(videoURL)}" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-play"></i> مشاهدة الفيديو</a>` : ''}
-              <button class="btn btn-secondary btn-small" data-set-contest-likes="${escapeHTML(entry.id)}">تصحيح الإعجابات</button>
+              <label style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:12px">❤️ إجمالي الإعجابات
+                <input class="field" type="number" min="0" max="1000000000" step="1" inputmode="numeric" value="${Number(entry.last_observed_likes_count ?? entry.likes_count ?? 0)}" data-contest-likes-input="${escapeHTML(entry.id)}" style="width:130px;padding:8px">
+              </label>
+              <button class="btn btn-primary btn-small" data-save-contest-likes="${escapeHTML(entry.id)}">حفظ العدد</button>
             </div>
           </div>
         </article>`;
@@ -1295,10 +1298,16 @@ tbody tr:last-child td{border-bottom:none}
   }
   $('refreshContestEntries')?.addEventListener('click',loadContestEntriesAdmin);
   $('contestEntriesAdmin')?.addEventListener('click',async event=>{
-    const button=event.target.closest('[data-set-contest-likes]'); if(!button)return;
-    const value=prompt('أدخل إجمالي الإعجابات الحالي الظاهر على TikTok بعد التحقق (سيتم احتساب الزيادة بعد وقت المشاركة فقط):'); if(value===null)return;
-    try { const likes=Number(value); await apiRequest('/api/community/contests/entries/'+encodeURIComponent(button.dataset.setContestLikes)+'/likes',{method:'PATCH',body:JSON.stringify({current_likes_count:likes})}); toast('تم تحديث نقاط الفيديو'); await loadContestEntriesAdmin(); }
-    catch(error){toast('تعذر تحديث النقاط: '+error.message);}
+    const button=event.target.closest('[data-save-contest-likes]'); if(!button)return;
+    const entryId=button.dataset.saveContestLikes;
+    const input=$('contestEntriesAdmin').querySelector(`[data-contest-likes-input="${CSS.escape(entryId)}"]`);
+    if(!input || input.value.trim()==='') return toast('اكتب عدد الإعجابات أولاً');
+    const likes=Number(input.value);
+    if(!Number.isSafeInteger(likes) || likes<0 || likes>1000000000) return toast('أدخل عدداً صحيحاً من 0 إلى 1,000,000,000');
+    button.disabled=true;
+    try { await apiRequest('/api/community/contests/entries/'+encodeURIComponent(entryId)+'/likes',{method:'PATCH',body:JSON.stringify({current_likes_count:likes})}); toast('تم حفظ عدد إعجابات الفيديو'); await loadContestEntriesAdmin(); }
+    catch(error){toast('تعذر حفظ الإعجابات: '+error.message);}
+    finally {button.disabled=false;}
   });
 
   $('giveawayList').addEventListener('click', async event => {
