@@ -511,23 +511,75 @@ app.get('/api/streamer-preview', async (req, res, next) => {
     const html = (await response.text()).slice(0, 3_000_000);
     const tags = html.match(/<meta\b[^>]*>/gi) || [];
     let image = '';
+    let banner = '';
     let title = '';
     for (const tag of tags) {
       const prop = (tag.match(/(?:property|name)=["']([^"']+)["']/i) || [])[1]?.toLowerCase();
       const content = (tag.match(/content=["']([^"']+)["']/i) || [])[1] || '';
       if (!image && ['og:image','twitter:image','og:image:secure_url'].includes(prop)) image = decodeMeta(content);
       if (!title && ['og:title','twitter:title'].includes(prop)) title = decodeMeta(content);
+      if (!banner && /(?:banner|cover).*(?:image|url)|(?:image|url).*(?:banner|cover)/i.test(prop || '')) banner = decodeMeta(content);
     }
-    // TikTok embeds its profile avatar in page JSON on many profile responses.
-    if (!image && profileUrl.includes('tiktok.com')) {
-      const match = html.match(/"avatar(?:Larger|Medium|Thumb)"\s*:\s*"([^"]+)"/i);
-      if (match) image = decodeMeta(match[1]);
+
+    // Kick's public channel API exposes the channel banner independently of its avatar.
+    if (profileUrl.includes('kick.com')) {
+      try {
+        const slug = new URL(profileUrl).pathname.split('/').filter(Boolean)[0];
+        const token = await getKickToken();
+        if (token && slug) {
+          const apiUrl = new URL('https://api.kick.com/public/v1/channels');
+          apiUrl.searchParams.set('slug', slug.toLowerCase());
+          const apiResponse = await fetch(apiUrl, {
+            headers: { Authorization: `Bearer ${token}`, 'Client-Id': process.env.KICK_CLIENT_ID },
+            signal: AbortSignal.timeout(9000)
+          });
+          if (apiResponse.ok) {
+            const apiBody = await apiResponse.json();
+            const channel = (apiBody.data || [])[0] || {};
+            banner = channel.banner_picture || channel.banner || banner;
+            title = title || channel.slug || slug;
+          }
+        }
+      } catch (error) { console.warn('Kick banner lookup:', error.message); }
+    }
+
+    // TikTok profile pages sometimes embed cover/banner URLs in their hydration JSON.
+    // Its official Display API does not expose a profile banner, so use an embedded cover only when present.
+    if (profileUrl.includes('tiktok.com')) {
+      const jsonBlocks = [...html.matchAll(/<script[^>]+id=["'](?:__UNIVERSAL_DATA_FOR_REHYDRATION__|SIGI_STATE)["'][^>]*>([\s\S]*?)<\/script>/gi)];
+      for (const block of jsonBlocks) {
+        try {
+          const parsed = JSON.parse(block[1]);
+          const scan = (node, depth = 0) => {
+            if (!node || typeof node !== 'object' || depth > 12 || banner) return;
+            for (const [key, value] of Object.entries(node)) {
+              if (/(banner|cover)/i.test(key)) {
+                if (typeof value === 'string' && /^https:\/\//i.test(value)) { banner = decodeMeta(value); return; }
+                if (value && typeof value === 'object') {
+                  const candidate = value.url_list?.[0] || value.urlList?.[0] || value.url || value.uri;
+                  if (typeof candidate === 'string' && /^https:\/\//i.test(candidate)) { banner = decodeMeta(candidate); return; }
+                }
+              }
+              if (value && typeof value === 'object') scan(value, depth + 1);
+              if (banner) return;
+            }
+          };
+          scan(parsed);
+        } catch {}
+        if (banner) break;
+      }
+      if (!image) {
+        const match = html.match(/"avatar(?:Larger|Medium|Thumb)"\s*:\s*"([^"]+)"/i);
+        if (match) image = decodeMeta(match[1]);
+      }
     }
     if (image && !/^https:\/\//i.test(image)) image = '';
+    if (banner && !/^https:\/\//i.test(banner)) banner = '';
     res.json({
       platform: profileUrl.includes('kick.com') ? 'kick' : 'tiktok',
       name: title.replace(/\s*[|·-]\s*(TikTok|Kick).*$/i, '').slice(0, 80),
-      image
+      image,
+      banner
     });
   } catch (error) {
     if (error.name === 'TimeoutError' || error.name === 'AbortError') return fail(res, 504, 'انتهت مهلة جلب صورة الحساب');
@@ -626,6 +678,7 @@ app.put('/api/site-content', auth, requireOwnerOrCoOwner, async (req, res, next)
         name: String(item?.name || '').slice(0, 80),
         url: validStreamerUrl(item?.url) || '',
         image: validUrl(item?.image) || '',
+        bannerUrl: validUrl(item?.bannerUrl || item?.banner_url || item?.banner) || '',
         addedAt: String(item?.addedAt || '').slice(0, 40)
       })).filter(item => item.id && item.platform && item.name && item.url) : []
     };

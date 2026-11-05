@@ -517,7 +517,7 @@ tbody tr:last-child td{border-bottom:none}
           <div class="form-grid">
             <div class="form-group full"><label for="streamerUrl">رابط حساب Kick أو TikTok *</label><input class="field" id="streamerUrl" type="url" required placeholder="https://kick.com/username أو https://www.tiktok.com/@username" dir="ltr"></div>
             <div class="form-group full"><label for="streamerName">الاسم (اختياري)</label><input class="field" id="streamerName" maxlength="80" placeholder="اتركه فارغاً لجلب الاسم من الحساب"></div>
-            <div class="form-group full"><label for="streamerBanner">رابط غلاف القناة (اختياري)</label><input class="field" id="streamerBanner" type="url" placeholder="https://... صورة Banner للقناة" dir="ltr"><small style="color:var(--muted)">إذا تركته فارغاً ستظهر خلفية نيون خاصة بالمنصة؛ ضع رابط صورة الغلاف ليظهر خلف البطاقة.</small></div>
+            
           </div>
           <p id="streamerPreviewStatus" style="color:var(--muted);font-size:11px;margin-top:10px">الصورة والاسم يتم جلبهما من صفحة الحساب إذا سمحت المنصة بذلك.</p>
           <div class="form-actions"><button class="btn btn-primary" type="submit" id="addStreamerBtn"><i class="fa-solid fa-plus"></i> إضافة الستريمر</button></div>
@@ -1091,14 +1091,13 @@ tbody tr:last-child td{border-bottom:none}
       const name = $('streamerName').value.trim() || preview.name || username;
       data.streamers = Array.isArray(data.streamers) ? data.streamers : [];
       if (data.streamers.some(item => item.url.replace(/\/$/, '') === url.replace(/\/$/, ''))) throw new Error('هذا الحساب مضاف بالفعل');
-      const bannerUrl = safeURL($('streamerBanner').value.trim());
-      if ($('streamerBanner').value.trim() && !bannerUrl) throw new Error('رابط الغلاف يجب أن يبدأ بـ https://');
+      const bannerUrl = preview.banner || '';
       const streamer = {id:makeId(), platform:isKick?'kick':'tiktok', name, url, image:preview.image || '', bannerUrl, addedAt:new Date().toISOString()};
       data.streamers.push(streamer);
       await apiRequest('/api/site-content', {method:'PUT', body:JSON.stringify({content:data})});
       renderAll();
       event.target.reset();
-      $('streamerPreviewStatus').textContent = bannerUrl ? 'تمت الإضافة مع غلاف القناة.' : 'تمت الإضافة بخلفية نيون خاصة بالمنصة؛ يمكنك إضافة رابط الغلاف عند الحاجة.';
+      $('streamerPreviewStatus').textContent = bannerUrl ? 'تم جلب غلاف القناة تلقائياً.' : 'تمت الإضافة؛ إذا لم توفر المنصة غلافاً عاماً فستظهر خلفية المنصة تلقائياً.';
       toast('تمت إضافة الستريمر وسيظهر عند المصممين');
     } catch(error) {
       $('streamerPreviewStatus').textContent = error.message;

@@ -2126,7 +2126,7 @@ select.field option{background:#151020}
       const parsed = await response.json();
       data = { ...parsed, designers:readArray(parsed,'designers'), works:readArray(parsed,'works'), awards:readArray(parsed,'awards'), giveaways:readArray(parsed,'giveaways'), winners:readArray(parsed,'winners'), streamers:readArray(parsed,'streamers') };
     } catch(error) { console.error('Shared content:',error); toast('تعذر تحميل البيانات المشتركة من السيرفر.'); data={designers:[],works:[],awards:[],giveaways:[],winners:[],streamers:[]}; }
-    mergeDesigners(); updateStats(); updateSpecialties(); renderDesigners(); renderStreamers(); renderWorks(); renderAwards(); renderGiveaways(); renderWinners();
+    mergeDesigners(); updateStats(); updateSpecialties(); renderDesigners(); renderStreamers(); autoFetchStreamerBanners(); renderWorks(); renderAwards(); renderGiveaways(); renderWinners();
   }
 
   /* NAVIGATION */
@@ -2322,6 +2322,22 @@ window.addEventListener('hashchange', () => {
       streamerLiveLastChecked = Date.now();
       renderStreamers();
     } catch(error) { console.warn('Streamer LIVE status:', error); }
+  }
+
+  const streamerBannerLookups = new Set();
+  async function autoFetchStreamerBanners(){
+    const items = Array.isArray(data.streamers) ? data.streamers : [];
+    for (const item of items) {
+      if (item.bannerUrl || item.banner_url || item.banner || streamerBannerLookups.has(String(item.id))) continue;
+      streamerBannerLookups.add(String(item.id));
+      try {
+        const response = await fetch('/api/streamer-preview?url=' + encodeURIComponent(item.url), {cache:'no-store'});
+        if (!response.ok) continue;
+        const preview = await response.json();
+        const banner = safeURL(preview.banner || '');
+        if (banner) { item.bannerUrl = banner; renderStreamers(); }
+      } catch (error) { console.warn('Auto streamer banner:', error); }
+    }
   }
 
   function renderStreamers(){
