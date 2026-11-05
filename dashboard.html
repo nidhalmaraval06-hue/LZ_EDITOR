@@ -347,7 +347,6 @@ tbody tr:last-child td{border-bottom:none}
       <button data-page="giveaway"><i class="fa-solid fa-gift"></i> Giveaway</button>
       <button data-page="manage"><i class="fa-solid fa-square-poll-vertical"></i> التصويت والشارات</button>
       <button data-page="winners"><i class="fa-solid fa-medal"></i> أرشيف الفائزين</button>
-      <button data-page="logs"><i class="fa-solid fa-clipboard-list"></i> سجل النشاط</button>
     </nav>
 
     <div class="nav-label">ADMINISTRATION</div>
@@ -594,12 +593,6 @@ tbody tr:last-child td{border-bottom:none}
       <div class="setting-note"><i class="fa-solid fa-triangle-exclamation"></i> البيانات المشتركة تُحفظ في Supabase عبر الخادم. صلاحيات الإدارة والتحقق من الحساب تتم في Backend؛ لا تضع مفاتيح Service Role داخل ملفات HTML.</div>
     </section>
 
-    <!-- AUDIT LOG -->
-    <section class="page" id="page-logs">
-      <div class="section-heading"><div><h3><i class="fa-solid fa-clipboard-list" style="color:#c59cff"></i> سجل نشاط الموقع</h3><p>سجل عمليات الإدارة والتصويت والمسابقات والحذف داخل LZ EDITORS.</p></div><button class="btn btn-secondary btn-small" id="refreshAuditLogs" type="button"><i class="fa-solid fa-rotate"></i> تحديث</button></div>
-      <div class="panel"><div class="table-wrap"><table><thead><tr><th>التاريخ</th><th>المنفذ</th><th>العملية</th><th>العنصر</th><th>التفاصيل</th></tr></thead><tbody id="auditLogTable"><tr><td colspan="5">اضغط تحديث لتحميل السجل.</td></tr></tbody></table></div></div>
-      <div class="setting-note"><i class="fa-solid fa-shield-halved"></i> السجل للقراءة فقط ويظهر للمالك وCo Owner وManager Admin. حذف عنصر من المحتوى يحذف بياناته المرتبطة من Supabase ويُسجل العملية هنا.</div>
-    </section>
 
     <!-- SETTINGS -->
     <section class="page" id="page-settings">
@@ -710,19 +703,6 @@ tbody tr:last-child td{border-bottom:none}
     }
   }
 
-  async function loadAuditLogs() {
-    const tbody = $('auditLogTable');
-    tbody.innerHTML = '<tr><td colspan="5">جاري تحميل سجل النشاط...</td></tr>';
-    const labels = {delete:'حذف',update:'تحديث',ban:'حظر',unban:'إلغاء حظر',role_change:'تغيير رتبة',award_badge:'منح شارة',create:'إنشاء',vote:'تصويت',join:'انضمام لمسابقة',draw_winner:'اختيار فائز',submit_video:'إرسال فيديو',update_likes:'تحديث نقاط الإعجابات'};
-    try {
-      const logs = await apiRequest('/api/admin/logs?limit=150');
-      tbody.innerHTML = logs.map(item => {
-        const details = JSON.stringify(item.details || {});
-        return `<tr><td>${escapeHTML(new Date(item.created_at).toLocaleString('ar'))}</td><td>${escapeHTML(item.actor_name || 'عضو سابق')}</td><td>${escapeHTML(labels[item.action] || item.action)}</td><td>${escapeHTML(item.entity_type || '')} · ${escapeHTML(item.entity_id || '')}</td><td style="max-width:280px;overflow-wrap:anywhere">${escapeHTML(details)}</td></tr>`;
-      }).join('') || '<tr><td colspan="5">لا توجد عمليات مسجلة بعد.</td></tr>';
-    } catch (error) { tbody.innerHTML = `<tr><td colspan="5">${escapeHTML(error.message)}</td></tr>`; }
-  }
-  $('refreshAuditLogs')?.addEventListener('click', loadAuditLogs);
 
   async function loadAdminPolls() {
     const box = $('adminPollList'); if (!box) return;
@@ -793,7 +773,6 @@ tbody tr:last-child td{border-bottom:none}
     giveaway:'Giveaway',
     polls:'التصويت والشارات',
     winners:'أرشيف الفائزين',
-    logs:'سجل النشاط',
     streamers:'الستريمرز',
     manage:'إدارة المحتوى',
     settings:'الإعدادات'
@@ -869,7 +848,6 @@ tbody tr:last-child td{border-bottom:none}
     });
     $('topTitle').textContent = titles[name];
     if (name === 'bans') loadBans();
-    if (name === 'logs') loadAuditLogs();
     if (name === 'manage') loadAdminPolls();
     $('sidebar').classList.remove('open');
     window.scrollTo({ top:0, behavior:'smooth' });

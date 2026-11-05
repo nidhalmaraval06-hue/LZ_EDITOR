@@ -630,25 +630,6 @@ app.get('/api/community/tiktok/status', auth, async (req, res, next) => {
   } catch (error) { next(error); }
 });
 
-// سجل نشاط الموقع — يكتب الخادم فقط، ولا يعتمد على بيانات يرسلها المتصفح عن هوية المنفذ.
-async function writeAudit(req, action, entityType, entityId = null, details = {}) {
-  try {
-    const userId = req?.user?.id;
-    if (!uuid(userId)) return;
-    let actorName = String(req.user?.user_metadata?.full_name || req.user?.user_metadata?.name || req.user?.email || 'عضو إدارة').slice(0, 120);
-    const { data: profile } = await supabase.from('profiles').select('discord_username').eq('id', userId).maybeSingle();
-    if (profile?.discord_username) actorName = String(profile.discord_username).slice(0, 120);
-    const { error } = await supabase.from('lz_audit_logs').insert({
-      actor_id: userId, actor_name: actorName,
-      action: String(action || 'unknown').slice(0, 80),
-      entity_type: String(entityType || 'site').slice(0, 80),
-      entity_id: entityId == null ? null : String(entityId).slice(0, 120),
-      details: details && typeof details === 'object' ? details : { value: String(details) }
-    });
-    if (error) console.error('Audit log write failed (run migration.sql):', error.message);
-  } catch (error) { console.error('Audit log write failed:', error.message); }
-}
-
 // Shared site content: public read, Owner/Co Owner write. Never trust browser roles.
 const EMPTY_SITE_CONTENT = { designers: [], works: [], awards: [], giveaways: [], winners: [], videoLinks: {}, streamers: [] };
 app.get('/api/site-content', async (_req, res, next) => {
@@ -693,7 +674,6 @@ app.put('/api/site-content', auth, requireOwnerOrCoOwner, async (req, res, next)
 
     // عند حذف Giveaway من الموقع تكون مشاركاته ونقاط TikTok وسجلات السحب قد حُذفت ذرياً.
     for (const giveaway of removedGiveaways) {
-      await writeAudit(req, 'delete', 'giveaway', String(giveaway.id), { title: giveaway.title || '', related_records_deleted: true });
     }
 
     const collections = ['designers','works','awards','winners','streamers'];
@@ -707,10 +687,8 @@ app.put('/api/site-content', auth, requireOwnerOrCoOwner, async (req, res, next)
       const previousIds = new Set((Array.isArray(previous[collection]) ? previous[collection] : []).map(item => String(item?.id || '')).filter(Boolean));
       for (const item of (content[collection] || []).filter(item => item?.id && !previousIds.has(String(item.id)))) {
         const entityType = collection === 'streamers' ? 'streamer' : collection.slice(0, -1);
-        await writeAudit(req, 'create', entityType, item.id, { name: item.name || item.designerName || item.title || '' });
       }
     }
-    await writeAudit(req, 'update', 'site_content', 'main', { designers: content.designers.length, works: content.works.length, awards: content.awards.length, giveaways: content.giveaways.length, streamers: content.streamers.length });
     res.json({ ok: true, content, deleted_giveaways: removedGiveaways.length });
   } catch (error) { next(error); }
 });
@@ -992,7 +970,6 @@ app.delete('/api/messages/:id', auth, async (req, res, next) => {
       .eq('id', messageId);
 
     if (error) throw error;
-    await writeAudit(req, 'delete', 'community_message', messageId, { user_id: message.user_id });
     res.status(204).end();
   } catch (error) {
     next(error);
@@ -1049,7 +1026,6 @@ app.put('/api/bans/:userId', auth, requireOwnerOrCoOwner, async (req, res, next)
       banned_by: req.user.id, created_at: new Date().toISOString()
     }, { onConflict: 'user_id' });
     if (error) throw error;
-    await writeAudit(req, 'ban', 'user', target, { reason, expires_at: expiresAt });
     res.json({ ok: true, user_id: target, reason, expires_at: expiresAt });
   } catch (error) { next(error); }
 });
@@ -1061,7 +1037,6 @@ app.delete('/api/bans/:userId', auth, requireOwnerOrCoOwner, async (req, res, ne
     if (!uuid(target)) return fail(res, 400, 'Invalid user ID');
     const { error } = await supabase.from('lz_user_bans').delete().eq('user_id', target);
     if (error) throw error;
-    await writeAudit(req, 'unban', 'user', target, {});
     res.json({ ok: true, user_id: target });
   } catch (error) { next(error); }
 });
@@ -1124,7 +1099,6 @@ app.put(
         });
 
       if (error) throw error;
-      await writeAudit(req, 'role_change', 'user', target, { role });
       res.json({
         user_id: target,
         role
@@ -1149,7 +1123,6 @@ app.post('/api/roles/by-discord/:discordId', auth, async (req, res, next) => {
     if (profile.id === process.env.OWNER_USER_ID) return fail(res, 409, 'هذا الحساب هو المالك الأساسي بالفعل');
     const { error } = await supabase.from('lz_user_roles').upsert({ user_id: profile.id, role: 'owner' }, { onConflict: 'user_id' });
     if (error) throw error;
-    await writeAudit(req, 'role_change', 'user', profile.id, { role: 'owner', discord_id: discordId });
     res.json({ ok: true, user_id: profile.id, discord_id: discordId, username: profile.discord_username, role: 'owner' });
   } catch (error) { next(error); }
 });
@@ -1225,7 +1198,6 @@ app.post('/api/community/badges/award', auth, requireOwnerOrCoOwner, async (req,
     const { error } = await supabase.from('lz_user_badges').upsert({ user_id: target, badge_id: badge.id, awarded_by: req.user.id }, { onConflict: 'user_id,badge_id' });
     if (error) throw error;
     await notifyUser(target, 'حصلت على شارة جديدة!', `${icon} ${name}${description ? ' — ' + description : ''}`, 'badge');
-    await writeAudit(req, 'award_badge', 'badge', badge.id, { user_id: target, name });
     res.json({ ok: true, badge });
   } catch (error) { next(error); }
 });
@@ -1263,7 +1235,6 @@ app.post('/api/community/polls', auth, requireOwnerOrCoOwner, async (req, res, n
       const { error: noticeError } = await supabase.from('lz_notifications').insert(notices);
       if (noticeError) throw noticeError;
     }
-    await writeAudit(req, 'create', 'poll', poll.id, { question, options });
     res.status(201).json({ ...poll, options });
   } catch (error) { next(error); }
 });
@@ -1279,7 +1250,6 @@ app.post('/api/community/polls/:id/vote', auth, requireOnboarding, async (req, r
     const { error } = await supabase.from('lz_poll_votes').insert({ poll_id: poll.id, option_id: option.id, user_id: req.user.id });
     if (error?.code === '23505') return fail(res, 409, 'لقد صوتت في هذا الاستطلاع من قبل');
     if (error) throw error;
-    await writeAudit(req, 'vote', 'poll', poll.id, { option_id: option.id });
     res.json({ ok: true });
   } catch (error) { next(error); }
 });
@@ -1294,7 +1264,6 @@ app.post('/api/community/giveaways/:id/join', auth, requireOnboarding, async (re
     if (error?.code === '23505') return fail(res, 409, 'أنت مسجل في هذه المسابقة بالفعل');
     if (error) throw error;
     await notifyUser(req.user.id, 'تم تسجيل مشاركتك', `تم تسجيلك في ${giveaway.title}`, 'giveaway');
-    await writeAudit(req, 'join', 'giveaway', giveaway.id, { title: giveaway.title || '' });
     res.json({ ok: true });
   } catch (error) { next(error); }
 });
@@ -1328,7 +1297,6 @@ app.post('/api/community/giveaways/:id/draw', auth, requireOwnerOrCoOwner, async
     const { data: winnerBadge } = await supabase.from('lz_badges').select('id').eq('code', 'contest_winner').maybeSingle();
     if (winnerBadge) await supabase.from('lz_user_badges').upsert({ user_id: winner.user_id, badge_id: winnerBadge.id, awarded_by: req.user.id }, { onConflict: 'user_id,badge_id' });
     await notifyUser(winner.user_id, 'مبروك! فزت في Giveaway', 'تم اختيارك فائزاً في إحدى مسابقات LZ EDITORS، وحصلت على شارة بطل المسابقة.', 'winner');
-    await writeAudit(req, 'draw_winner', 'giveaway', req.params.id, { winner_user_id: winner.user_id, entries_count: entries.length });
     res.json({ user_id: winner.user_id, username: profile?.discord_username || 'عضو', total_entries: entries.length });
   } catch (error) { next(error); }
 });
@@ -1356,7 +1324,6 @@ app.post('/api/community/contests/:id/entries', auth, requireOnboarding, async (
     const { data, error } = await supabase.from('lz_contest_entries').insert({ contest_id: String(contest.id), user_id: req.user.id, video_url: url.href, likes_count: 0, baseline_likes_count: Number(verified.like_count || 0), last_observed_likes_count: Number(verified.like_count || 0), likes_updated_at: new Date().toISOString(), likes_source: 'tiktok_api' }).select('id,video_url,likes_count,created_at').single();
     if (error?.code === '23505') return fail(res, 409, 'هذا الفيديو مسجل بالفعل في المسابقة');
     if (error) throw error;
-    await writeAudit(req, 'submit_video', 'tiktok_contest', contest.id, { video_url: url.href });
     res.status(201).json(data);
   } catch (error) { next(error); }
 });
@@ -1384,20 +1351,10 @@ app.patch('/api/community/contests/entries/:entryId/likes', auth, requireOwnerOr
     const points = Math.max(0, observed - Number(existing.baseline_likes_count || 0));
     const { data, error } = await supabase.from('lz_contest_entries').update({ likes_count: points, last_observed_likes_count: observed, likes_updated_at: new Date().toISOString(), likes_source: 'admin_verified' }).eq('id', req.params.entryId).select('id,likes_count,likes_updated_at').single();
     if (error) throw error;
-    await writeAudit(req, 'update_likes', 'tiktok_entry', req.params.entryId, { likes_count: points, current_likes_count: observed });
     res.json(data);
   } catch (error) { next(error); }
 });
 
-// سجل النشاط للإدارة فقط
-app.get('/api/admin/logs', auth, requireOwnerOrCoOwner, async (req, res, next) => {
-  try {
-    const limit = Math.min(200, Math.max(1, Number(req.query.limit) || 100));
-    const { data, error } = await supabase.from('lz_audit_logs').select('id,actor_id,actor_name,action,entity_type,entity_id,details,created_at').order('created_at', { ascending: false }).limit(limit);
-    if (error) throw error;
-    res.json(data || []);
-  } catch (error) { next(error); }
-});
 
 // إدارة استطلاعات المجتمع: حذف الاستطلاع يحذف الخيارات والأصوات التابعة عبر ON DELETE CASCADE.
 app.get('/api/community/admin/polls', auth, requireOwnerOrCoOwner, async (_req, res, next) => {
@@ -1414,7 +1371,6 @@ app.delete('/api/community/polls/:id', auth, requireOwnerOrCoOwner, async (req, 
     if (!poll) return fail(res, 404, 'Poll not found');
     const { error } = await supabase.from('lz_polls').delete().eq('id', poll.id);
     if (error) throw error;
-    await writeAudit(req, 'delete', 'poll', poll.id, { question: poll.question, votes_and_options_deleted: true });
     res.json({ ok: true });
   } catch (error) { next(error); }
 });
