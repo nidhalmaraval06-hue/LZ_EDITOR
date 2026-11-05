@@ -862,9 +862,9 @@ app.put('/api/me/profile', auth, async (req, res, next) => {
 
     if (error) throw error;
     try {
-      const { data: firstBadge } = await supabase.from('lz_badges').select('id,name,icon').eq('code', 'first_steps').maybeSingle();
+      const { data: firstBadge } = await supabase.from('lz_badges').select('id,code,name,icon').eq('code', 'first_steps').maybeSingle();
       if (firstBadge) {
-        const { error: awardError } = await supabase.from('lz_user_badges').upsert({ user_id: req.user.id, badge_id: firstBadge.id }, { onConflict: 'user_id,badge_id' });
+        const { error: awardError } = await supabase.from('lz_user_badges').upsert({ user_id: req.user.id, badge_id: firstBadge.id, badge_key: firstBadge.code }, { onConflict: 'user_id,badge_id' });
         if (awardError) throw awardError;
         const { data: existingNotice } = await supabase.from('lz_notifications').select('id').eq('user_id', req.user.id).eq('type', 'welcome_badge').limit(1);
         if (!existingNotice?.length) await supabase.from('lz_notifications').insert({ user_id: req.user.id, title: 'أهلاً بك في LZ EDITORS!', body: `${firstBadge.icon} حصلت على شارة أول خطوة.`, type: 'welcome_badge' });
@@ -1219,7 +1219,7 @@ app.post('/api/community/badges/award', auth, requireOwnerOrCoOwner, async (req,
     if (awardLookupError) throw awardLookupError;
     if (!existingAward) {
       const { error: awardInsertError } = await supabase.from('lz_user_badges')
-        .insert({ user_id: target, badge_id: badge.id, awarded_by: req.user.id });
+        .insert({ user_id: target, badge_id: badge.id, badge_key: code, awarded_by: req.user.id });
       if (awardInsertError && awardInsertError.code !== '23505') throw awardInsertError;
     }
     try { await notifyUser(target, 'حصلت على شارة جديدة!', `${icon} ${name}${description ? ' — ' + description : ''}`, 'badge'); }
@@ -1250,7 +1250,7 @@ app.post('/api/community/polls', auth, requireOwnerOrCoOwner, async (req, res, n
     const options = Array.isArray(req.body?.options) ? [...new Set(req.body.options.map(x => String(x || '').trim().slice(0,100)).filter(Boolean))].slice(0,8) : [];
     const endsAt = req.body?.ends_at ? new Date(req.body.ends_at).toISOString() : null;
     if (!question || options.length < 2) return fail(res, 400, 'اكتب السؤال وخيارين على الأقل');
-    const { data: poll, error } = await supabase.from('lz_polls').insert({ question, ends_at: endsAt, created_by: req.user.id }).select('id,question,ends_at,active,created_at').single();
+    const { data: poll, error } = await supabase.from('lz_polls').insert({ id: crypto.randomUUID(), question, ends_at: endsAt, created_by: req.user.id }).select('id,question,ends_at,active,created_at').single();
     if (error) throw error;
     const { error: optionError } = await supabase.from('lz_poll_options').insert(options.map(label => ({ poll_id: poll.id, label })));
     if (optionError) {
@@ -1329,8 +1329,8 @@ app.post('/api/community/giveaways/:id/draw', auth, requireOwnerOrCoOwner, async
     const { data: profile } = await supabase.from('profiles').select('discord_username').eq('id', winner.user_id).maybeSingle();
     const { error: drawError } = await supabase.from('lz_giveaway_draws').insert({ giveaway_id: String(req.params.id), winner_user_id: winner.user_id, drawn_by: req.user.id, entries_count: entries.length });
     if (drawError) throw drawError;
-    const { data: winnerBadge } = await supabase.from('lz_badges').select('id').eq('code', 'contest_winner').maybeSingle();
-    if (winnerBadge) await supabase.from('lz_user_badges').upsert({ user_id: winner.user_id, badge_id: winnerBadge.id, awarded_by: req.user.id }, { onConflict: 'user_id,badge_id' });
+    const { data: winnerBadge } = await supabase.from('lz_badges').select('id,code').eq('code', 'contest_winner').maybeSingle();
+    if (winnerBadge) await supabase.from('lz_user_badges').upsert({ user_id: winner.user_id, badge_id: winnerBadge.id, badge_key: winnerBadge.code, awarded_by: req.user.id }, { onConflict: 'user_id,badge_id' });
     await notifyUser(winner.user_id, 'مبروك! فزت في Giveaway', 'تم اختيارك فائزاً في إحدى مسابقات LZ EDITORS، وحصلت على شارة بطل المسابقة.', 'winner');
     res.json({ user_id: winner.user_id, username: profile?.discord_username || 'عضو', total_entries: entries.length });
   } catch (error) { next(error); }
