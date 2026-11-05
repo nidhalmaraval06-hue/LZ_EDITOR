@@ -74,6 +74,10 @@ app.get('/logo.png', (_req, res) => {
   res.set('Cache-Control', 'public, max-age=3600');
   res.sendFile(path.join(__dirname, 'logo.png'));
 });
+app.get('/logo.giv.png', (_req, res) => {
+  res.set('Cache-Control', 'public, max-age=3600');
+  res.type('png').sendFile(path.join(__dirname, 'logo.giv.png'));
+});
 // شعار واجهة الحظر — ملف مستقل باسم logo.ban.png
 app.get('/logo.ban.png', (_req, res) => {
   res.set('Cache-Control', 'no-store, max-age=0');
