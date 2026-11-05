@@ -1758,13 +1758,6 @@ select.field option{background:#151020}
         </div>
         <span class="badge badge-purple"><i class="fa-solid fa-gift"></i> GIVEAWAY</span>
       </div>
-      <div class="panel" style="margin-bottom:16px">
-        <h3 style="margin-bottom:8px">ربط حساب TikTok للمسابقة</h3>
-        <p style="color:var(--muted);font-size:12px;line-height:1.8;margin-bottom:12px">اربط حساب TikTok الذي تملك الفيديوهات عليه. بعد موافقتك، يحاول الموقع قراءة عدد الإعجابات من واجهة TikTok الرسمية وتحديث النقاط كل 30 دقيقة. يجب أن يكون الفيديو من الحساب المرتبط.</p>
-        <button class="btn btn-primary" id="connectTikTokContest"><i class="fa-brands fa-tiktok"></i> ربط حساب TikTok</button>
-        <span id="tiktokConnectStatus" class="badge badge-muted" style="margin-right:8px">لم يتم التحقق من الربط</span>
-      </div>
-
       <div class="card-grid" id="giveawayGrid"></div>
 
       <div class="panel empty-state" id="giveawayEmpty" style="display:none">
@@ -1942,7 +1935,6 @@ select.field option{background:#151020}
       else $('onboardingModal').style.display='none';
     } else $('onboardingModal').style.display='none';
     renderChat();
-    if (currentUser) refreshTikTokConnectionStatus();
     if (currentUser && $('page-notifications')?.classList.contains('active')) loadNotifications();
   }
   $('discordLogin').addEventListener('click',async()=>{
@@ -1969,9 +1961,6 @@ select.field option{background:#151020}
     $('onboardingModal').style.display='none';toast('تم إنشاء بطاقتك');await loadPublicProfiles();
   });
   async function startSupabase(){
-    const tiktokResult=new URLSearchParams(location.search).get('tiktok');
-    if(tiktokResult==='connected') toast('تم ربط حساب TikTok بنجاح');
-    if(tiktokResult==='error') toast('تعذر ربط TikTok؛ تحقق من إعدادات تطبيق المطور');
     if(!db){toast('مكتبة Supabase ما تحمّلتش');return;}
     await Promise.all([loadPublicProfiles(),loadPublicChat(),loadEarnedBadges()]);
     await syncUser();
@@ -2558,26 +2547,6 @@ window.addEventListener('hashchange', () => {
     if (!response.ok) throw new Error(body.error || 'HTTP ' + response.status);
     return body;
   }
-
-  async function refreshTikTokConnectionStatus() {
-    const status = $('tiktokConnectStatus'); const button = $('connectTikTokContest');
-    if (!status || !button || !currentUser) { if(status) status.textContent='سجّل الدخول أولاً'; return; }
-    try {
-      const result = await communityRequest('/tiktok/status');
-      status.textContent = result.connected ? 'حساب TikTok مربوط' : 'لم يتم ربط TikTok';
-      status.className = 'badge ' + (result.connected ? 'badge-green' : 'badge-muted');
-      button.innerHTML = result.connected ? '<i class="fa-brands fa-tiktok"></i> إعادة ربط TikTok' : '<i class="fa-brands fa-tiktok"></i> ربط حساب TikTok';
-    } catch(error) { status.textContent = 'تعذر التحقق من الربط'; }
-  }
-  $('connectTikTokContest')?.addEventListener('click', async () => {
-    if (!currentUser) return toast('سجّل الدخول عبر Discord أولاً');
-    const button=$('connectTikTokContest'); button.disabled=true;
-    try {
-      const result=await communityRequest('/tiktok/connect');
-      if (!result.auth_url) throw new Error('لم يصل رابط تفويض TikTok');
-      location.href=result.auth_url;
-    } catch(error) { toast(error.message); button.disabled=false; }
-  });
 
   async function loadPolls() {
     const grid = $('pollGrid'); if (!grid) return;

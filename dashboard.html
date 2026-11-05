@@ -573,7 +573,7 @@ tbody tr:last-child td{border-bottom:none}
       <div class="panel" style="margin-top:15px">
         <div class="panel-head"><h3><i class="fa-solid fa-medal" style="color:var(--gold);margin-left:7px"></i> منح شارة إنجاز</h3><span>BADGE AWARD</span></div>
         <form id="badgeAdminForm"><div class="form-grid">
-          <div class="form-group"><label for="badgeUser">العضو *</label><select class="field" id="badgeUser" required><option value="">حمّل المصممين أولاً</option></select></div>
+          <div class="form-group"><label for="badgeUser">العضو *</label><select class="field" id="badgeUser" required><option value="">اختر العضو أولاً</option></select></div>
           <div class="form-group"><label for="badgePreset">اختر شارة الإنجاز *</label><select class="field" id="badgePreset" required><option value="">اختر الشارة</option><option value="🎨 مصمم مبدع|🎨">🎨 مصمم مبدع</option><option value="⚡ سريع الإنجاز|⚡">⚡ سريع الإنجاز</option><option value="🏆 أسطورة LZ|🏆">🏆 أسطورة LZ</option><option value="💎 عضو مميز|💎">💎 عضو مميز</option><option value="🔥 صانع محتوى|🔥">🔥 صانع محتوى</option><option value="🥇 W EDIT|🥇">🥇 W EDIT</option><option value="🌟 نجم المجتمع|🌟">🌟 نجم المجتمع</option></select></div>
           <div class="form-group"><label for="badgeDescription">الوصف</label><input class="field" id="badgeDescription" maxlength="240" placeholder="سبب منح الشارة"></div>
         </div><div class="form-actions"><button class="btn btn-primary" type="submit">منح الشارة وإرسال إشعار</button></div></form>
@@ -690,7 +690,19 @@ tbody tr:last-child td{border-bottom:none}
     }));
     data.designers = remoteDesigners;
     const badgeSelect = $('badgeUser');
-    if (badgeSelect) badgeSelect.innerHTML = '<option value="">اختر العضو</option>' + remoteDesigners.map(p => `<option value="${escapeHTML(p.id)}">${escapeHTML(p.name)}</option>`).join('');
+    if (badgeSelect) {
+      badgeSelect.innerHTML = '<option value="">جاري تحميل الأعضاء...</option>';
+      try {
+        const members = await apiRequest('/api/admin/users');
+        badgeSelect.innerHTML = '<option value="">اختر العضو أولاً</option>' + members.map(p => {
+          const name = (p.discord_username || 'Discord member') + (p.onboarding_completed ? '' : ' · لم يكمل التسجيل');
+          return `<option value="${escapeHTML(p.id)}">${escapeHTML(name)}</option>`;
+        }).join('');
+      } catch (memberError) {
+        badgeSelect.innerHTML = '<option value="">تعذر تحميل الأعضاء</option>';
+        console.error('Admin member list:', memberError);
+      }
+    }
     renderAll();
   }
   async function loadBans() {

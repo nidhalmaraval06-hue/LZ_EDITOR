@@ -716,6 +716,17 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
+// قائمة أعضاء الإدارة لاختيار أي عضو حتى لو لم يكمل ملف المصمم بعد.
+app.get('/api/admin/users', auth, requireOwnerOrCoOwner, async (_req, res, next) => {
+  try {
+    const { data, error } = await supabase.from('profiles')
+      .select('id,discord_username,discord_avatar_url,onboarding_completed')
+      .order('discord_username', { ascending: true }).limit(1000);
+    if (error) throw error;
+    res.json(data || []);
+  } catch (error) { next(error); }
+});
+
 // جلب المصممين
 app.get('/api/designers', async (_req, res, next) => {
   try {
@@ -1258,7 +1269,7 @@ app.get('/api/community/contests/public-entries', async (_req, res, next) => {
 app.get('/api/community/polls', async (_req, res, next) => {
   try {
     const { data: polls, error } = await supabase.from('lz_polls')
-      .select('id,question,ends_at,active,created_at,options:lz_poll_options(id,label)')
+      .select('id,question,ends_at,active,created_at,options:lz_poll_options(id,label,option_text)')
       .eq('active', true).order('created_at', { ascending: false }).limit(30);
     if (error) throw error;
     const ids = (polls || []).map(p => p.id);
@@ -1268,7 +1279,7 @@ app.get('/api/community/polls', async (_req, res, next) => {
       if (result.error) throw result.error;
       votes = result.data || [];
     }
-    res.json((polls || []).filter(p => !p.ends_at || new Date(p.ends_at) > new Date()).map(p => ({ ...p, options: (p.options || []).map(o => ({ ...o, votes: votes.filter(v => v.option_id === o.id).length })), total_votes: votes.filter(v => v.poll_id === p.id).length })));
+    res.json((polls || []).filter(p => !p.ends_at || new Date(p.ends_at) > new Date()).map(p => ({ ...p, options: (p.options || []).map(o => ({ ...o, label: o.label || o.option_text || '', votes: votes.filter(v => v.option_id === o.id).length })), total_votes: votes.filter(v => v.poll_id === p.id).length })));
   } catch (error) { next(error); }
 });
 app.post('/api/community/polls', auth, requireOwnerOrCoOwner, async (req, res, next) => {
@@ -1279,7 +1290,7 @@ app.post('/api/community/polls', auth, requireOwnerOrCoOwner, async (req, res, n
     if (!question || options.length < 2) return fail(res, 400, 'اكتب السؤال وخيارين على الأقل');
     const { data: poll, error } = await supabase.from('lz_polls').insert({ id: crypto.randomUUID(), title: question, question, ends_at: endsAt, created_by: req.user.id }).select('id,question,ends_at,active,created_at').single();
     if (error) throw error;
-    const { error: optionError } = await supabase.from('lz_poll_options').insert(options.map(label => ({ poll_id: poll.id, label })));
+    const { error: optionError } = await supabase.from('lz_poll_options').insert(options.map(label => ({ poll_id: poll.id, label, option_text: label })));
     if (optionError) {
       // Avoid leaving an empty poll if option insertion fails.
       const { error: cleanupError } = await supabase.from('lz_polls').delete().eq('id', poll.id);
@@ -1421,9 +1432,9 @@ app.patch('/api/community/contests/entries/:entryId/likes', auth, requireOwnerOr
 // إدارة استطلاعات المجتمع: حذف الاستطلاع يحذف الخيارات والأصوات التابعة عبر ON DELETE CASCADE.
 app.get('/api/community/admin/polls', auth, requireOwnerOrCoOwner, async (_req, res, next) => {
   try {
-    const { data, error } = await supabase.from('lz_polls').select('id,question,ends_at,active,created_at,options:lz_poll_options(id,label)').order('created_at', { ascending: false }).limit(100);
+    const { data, error } = await supabase.from('lz_polls').select('id,question,ends_at,active,created_at,options:lz_poll_options(id,label,option_text)').order('created_at', { ascending: false }).limit(100);
     if (error) throw error;
-    res.json(data || []);
+    res.json((data || []).map(poll => ({ ...poll, options: (poll.options || []).map(option => ({ ...option, label: option.label || option.option_text || '' })) })));
   } catch (error) { next(error); }
 });
 app.delete('/api/community/polls/:id', auth, requireOwnerOrCoOwner, async (req, res, next) => {
