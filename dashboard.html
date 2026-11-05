@@ -317,6 +317,10 @@ tbody tr:last-child td{border-bottom:none}
   *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
 }
 
+.contest-award-panel{margin-top:15px;padding:0;overflow:hidden}
+.contest-award-panel>.panel-head{padding:16px 18px;margin:0;border-bottom:1px solid var(--border);background:radial-gradient(ellipse at 8% 0%,rgba(241,203,120,.10),transparent 55%),linear-gradient(120deg,rgba(30,20,45,.96),rgba(16,12,27,.98))}
+.contest-panel-description{padding:12px 18px 0;color:var(--muted);font-size:10px;line-height:1.9}
+.contest-award-panel>.contest-admin-grid{padding:16px 18px 18px}
 .contest-admin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
 .contest-video-admin-card{overflow:hidden;border:1px solid rgba(169,104,255,.28);border-radius:18px;background:linear-gradient(145deg,rgba(32,16,57,.98),rgba(13,10,25,.98));box-shadow:0 10px 28px rgba(0,0,0,.22);min-width:0}
 .contest-video-admin-card .contest-card-art{height:116px;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 20%,#7738c9 0,#29104d 46%,#100a1e 100%);display:flex;align-items:center;justify-content:center}
@@ -607,10 +611,14 @@ tbody tr:last-child td{border-bottom:none}
     </section>
 
 
-    <!-- CONTEST VIDEOS -->
+    <!-- CONTEST VIDEOS: same panel structure as AWARD WINNER -->
     <section class="page" id="page-contestVideos">
-      <div class="section-heading"><div><h3>فيديوهات المسابقة المشاركة</h3><p>إدارة روابط فيديوهات المشاركين وتعديل عدد الإعجابات بجانب كل فيديو.</p></div><button class="btn btn-secondary btn-small" id="refreshContestEntries" type="button"><i class="fa-solid fa-rotate"></i> تحديث</button></div>
-      <div class="panel contest-admin-panel" style="margin-top:15px">
+      <div class="panel contest-admin-panel contest-award-panel">
+        <div class="panel-head">
+          <h3><i class="fa-brands fa-tiktok" style="color:var(--gold);margin-left:7px"></i> فيديوهات المسابقة</h3>
+          <button class="btn btn-secondary btn-small" id="refreshContestEntries" type="button"><i class="fa-solid fa-rotate"></i> تحديث</button>
+        </div>
+        <p class="contest-panel-description">مشاركات المصممين في المسابقة — عرض الفيديوهات وتعديل عدد الإعجابات.</p>
         <div id="contestEntriesAdmin" class="contest-admin-grid"><small>اضغط تحديث لعرض فيديوهات المشاركين.</small></div>
       </div>
     </section>
