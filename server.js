@@ -224,8 +224,10 @@ async function queryTikTokVideos(accessToken, videoIds) {
   if (!response.ok || result.error?.code && result.error.code !== 'ok') throw new Error(result.error?.message || 'TikTok video query failed');
   return result.data?.videos || [];
 }
+let tikTokLikesSyncRunning = false;
 async function syncTikTokContestLikes() {
-  if (!tiktokConfigReady()) return;
+  if (!tiktokConfigReady() || tikTokLikesSyncRunning) return;
+  tikTokLikesSyncRunning = true;
   try {
     const { data: contentRow } = await supabase.from('lz_site_content').select('content').eq('id', 1).maybeSingle();
     const activeIds = new Set((contentRow?.content?.giveaways || []).filter(g => g.type === 'tiktok_contest' && (!g.end || g.end >= new Date().toISOString().slice(0,10))).map(g => String(g.id)));
@@ -253,6 +255,7 @@ async function syncTikTokContestLikes() {
       } catch (userError) { console.warn('TikTok like sync skipped for one participant:', userError.message); }
     }
   } catch (error) { console.error('TikTok likes sync:', error.message); }
+  finally { tikTokLikesSyncRunning = false; }
 }
 
 // التحقق من تسجيل الدخول
@@ -1169,7 +1172,7 @@ app.get('/api/community/badges', async (_req, res, next) => {
 app.get('/api/community/badges/earned', async (_req, res, next) => {
   try {
     const { data, error } = await supabase.from('lz_user_badges')
-      .select('user_id,created_at,badge:lz_badges(name,icon,description)')
+      .select('id,user_id,badge_id,created_at,badge:lz_badges(id,code,name,icon,description)')
       .order('created_at', { ascending: false }).limit(2000);
     if (error) throw error;
     res.json(data || []);
@@ -1225,6 +1228,30 @@ app.post('/api/community/badges/award', auth, requireOwnerOrCoOwner, async (req,
     try { await notifyUser(target, 'حصلت على شارة جديدة!', `${icon} ${name}${description ? ' — ' + description : ''}`, 'badge'); }
     catch (noticeError) { console.error('Badge awarded, but notification was skipped:', noticeError); }
     res.json({ ok: true, badge });
+  } catch (error) { next(error); }
+});
+
+app.delete('/api/community/badges/award', auth, requireOwnerOrCoOwner, async (req, res, next) => {
+  try {
+    const target = String(req.body?.user_id || '');
+    const badgeId = String(req.body?.badge_id || '');
+    if (!uuid(target) || !uuid(badgeId)) return fail(res, 400, 'اختر العضو والشارة بشكل صحيح');
+    const { data, error } = await supabase.from('lz_user_badges').delete()
+      .eq('user_id', target).eq('badge_id', badgeId).select('id').maybeSingle();
+    if (error) throw error;
+    if (!data) return fail(res, 404, 'هذه الشارة غير ممنوحة لهذا العضو');
+    res.json({ ok: true });
+  } catch (error) { next(error); }
+});
+
+// Public portfolio feed: videos submitted to active and past TikTok contests.
+app.get('/api/community/contests/public-entries', async (_req, res, next) => {
+  try {
+    const { data, error } = await supabase.from('lz_contest_entries')
+      .select('id,contest_id,user_id,video_url,likes_count,created_at,profile:profiles(discord_username,discord_avatar_url)')
+      .order('created_at', { ascending: false }).limit(500);
+    if (error) throw error;
+    res.json(data || []);
   } catch (error) { next(error); }
 });
 
@@ -1431,5 +1458,5 @@ const port = Number(process.env.PORT) || 3000;
 
 app.listen(port, () => {
   console.log(`LZ EDITORS API listening on port ${port}`);
-  if (tiktokConfigReady()) { setTimeout(syncTikTokContestLikes, 15000); setInterval(syncTikTokContestLikes, 30 * 60 * 1000); }
+  if (tiktokConfigReady()) { setTimeout(syncTikTokContestLikes, 15000); setInterval(syncTikTokContestLikes, 60 * 1000); }
 });

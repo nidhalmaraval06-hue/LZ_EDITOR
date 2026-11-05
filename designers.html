@@ -1990,6 +1990,7 @@ select.field option{background:#151020}
 
   let designers = [];
   let videoLinks = {};
+  let contestVideoWorks = [];
   let toastTimer;
 
   const pageInfo = {
@@ -2132,6 +2133,14 @@ select.field option{background:#151020}
     return source && Array.isArray(source[key]) ? source[key] : [];
   }
 
+  async function loadPublicContestWorks(){
+    try {
+      const response = await fetch('https://lz-editor-qoa6.onrender.com/api/community/contests/public-entries', {cache:'no-store'});
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      contestVideoWorks = await response.json();
+    } catch (error) { console.warn('Contest portfolio videos:', error); contestVideoWorks = []; }
+  }
+
   async function loadData(){
     try {
       const response = await fetch('https://lz-editor-qoa6.onrender.com/api/site-content', {cache:'no-store'});
@@ -2139,6 +2148,7 @@ select.field option{background:#151020}
       const parsed = await response.json();
       data = { ...parsed, designers:readArray(parsed,'designers'), works:readArray(parsed,'works'), awards:readArray(parsed,'awards'), giveaways:readArray(parsed,'giveaways'), winners:readArray(parsed,'winners'), streamers:readArray(parsed,'streamers') };
     } catch(error) { console.error('Shared content:',error); toast('تعذر تحميل البيانات المشتركة من السيرفر.'); data={designers:[],works:[],awards:[],giveaways:[],winners:[],streamers:[]}; }
+    await loadPublicContestWorks();
     mergeDesigners(); updateStats(); updateSpecialties(); renderDesigners(); renderStreamers(); renderWorks(); renderAwards(); renderGiveaways(); renderWinners();
   }
 
@@ -2496,7 +2506,13 @@ window.addEventListener('hashchange', () => {
     const grid = $('worksGrid');
     const query = $('worksSearch').value.trim().toLowerCase();
 
-    const filtered = data.works.filter(item => {
+    const contestWorks = contestVideoWorks.map(entry => {
+      const contest = data.giveaways.find(g => String(g.id) === String(entry.contest_id));
+      const author = entry.profile?.discord_username || 'مصمم LZ';
+      return { id:entry.id, name:'فيديو مشاركة في ' + (contest?.title || contest?.name || 'Giveaway'), title:'فيديو مشاركة', designerName:author, description:'فيديو مقدم للمشاركة في المسابقة · ❤️ ' + Number(entry.likes_count || 0).toLocaleString('ar') + ' إعجاب', url:entry.video_url, created_at:entry.created_at, isContestEntry:true };
+    });
+    const allWorks = [...contestWorks, ...data.works];
+    const filtered = allWorks.filter(item => {
       const text = [
         item.name,
         item.title,

@@ -577,10 +577,14 @@ tbody tr:last-child td{border-bottom:none}
           <div class="form-group"><label for="badgePreset">اختر شارة الإنجاز *</label><select class="field" id="badgePreset" required><option value="">اختر الشارة</option><option value="🎨 مصمم مبدع|🎨">🎨 مصمم مبدع</option><option value="⚡ سريع الإنجاز|⚡">⚡ سريع الإنجاز</option><option value="🏆 أسطورة LZ|🏆">🏆 أسطورة LZ</option><option value="💎 عضو مميز|💎">💎 عضو مميز</option><option value="🔥 صانع محتوى|🔥">🔥 صانع محتوى</option><option value="🥇 W EDIT|🥇">🥇 W EDIT</option><option value="🌟 نجم المجتمع|🌟">🌟 نجم المجتمع</option></select></div>
           <div class="form-group"><label for="badgeDescription">الوصف</label><input class="field" id="badgeDescription" maxlength="240" placeholder="سبب منح الشارة"></div>
         </div><div class="form-actions"><button class="btn btn-primary" type="submit">منح الشارة وإرسال إشعار</button></div></form>
+        <div class="form-grid" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+          <div class="form-group"><label for="badgeRemoveSelect">الشارات الممنوحة لهذا العضو</label><select class="field" id="badgeRemoveSelect"><option value="">اختر العضو أولاً</option></select></div>
+          <div class="form-group" style="align-self:end"><button class="btn btn-secondary" id="removeMemberBadge" type="button">إزالة الشارة المحددة</button></div>
+        </div>
       </div>
       <div class="panel" style="margin-top:15px">
         <div class="panel-head"><h3><i class="fa-brands fa-tiktok" style="margin-left:7px"></i> مراجعة نقاط إعجابات TikTok</h3><button class="btn btn-secondary btn-small" id="refreshContestEntries" type="button">تحديث المشاركات</button></div>
-        <p style="color:var(--muted);font-size:11px;line-height:1.8;margin-bottom:12px">يعرض هذا الجدول إعجابات الفيديو المشارك نفسه فقط، وليس إعجابات حساب المصمم. بعد ربط صاحب الفيديو لحسابه عبر TikTok الرسمي، تتم مزامنة like_count تلقائياً تقريباً كل 30 دقيقة. يتم ترتيب المشاركات من الأعلى إلى الأقل.</p>
+        <p style="color:var(--muted);font-size:11px;line-height:1.8;margin-bottom:12px">يعرض هذا الجدول إعجابات الفيديو المشارك نفسه فقط، وليس إعجابات حساب المصمم. بعد ربط صاحب الفيديو لحسابه عبر TikTok الرسمي، تتم محاولة مزامنة like_count كل دقيقة، حسب حدود TikTok API وتوفر الخدمة. يتم ترتيب المشاركات من الأعلى إلى الأقل.</p>
         <div id="contestEntriesAdmin" class="quick-list"><small>اضغط تحديث المشاركات لعرض فيديوهات المسابقة.</small></div>
       </div>
       <div class="setting-note"><i class="fa-solid fa-triangle-exclamation"></i> البيانات المشتركة تُحفظ في Supabase عبر الخادم. صلاحيات الإدارة والتحقق من الحساب تتم في Backend؛ لا تضع مفاتيح Service Role داخل ملفات HTML.</div>
@@ -1172,6 +1176,33 @@ tbody tr:last-child td{border-bottom:none}
       await apiRequest('/api/community/badges/award',{method:'POST',body:JSON.stringify({user_id:$('badgeUser').value,name:$('badgePreset').value.split('|')[0],icon:$('badgePreset').value.split('|')[1]||'🏅',description:$('badgeDescription').value.trim()})});
       event.target.reset(); toast('تم منح الشارة وإرسال إشعار للعضو');
     } catch(error) { toast('تعذر منح الشارة: '+error.message); }
+    finally { button.disabled=false; }
+  });
+
+  let allEarnedBadgesForAdmin = [];
+  async function refreshMemberBadgeOptions() {
+    const memberId = $('badgeUser')?.value;
+    const select = $('badgeRemoveSelect');
+    if (!select) return;
+    if (!memberId) { select.innerHTML='<option value="">اختر العضو أولاً</option>'; return; }
+    try {
+      const response = await fetch(API + '/api/community/badges/earned', {cache:'no-store'});
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      allEarnedBadgesForAdmin = await response.json();
+      const rows = allEarnedBadgesForAdmin.filter(row => row.user_id === memberId && row.badge?.id);
+      select.innerHTML = rows.map(row => `<option value="${escapeHTML(row.badge.id)}">${escapeHTML((row.badge.icon || '🏅')+' '+row.badge.name)}</option>`).join('') || '<option value="">لا توجد شارات لهذا العضو</option>';
+    } catch(error) { select.innerHTML='<option value="">تعذر تحميل الشارات</option>'; toast('تعذر تحميل شارات العضو: '+error.message); }
+  }
+  $('badgeUser')?.addEventListener('change', refreshMemberBadgeOptions);
+  $('removeMemberBadge')?.addEventListener('click', async () => {
+    const userId=$('badgeUser').value, badgeId=$('badgeRemoveSelect').value;
+    if (!userId || !badgeId) return toast('اختر العضو والشارة أولاً');
+    if (!confirm('هل تريد إزالة هذه الشارة من العضو؟')) return;
+    const button=$('removeMemberBadge'); button.disabled=true;
+    try {
+      await apiRequest('/api/community/badges/award',{method:'DELETE',body:JSON.stringify({user_id:userId,badge_id:badgeId})});
+      toast('تمت إزالة الشارة بنجاح'); await refreshMemberBadgeOptions();
+    } catch(error) { toast('تعذرت إزالة الشارة: '+error.message); }
     finally { button.disabled=false; }
   });
 
