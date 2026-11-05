@@ -76,7 +76,8 @@ app.get('/sw.js', (_req, res) => {
   res.set('Service-Worker-Allowed', '/').type('application/javascript').sendFile(path.join(__dirname, 'sw.js'));
 });
 
-app.use(express.json({ limit: '32kb' }));
+// مسابقات Giveaway تحفظ صورة مضغوطة داخل محتوى الموقع؛ 32kb كانت تمنع حفظها.
+app.use(express.json({ limit: '6mb' }));
 
 const origins = process.env.FRONTEND_ORIGIN
   .split(',')
@@ -676,6 +677,19 @@ app.put('/api/site-content', auth, requireOwnerOrCoOwner, async (req, res, next)
     for (const giveaway of removedGiveaways) {
     }
 
+    const collections = ['designers','works','awards','winners','streamers'];
+    for (const collection of collections) {
+      const keep = new Set((content[collection] || []).map(item => String(item?.id || '')).filter(Boolean));
+      const removed = (Array.isArray(previous[collection]) ? previous[collection] : []).filter(item => item?.id && !keep.has(String(item.id)));
+      for (const item of removed) {
+        if (collection === 'streamers') await writeAudit(req, 'delete', 'streamer', item.id, { name: item.name || '', platform: item.platform || '' });
+        else await writeAudit(req, 'delete', collection.slice(0, -1), item.id, { name: item.name || item.designerName || item.title || '' });
+      }
+      const previousIds = new Set((Array.isArray(previous[collection]) ? previous[collection] : []).map(item => String(item?.id || '')).filter(Boolean));
+      for (const item of (content[collection] || []).filter(item => item?.id && !previousIds.has(String(item.id)))) {
+        const entityType = collection === 'streamers' ? 'streamer' : collection.slice(0, -1);
+      }
+    }
     res.json({ ok: true, content, deleted_giveaways: removedGiveaways.length });
   } catch (error) { next(error); }
 });
@@ -1365,6 +1379,9 @@ app.delete('/api/community/polls/:id', auth, requireOwnerOrCoOwner, async (req, 
 // معالجة الأخطاء
 app.use((error, _req, res, _next) => {
   console.error('Backend error:', error);
+  if (error?.type === 'entity.too.large' || error?.status === 413) {
+    return res.status(413).json({ error: 'حجم البيانات كبير. قلّل حجم صورة المسابقة وحاول مجدداً.' });
+  }
   const code = error?.code;
   if (code === '42703' || code === 'PGRST204') {
     return res.status(500).json({ error: 'قاعدة البيانات ناقصها عمود أو تحديث. شغّل migration.sql في Supabase SQL Editor ثم أعد تشغيل السيرفر.' });
