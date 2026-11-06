@@ -1,6 +1,6 @@
 'use strict';
 // Never cache authenticated HTML or API responses. This avoids stale installed-PWA auth pages.
-const CACHE = 'lz-editors-static-v4';
+const CACHE = 'lz-editors-static-v5';
 const STATIC = ['/manifest.webmanifest', '/logo.png'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(STATIC)).catch(() => {}));

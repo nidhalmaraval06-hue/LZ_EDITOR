@@ -1222,6 +1222,9 @@ app.get('/api/community/badges', async (_req, res, next) => {
   } catch (error) { next(error); }
 });
 app.get('/api/community/badges/earned', async (_req, res, next) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
   try {
     // Fetch assignments and badge definitions separately. This avoids relying
     // on a PostgREST foreign-key relationship that may be absent from schema cache.

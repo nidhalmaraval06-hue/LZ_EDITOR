@@ -1889,23 +1889,36 @@ select.field option{background:#151020}
   }
   async function loadEarnedBadges(){
     try {
-      const response=await fetch('/api/community/badges/earned?ts='+Date.now(),{cache:'no-store'});
-      if(!response.ok) throw new Error('badges API '+response.status);
-      const rows=await response.json(); earnedBadgesByUser={};
-      (Array.isArray(rows)?rows:[]).forEach(row=>{
-        const userId=String(row.user_id || '');
-        const badge=row.badge;
-        if(userId && badge && badge.name){
-          if(!earnedBadgesByUser[userId]) earnedBadgesByUser[userId]=[];
-          earnedBadgesByUser[userId].push(badge);
-        }
+      const response=await fetch('/api/community/badges/earned?ts='+Date.now(),{
+        method:'GET',cache:'no-store',headers:{'Accept':'application/json'}
       });
+      if(!response.ok) throw new Error('badges API HTTP '+response.status);
+      const rows=await response.json();
+      earnedBadgesByUser={};
+      (Array.isArray(rows)?rows:[]).forEach(row=>{
+        const userId=String(row.user_id || '').trim();
+        const badge=row.badge || row.lz_badges || null;
+        if(!userId || !badge) return;
+        const name=String(badge.name || '').trim();
+        if(!name) return;
+        if(!earnedBadgesByUser[userId]) earnedBadgesByUser[userId]=[];
+        earnedBadgesByUser[userId].push({
+          name, icon:String(badge.icon || '🏅'),
+          description:String(badge.description || '')
+        });
+      });
+      // Refresh cards only after both profiles and awards are available.
       mergeDesigners();
-    } catch(error) { console.warn('Earned badges:',error); }
+      console.info('LZ public earned badges loaded:',Object.values(earnedBadgesByUser).reduce((n,a)=>n+a.length,0));
+    } catch(error) {
+      console.error('LZ public earned badges could not load:',error);
+      earnedBadgesByUser={};
+      mergeDesigners();
+    }
   }
   function mergeDesigners(){
     const roleNames = {member:'👤 Member',owner:'👑 LZ Owner',co_owner:'💎 LZ Co Owner',manager_admin:'𝐌𝐀𝐍𝐀𝐆𝐄𝐑 𝐀𝐃𝐌𝐈𝐍',admin:'🎭 LZ Admin',w_edit:'🥇 W EDIT'};
-    const remote = publicProfiles.map(p => ({id:p.id,name:p.discord_username || 'Discord Creator',image:p.discord_avatar_url,tiktok:p.tiktok_url,role:p.role || 'member',roleLabel:roleNames[p.role || 'member'],specialty:'مصمم',earnedBadges:earnedBadgesByUser[p.id] || [],isRemote:true}));
+    const remote = publicProfiles.map(p => ({id:p.id,name:p.discord_username || 'Discord Creator',image:p.discord_avatar_url,tiktok:p.tiktok_url,role:p.role || 'member',roleLabel:roleNames[p.role || 'member'],specialty:'مصمم',earnedBadges:earnedBadgesByUser[String(p.id)] || [],isRemote:true}));
     designers = [...data.designers.filter(d => !remote.some(r => String(r.id) === String(d.id))),...remote];
     updateStats(); updateSpecialties(); renderDesigners(); renderStreamers();
   }
@@ -1973,7 +1986,8 @@ select.field option{background:#151020}
   });
   async function startSupabase(){
     if(!db){toast('مكتبة Supabase ما تحمّلتش');return;}
-    await Promise.all([loadPublicProfiles(),loadPublicChat(),loadEarnedBadges()]);
+    await Promise.all([loadPublicProfiles(),loadPublicChat()]);
+    await loadEarnedBadges();
     await syncUser();
     db.auth.onAuthStateChange(()=>{setTimeout(()=>syncUser(),0);});
   }
