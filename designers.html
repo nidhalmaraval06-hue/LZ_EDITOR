@@ -609,6 +609,10 @@ select.field option{background:#151020}
 }
 
 .designer-role-badges{display:flex;align-items:center;justify-content:center;gap:7px;flex-wrap:wrap;margin:8px 0}
+.designer-earned-badges{display:flex;align-items:center;justify-content:center;gap:7px;flex-wrap:wrap;margin:10px auto 12px;padding:9px 10px;max-width:100%;border:1px solid rgba(244,217,154,.22);border-radius:14px;background:linear-gradient(135deg,rgba(244,217,154,.09),rgba(155,92,255,.08));}
+.designer-earned-badges:empty{display:none}
+.designer-earned-badges .badge{font-size:10px;padding:6px 10px;white-space:normal;text-align:center;line-height:1.5;box-shadow:0 0 12px rgba(244,217,154,.08)}
+
 .designer-specialty{
   font-size:10px;
   color:var(--muted);
@@ -1885,10 +1889,17 @@ select.field option{background:#151020}
   }
   async function loadEarnedBadges(){
     try {
-      const response=await fetch('/api/community/badges/earned',{cache:'no-store'});
+      const response=await fetch('/api/community/badges/earned?ts='+Date.now(),{cache:'no-store'});
       if(!response.ok) throw new Error('badges API '+response.status);
       const rows=await response.json(); earnedBadgesByUser={};
-      (rows||[]).forEach(row=>{ if(!earnedBadgesByUser[row.user_id]) earnedBadgesByUser[row.user_id]=[]; if(row.badge) earnedBadgesByUser[row.user_id].push(row.badge); });
+      (Array.isArray(rows)?rows:[]).forEach(row=>{
+        const userId=String(row.user_id || '');
+        const badge=row.badge;
+        if(userId && badge && badge.name){
+          if(!earnedBadgesByUser[userId]) earnedBadgesByUser[userId]=[];
+          earnedBadgesByUser[userId].push(badge);
+        }
+      });
       mergeDesigners();
     } catch(error) { console.warn('Earned badges:',error); }
   }
@@ -2269,7 +2280,9 @@ window.addEventListener('hashchange', () => {
       <h3>${escapeHTML(designer.name || 'مصمم بدون اسم')}</h3>
       <div class="designer-role-badges">
         ${designer.roleLabel ? `<span class="designer-specialty">${escapeHTML(designer.roleLabel)}</span>` : ''}
-        ${Array.isArray(designer.earnedBadges) ? designer.earnedBadges.slice(0,4).map(b=>`<span class="badge badge-gold">${escapeHTML(b.icon || '🏅')} ${escapeHTML(b.name || 'شارة')}</span>`).join('') : ''}
+      </div>
+      <div class="designer-earned-badges" aria-label="شارات الإنجاز">
+        ${(Array.isArray(designer.earnedBadges) ? designer.earnedBadges : []).map(b=>`<span class="badge badge-gold" title="${escapeHTML(b.description || b.name || 'شارة إنجاز')}">${escapeHTML(b.icon || '🏅')} ${escapeHTML(b.name || 'شارة')}</span>`).join('')}
       </div>
 
       <div class="designer-specialty">
