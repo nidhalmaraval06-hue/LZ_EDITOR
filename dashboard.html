@@ -216,22 +216,26 @@ textarea.field{resize:vertical;min-height:80px}
 .designer-description{font-size:10px;line-height:1.9;color:var(--muted);min-height:38px;overflow-wrap:anywhere}
 .card-actions{display:flex;justify-content:center;flex-wrap:wrap;gap:6px;margin-top:13px}
 
-/* AWARDS */
-.awards-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
-.award-card{
-  position:relative;overflow:hidden;min-height:280px;padding:21px 16px;
-  text-align:center;border-radius:20px;
-  background:radial-gradient(ellipse at 50% 0%,rgba(155,92,255,.2),transparent 65%),linear-gradient(145deg,#1b132c,#100c1b);
-  border:1px solid rgba(178,129,255,.2)
-}
-.award-card.gold{background:radial-gradient(ellipse at 50% 0%,rgba(241,203,120,.16),transparent 65%),linear-gradient(145deg,#211b26,#100c1b);border-color:rgba(241,203,120,.25)}
-.award-symbol{width:76px;height:76px;display:grid;place-items:center;border-radius:25px;margin:5px auto 15px;font-size:31px;color:#d3b4ff;background:rgba(155,92,255,.11);border:1px solid rgba(155,92,255,.25);box-shadow:0 0 35px rgba(155,92,255,.08)}
-.gold .award-symbol{color:var(--gold);background:rgba(241,203,120,.08);border-color:rgba(241,203,120,.25)}
-.award-card h3{font-size:13px;font-weight:900}
-.award-card p{font-size:10px;line-height:1.9;color:var(--muted);margin-top:7px}
-.winner-name{font-size:12px;font-weight:800;margin-top:12px;color:#e0c9ff}
-.gold .winner-name{color:var(--gold)}
-.award-period{font:9px 'Orbitron',sans-serif;letter-spacing:1px;color:#8f83a4;margin-top:7px;direction:ltr}
+/* PREMIUM LZ AWARDS */
+.awards-hero{position:relative;isolation:isolate;overflow:hidden;margin:0 0 20px;padding:18px;border:1px solid rgba(174,111,255,.32);border-radius:24px;background:radial-gradient(ellipse at 50% 0%,rgba(137,53,255,.28),transparent 68%),linear-gradient(135deg,#10091d,#080611 65%,#1b0b2c);box-shadow:0 18px 55px rgba(95,35,180,.2),inset 0 0 35px rgba(155,92,255,.08);text-align:center}
+.awards-hero:before,.awards-hero:after{content:"";position:absolute;z-index:-1;width:240px;height:240px;border:1px solid rgba(183,126,255,.15);border-radius:50%;filter:drop-shadow(0 0 14px #8d35ff)}
+.awards-hero:before{top:-170px;left:-70px}.awards-hero:after{bottom:-190px;right:-70px}
+.awards-hero img{display:block;width:min(100%,470px);max-height:210px;object-fit:contain;margin:0 auto;filter:drop-shadow(0 8px 25px rgba(132,52,255,.3))}
+.awards-hero strong{display:block;color:#eadcff;font:900 11px 'Orbitron',sans-serif;letter-spacing:3px;margin-top:4px;direction:ltr}
+.awards-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.award-card{position:relative;isolation:isolate;overflow:hidden;min-height:310px;padding:23px 17px;text-align:center;border-radius:23px;background:radial-gradient(ellipse at 50% 0%,rgba(155,92,255,.27),transparent 62%),linear-gradient(150deg,#211333,#0b0814 72%);border:1px solid rgba(178,129,255,.36);box-shadow:0 14px 38px rgba(0,0,0,.28),inset 0 0 28px rgba(146,73,255,.08);transition:transform .25s,border-color .25s,box-shadow .25s}
+.award-card:before{content:"";position:absolute;z-index:-1;inset:7px;border:1px solid rgba(199,159,255,.13);border-radius:17px;pointer-events:none}
+.award-card:after{content:"";position:absolute;z-index:-1;width:190px;height:190px;left:50%;top:-135px;transform:translateX(-50%);border-radius:50%;background:#963cff;filter:blur(65px);opacity:.24}
+.award-card:hover{transform:translateY(-6px);border-color:#c99cff;box-shadow:0 20px 48px rgba(119,48,220,.23),inset 0 0 32px rgba(146,73,255,.12)}
+.award-card.gold{background:radial-gradient(ellipse at 50% 0%,rgba(241,190,85,.2),transparent 62%),linear-gradient(150deg,#292033,#0b0814 72%);border-color:rgba(241,203,120,.48)}
+.award-symbol{width:88px;height:88px;display:grid;place-items:center;border-radius:27px;margin:3px auto 17px;font-size:36px;color:#f0d9ff;background:linear-gradient(145deg,rgba(155,92,255,.25),rgba(70,25,120,.12));border:1px solid rgba(190,139,255,.55);box-shadow:0 0 28px rgba(155,92,255,.22),inset 0 0 20px rgba(155,92,255,.13);transform:rotate(-3deg)}
+.award-symbol i{filter:drop-shadow(0 0 9px currentColor)}
+.gold .award-symbol{color:#ffd77b;background:linear-gradient(145deg,rgba(241,203,120,.22),rgba(120,76,20,.12));border-color:rgba(255,215,123,.65);box-shadow:0 0 30px rgba(241,190,85,.2),inset 0 0 20px rgba(241,190,85,.1)}
+.award-card h3{font-size:15px;font-weight:1000;color:#fff;text-shadow:0 0 18px rgba(188,135,255,.35)}
+.award-card p{font-size:11px;line-height:1.9;color:#b9a9ca;margin-top:9px;min-height:40px}
+.winner-name{font-size:14px;font-weight:900;margin:15px auto 0;padding:10px 8px;max-width:95%;color:#f0ddff;border:1px solid rgba(183,126,255,.25);border-radius:12px;background:rgba(110,49,170,.13);overflow-wrap:anywhere}
+.gold .winner-name{color:#ffdf9a;border-color:rgba(241,203,120,.3);background:rgba(160,111,32,.1)}
+.award-period{font:9px 'Orbitron',sans-serif;letter-spacing:1.4px;color:#b69acb;margin-top:12px;direction:ltr}
 .winner-avatar{width:53px;height:53px;object-fit:cover;border-radius:18px;border:1px solid rgba(241,203,120,.5);margin:0 auto 9px;display:block}
 .winner-empty{color:#80748f;font-size:10px;margin-top:15px}
 
@@ -479,6 +483,7 @@ tbody tr:last-child td{border-bottom:none}
     <!-- AWARDS -->
     <section class="page" id="page-awards">
       <div class="section-heading"><div><h3>الجوائز والشارات</h3><p>تكريم المصممين وأفضل الفيديوهات.</p></div><button class="btn btn-primary" data-goto="manage"><i class="fa-solid fa-trophy"></i> تعيين فائز</button></div>
+      <div class="awards-hero"><img src="lz-awards-logo.png" alt="LZ EDITORS Awards Logo"><strong>THE HALL OF LEGENDS • LZ EDITORS</strong></div>
       <div class="awards-grid">
         <article class="award-card gold"><div class="award-symbol"><i class="fa-solid fa-crown"></i></div><h3>أفضل مصمم في الشهر</h3><p>صاحب أفضل إبداع ومساهمة خلال الشهر.</p><div class="winner-name" id="winnerDesignerMonth">لم يتم اختيار الفائز بعد</div><div class="award-period">DESIGNER OF THE MONTH</div><div id="winnerDesignerMonthLink"></div></article>
         <article class="award-card"><div class="award-symbol"><i class="fa-solid fa-play"></i></div><h3>أفضل فيديو في الأسبوع</h3><p>فيديو مميز يتم اختياره كل أسبوع.</p><div class="winner-name" id="winnerVideoWeek">لم يتم اختيار الفائز بعد</div><div class="award-period">VIDEO OF THE WEEK</div><div id="winnerVideoWeekLink"></div></article>
