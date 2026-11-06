@@ -365,10 +365,8 @@ tbody tr:last-child td{border-bottom:none}
       <button data-page="bans"><i class="fa-solid fa-ban"></i> المحظورون وBAN</button>
       <button data-page="works"><i class="fa-solid fa-images"></i> أعمال المصممين</button>
       <button data-page="communityLinks"><i class="fa-solid fa-link"></i> ✓・𝐄𝐃𝐈𝐓𝐒・👑</button>
-      <button data-page="awards"><i class="fa-solid fa-trophy"></i> الجوائز والشارات</button>
       <button data-page="giveaway"><i class="fa-solid fa-gift"></i> Giveaway</button>
       <button data-page="manage"><i class="fa-solid fa-square-poll-vertical"></i> التصويت والشارات</button>
-      <button data-page="winners"><i class="fa-solid fa-medal"></i> أرشيف الفائزين</button>
     </nav>
 
     <div class="nav-label">ADMINISTRATION</div>
@@ -407,10 +405,9 @@ tbody tr:last-child td{border-bottom:none}
         <div class="hero-content">
           <div class="eyebrow"><span></span> THE CREATOR EXPERIENCE</div>
           <h2>الإبداع له مكان في <b>LZ EDITORS</b></h2>
-          <p>اكتشف المصممين، شاهد أعمالهم، تابع أفضل فيديوهات الأسبوع والشهر، واحتفل بالمبدعين من خلال الجوائز والشارات والمسابقات.</p>
+          <p>اكتشف المصممين، شاهد أعمالهم، وشارك في التصويت والمسابقات داخل مجتمع LZ EDITORS.</p>
           <div class="hero-actions">
             <button class="btn btn-primary" data-goto="designers"><i class="fa-solid fa-users"></i> اكتشف المصممين</button>
-            <button class="btn btn-secondary" data-goto="awards"><i class="fa-solid fa-trophy"></i> اكتشف الجوائز</button>
           </div>
         </div>
       </div>
@@ -422,24 +419,16 @@ tbody tr:last-child td{border-bottom:none}
       <div class="stats-grid">
         <article class="stat-card"><div class="stat-top"><div class="stat-icon"><i class="fa-solid fa-users"></i></div><span class="badge badge-muted">جاهز للربط</span></div><div class="stat-value" id="statDesigners">0</div><div class="stat-label">المصممون المضافون محلياً</div></article>
         <article class="stat-card"><div class="stat-top"><div class="stat-icon"><i class="fa-solid fa-images"></i></div><span class="badge badge-muted">جاهز للربط</span></div><div class="stat-value" id="statWorks">0</div><div class="stat-label">الأعمال المضافة محلياً</div></article>
-        <article class="stat-card"><div class="stat-top"><div class="stat-icon"><i class="fa-solid fa-trophy"></i></div><span class="badge badge-muted">جوائز</span></div><div class="stat-value" id="statAwards">0</div><div class="stat-label">الفائزون المسجلون محلياً</div></article>
         <article class="stat-card"><div class="stat-top"><div class="stat-icon"><i class="fa-solid fa-gift"></i></div><span class="badge badge-muted">مسابقات</span></div><div class="stat-value" id="statGiveaways">0</div><div class="stat-label">المسابقات المضافة محلياً</div></article>
       </div>
 
       <div class="content-grid">
         <div>
-          <div class="section-heading"><div><h3>الجوائز الرئيسية</h3><p>تكريم المبدعين أسبوعياً وشهرياً</p></div><button class="btn btn-secondary btn-small" data-goto="awards">عرض الكل <i class="fa-solid fa-arrow-left"></i></button></div>
-          <div class="awards-grid" style="grid-template-columns:repeat(2,minmax(0,1fr))">
-            <article class="award-card gold"><div class="award-symbol"><i class="fa-solid fa-crown"></i></div><h3>أفضل مصمم في الشهر</h3><p>تكريم مصمم متميز وإبراز ملفه وأعماله.</p><div class="winner-name">لم يتم اختيار الفائز بعد</div><div class="award-period">DESIGNER OF THE MONTH</div></article>
-            <article class="award-card"><div class="award-symbol"><i class="fa-solid fa-play"></i></div><h3>أفضل فيديو في الأسبوع</h3><p>عرض الفيديو المختار مع اسم صاحبه ورابط المشاهدة.</p><div class="winner-name">لم يتم اختيار الفائز بعد</div><div class="award-period">VIDEO OF THE WEEK</div></article>
-          </div>
-        </div>
-        <div>
           <div class="section-heading"><div><h3>اختصارات</h3><p>إدارة مساحة المبدعين</p></div></div>
           <div class="panel">
             <div class="quick-list">
               <button class="quick-action" data-goto="giveaway"><i class="fa-solid fa-gift"></i><span><strong>إضافة Giveaway</strong><small>الجائزة والموعد ورابط المشاركة</small></span><i class="fa-solid fa-chevron-left arrow"></i></button>
-              <button class="quick-action" data-goto="manage"><i class="fa-solid fa-wand-magic-sparkles"></i><span><strong>إدارة المحتوى</strong><small>إدارة الجوائز والمسابقات</small></span><i class="fa-solid fa-chevron-left arrow"></i></button>
+              <button class="quick-action" data-goto="manage"><i class="fa-solid fa-wand-magic-sparkles"></i><span><strong>إدارة المحتوى</strong><small>إدارة التصويت والشارات والمسابقات</small></span><i class="fa-solid fa-chevron-left arrow"></i></button>
             </div>
           </div>
         </div>
@@ -480,26 +469,6 @@ tbody tr:last-child td{border-bottom:none}
       <div class="panel empty-state" id="workEmpty"><div class="empty-icon"><i class="fa-solid fa-images"></i></div><h3>معرض الأعمال فارغ</h3><p>ستظهر هنا الأعمال الموجودة في البيانات الحالية.</p></div>
     </section>
 
-    <!-- AWARDS -->
-    <section class="page" id="page-awards">
-      <div class="section-heading"><div><h3>الجوائز والشارات</h3><p>تكريم المصممين وأفضل الفيديوهات.</p></div><button class="btn btn-primary" data-goto="manage"><i class="fa-solid fa-trophy"></i> تعيين فائز</button></div>
-      <div class="awards-hero"><img src="lz-awards-logo.png" alt="LZ EDITORS Awards Logo"><strong>THE HALL OF LEGENDS • LZ EDITORS</strong></div>
-      <div class="awards-grid">
-        <article class="award-card gold"><div class="award-symbol"><i class="fa-solid fa-crown"></i></div><h3>أفضل مصمم في الشهر</h3><p>صاحب أفضل إبداع ومساهمة خلال الشهر.</p><div class="winner-name" id="winnerDesignerMonth">لم يتم اختيار الفائز بعد</div><div class="award-period">DESIGNER OF THE MONTH</div><div id="winnerDesignerMonthLink"></div></article>
-        <article class="award-card"><div class="award-symbol"><i class="fa-solid fa-play"></i></div><h3>أفضل فيديو في الأسبوع</h3><p>فيديو مميز يتم اختياره كل أسبوع.</p><div class="winner-name" id="winnerVideoWeek">لم يتم اختيار الفائز بعد</div><div class="award-period">VIDEO OF THE WEEK</div><div id="winnerVideoWeekLink"></div></article>
-        <article class="award-card gold"><div class="award-symbol"><i class="fa-solid fa-star"></i></div><h3>أفضل فيديو في الشهر</h3><p>تكريم أفضل فيديو خلال الشهر.</p><div class="winner-name" id="winnerVideoMonth">لم يتم اختيار الفائز بعد</div><div class="award-period">VIDEO OF THE MONTH</div><div id="winnerVideoMonthLink"></div></article>
-      </div>
-      <div class="section-heading"><div><h3>معاني الشارات</h3><p>تظهر بجانب اسم المصمم بعد منحها له.</p></div></div>
-      <div class="panel">
-        <div class="table-wrap"><table><thead><tr><th>الشارة</th><th>الاسم</th><th>المعنى</th></tr></thead><tbody>
-          <tr><td>🏆</td><td>مصمم الشهر</td><td>الفائز بجائزة أفضل مصمم شهرياً</td></tr>
-          <tr><td>🎬</td><td>فيديو الأسبوع</td><td>صاحب الفيديو الفائز للأسبوع</td></tr>
-          <tr><td>🌟</td><td>فيديو الشهر</td><td>صاحب الفيديو الفائز للشهر</td></tr>
-          <tr><td>💎</td><td>عضو مميز</td><td>شارة تقديرية يحددها فريق الإدارة</td></tr>
-        </tbody></table></div>
-      </div>
-    </section>
-
     <!-- GIVEAWAY -->
     <section class="page" id="page-giveaway">
       <div class="giveaway-banner">
@@ -513,16 +482,6 @@ tbody tr:last-child td{border-bottom:none}
       <div class="panel" id="giveawayEntriesPanel" style="display:none;margin-top:15px"><div class="panel-head"><h3 id="giveawayEntriesTitle">المشاركون</h3><button class="btn btn-secondary btn-small" type="button" id="closeGiveawayEntries">إغلاق</button></div><div id="giveawayEntriesList" class="quick-list"></div></div>
       <div class="panel empty-state" id="giveawayEmpty"><div class="empty-icon"><i class="fa-solid fa-gift"></i></div><h3>ما كاين حتى Giveaway حالياً</h3><p>أضف مسابقة فيها اسم الجائزة، وصفها، تاريخ النهاية وصورتها.</p><button class="btn btn-primary" style="margin-top:14px" data-goto="manage"><i class="fa-solid fa-plus"></i> إنشاء Giveaway</button></div>
     </section>
-
-    <!-- WINNERS ARCHIVE -->
-    <section class="page" id="page-winners">
-      <div class="section-heading"><div><h3>أرشيف الفائزين</h3><p>سجل الجوائز التي تعيّنها من لوحة الإدارة.</p></div><span class="badge badge-gold"><i class="fa-solid fa-medal"></i> HALL OF FAME</span></div>
-      <div class="panel">
-        <div class="table-wrap"><table><thead><tr><th>الجائزة</th><th>الفائز</th><th>الفترة</th><th>رابط العمل</th></tr></thead><tbody id="winnerHistory"></tbody></table></div>
-        <div class="empty-state" id="winnerEmpty"><div class="empty-icon"><i class="fa-solid fa-medal"></i></div><h3>الأرشيف ما زال فارغاً</h3><p>كلما عيّنت فائزاً جديداً، سيُسجّل هنا في هذا المتصفح.</p></div>
-      </div>
-    </section>
-
 
     <!-- STREAMER MANAGEMENT -->
     <section class="page" id="page-streamers">
@@ -549,20 +508,6 @@ tbody tr:last-child td{border-bottom:none}
     <!-- CONTENT MANAGEMENT -->
     <section class="page" id="page-manage">
       <div class="section-heading"><div><h3>إدارة المحتوى</h3><p>إدارة الجوائز والمسابقات.</p></div><span class="badge badge-green"><i class="fa-solid fa-cloud"></i> SUPABASE SYNC</span></div>
-
-      <div class="panel" style="margin-top:15px">
-        <div class="panel-head"><h3><i class="fa-solid fa-trophy" style="color:var(--gold);margin-left:7px"></i> تعيين فائز بجائزة</h3><span>AWARD WINNER</span></div>
-        <form id="awardForm">
-          <div class="form-grid">
-            <div class="form-group"><label for="aType">نوع الجائزة *</label><select class="field" id="aType" required><option value="designerMonth">أفضل مصمم في الشهر</option><option value="videoWeek">أفضل فيديو في الأسبوع</option><option value="videoMonth">أفضل فيديو في الشهر</option></select></div>
-            <div class="form-group"><label for="aDesigner">المصمم الفائز *</label><select class="field" id="aDesigner" required><option value="">أضف مصمماً أولاً</option></select></div>
-            <div class="form-group"><label for="aPeriod">الفترة</label><input class="field" id="aPeriod" maxlength="60" placeholder="مثال: أكتوبر 2026"></div>
-            <div class="form-group"><label for="aWork">رابط العمل الفائز (اختياري)</label><select class="field" id="aWork"><option value="">بدون رابط عمل</option></select></div>
-          </div>
-          <div class="form-actions"><button class="btn btn-primary" type="submit"><i class="fa-solid fa-medal"></i> تعيين الفائز</button></div>
-        </form>
-      </div>
-
 
       <div class="panel contest-admin-panel contest-award-panel">
         <div class="panel-head">
@@ -596,7 +541,7 @@ tbody tr:last-child td{border-bottom:none}
           <div class="form-group"><label for="pollOption2">الخيار الثاني *</label><input class="field" id="pollOption2" required maxlength="100"></div>
           <div class="form-group"><label for="pollOption3">الخيار الثالث (اختياري)</label><input class="field" id="pollOption3" maxlength="100"></div>
           <div class="form-group"><label for="pollOption4">الخيار الرابع (اختياري)</label><input class="field" id="pollOption4" maxlength="100"></div>
-          <div class="form-group"><label for="pollEnds">موعد انتهاء التصويت</label><input class="field" id="pollEnds" type="datetime-local"></div>
+          <div class="form-group"><label for="pollDuration">مدة التصويت بالدقائق *</label><input class="field" id="pollDuration" type="number" min="1" max="43200" step="1" required value="60" placeholder="مثال: 60"></div>
         </div><div class="form-actions"><button class="btn btn-primary" type="submit">نشر التصويت</button></div></form>
       </div>
       <div class="panel" style="margin-top:15px">
@@ -607,7 +552,7 @@ tbody tr:last-child td{border-bottom:none}
         <div class="panel-head"><h3><i class="fa-solid fa-medal" style="color:var(--gold);margin-left:7px"></i> منح شارة إنجاز</h3><span>BADGE AWARD</span></div>
         <form id="badgeAdminForm"><div class="form-grid">
           <div class="form-group"><label for="badgeUser">العضو *</label><select class="field" id="badgeUser" required><option value="">اختر العضو أولاً</option></select></div>
-          <div class="form-group"><label for="badgePreset">اختر شارة الإنجاز *</label><select class="field" id="badgePreset" required><option value="">اختر الشارة</option><option value="🎨 مصمم مبدع|🎨">🎨 مصمم مبدع</option><option value="⚡ سريع الإنجاز|⚡">⚡ سريع الإنجاز</option><option value="🏆 أسطورة LZ|🏆">🏆 أسطورة LZ</option><option value="💎 عضو مميز|💎">💎 عضو مميز</option><option value="🔥 صانع محتوى|🔥">🔥 صانع محتوى</option><option value="🥇 W EDIT|🥇">🥇 W EDIT</option><option value="🌟 نجم المجتمع|🌟">🌟 نجم المجتمع</option></select></div>
+          <div class="form-group"><label for="badgePreset">اختر شارة الإنجاز *</label><select class="field" id="badgePreset" required><option value="">اختر الشارة</option><option value="أفضل مصمم في الأسبوع|🏅">🏅 أفضل مصمم في الأسبوع</option><option value="أفضل فيديو في الأسبوع|🎬">🎬 أفضل فيديو في الأسبوع</option><option value="أفضل فيديو في الشهر|🌟">🌟 أفضل فيديو في الشهر</option><option value="أفضل مصمم في الشهر|🏆">🏆 أفضل مصمم في الشهر</option></select></div>
           <div class="form-group"><label for="badgeDescription">الوصف</label><input class="field" id="badgeDescription" maxlength="240" placeholder="سبب منح الشارة"></div>
         </div><div class="form-actions"><button class="btn btn-primary" type="submit">منح الشارة وإرسال إشعار</button></div></form>
       </div>
@@ -812,10 +757,8 @@ tbody tr:last-child td{border-bottom:none}
     bans:'المحظورون وBAN',
     works:'أعمال المصممين',
     communityLinks:'✓・𝐄𝐃𝐈𝐓𝐒・👑',
-    awards:'الجوائز والشارات',
     giveaway:'Giveaway',
     polls:'التصويت والشارات',
-    winners:'أرشيف الفائزين',
     streamers:'الستريمرز',
     manage:'إدارة المحتوى'
   };
@@ -855,11 +798,7 @@ tbody tr:last-child td{border-bottom:none}
     data = { designers: Array.isArray(remote.designers) ? remote.designers : [], works: Array.isArray(remote.works) ? remote.works : [], awards: Array.isArray(remote.awards) ? remote.awards : [], giveaways: Array.isArray(remote.giveaways) ? remote.giveaways : [], winners: Array.isArray(remote.winners) ? remote.winners : [], videoLinks: remote.videoLinks || {}, streamers: Array.isArray(remote.streamers) ? remote.streamers : [] };
     renderAll();
   }
-  const awardInfo = {
-    designerMonth: { label:'أفضل مصمم في الشهر', badge:'🏆 مصمم الشهر', id:'winnerDesignerMonth', linkId:'winnerDesignerMonthLink' },
-    videoWeek: { label:'أفضل فيديو في الأسبوع', badge:'🎬 فيديو الأسبوع', id:'winnerVideoWeek', linkId:'winnerVideoWeekLink' },
-    videoMonth: { label:'أفضل فيديو في الشهر', badge:'🌟 فيديو الشهر', id:'winnerVideoMonth', linkId:'winnerVideoMonthLink' }
-  };
+
 
   let toastTimer;
   function toast(message) {
@@ -921,22 +860,9 @@ tbody tr:last-child td{border-bottom:none}
   function renderStats() {
     $('statDesigners').textContent = data.designers.length;
     $('statWorks').textContent = data.works.length;
-    $('statAwards').textContent = data.awards.length;
     $('statGiveaways').textContent = data.giveaways.length;
   }
 
-  function renderDesignerOptions() {
-    const options = data.designers.map(d =>
-      `<option value="${escapeHTML(d.id)}">${escapeHTML(d.name)}</option>`
-    ).join('');
-
-    $('aDesigner').innerHTML = '<option value="">اختر الفائز</option>' + options;
-
-    $('aWork').innerHTML = '<option value="">بدون رابط عمل</option>' +
-      data.works.map(w =>
-        `<option value="${escapeHTML(w.id)}">${escapeHTML(w.title)}</option>`
-      ).join('');
-  }
 
   function renderDesigners() {
     const query = $('designerSearch').value.trim().toLowerCase();
@@ -1033,27 +959,6 @@ tbody tr:last-child td{border-bottom:none}
     $('workEmpty').style.display = (filtered.length + submittedVideos.length) ? 'none' : 'block';
   }
 
-  function latestAward(type) {
-    return [...data.awards].reverse().find(a => a.type === type);
-  }
-
-  function renderAwards() {
-    Object.entries(awardInfo).forEach(([type, info]) => {
-      const award = latestAward(type);
-      $(info.id).textContent = award ? award.designerName : 'لم يتم اختيار الفائز بعد';
-      $(info.linkId).innerHTML = award && safeURL(award.workLink)
-        ? `<a class="btn btn-secondary btn-small" style="margin-top:12px" href="${escapeHTML(safeURL(award.workLink))}" target="_blank" rel="noopener noreferrer">مشاهدة العمل <i class="fa-solid fa-arrow-up-left-from-square"></i></a>`
-        : '';
-    });
-
-    $('winnerHistory').innerHTML = [...data.awards].reverse().map(a => {
-      const info = awardInfo[a.type];
-      const url = safeURL(a.workLink);
-      return `<tr><td>${escapeHTML(info ? info.label : 'جائزة')}</td><td>${escapeHTML(a.designerName)}</td><td>${escapeHTML(a.period || 'غير محددة')}</td><td>${url ? `<a class="btn btn-secondary btn-small" href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer">فتح العمل</a>` : '—'}</td></tr>`;
-    }).join('');
-
-    $('winnerEmpty').style.display = data.awards.length ? 'none' : 'block';
-  }
 
   function renderGiveaways() {
     $('giveawayList').innerHTML = [...data.giveaways].reverse().map(g => {
@@ -1098,10 +1003,8 @@ tbody tr:last-child td{border-bottom:none}
 
   function renderAll() {
     renderStats();
-    renderDesignerOptions();
     renderDesigners();
     renderWorks();
-    renderAwards();
     renderGiveaways();
     renderStreamers();
   }
@@ -1152,81 +1055,13 @@ tbody tr:last-child td{border-bottom:none}
     } finally { button.disabled = false; }
   });
 
-  $('awardForm').addEventListener('submit', async event => {
-    event.preventDefault();
-    const designer = data.designers.find(d => d.id === $('aDesigner').value);
-    if (!designer) return toast('أضف مصمماً واختره أولاً.');
-
-    const type = $('aType').value;
-    const info = awardInfo[type];
-    if (!info) return toast('نوع الجائزة غير معروف.');
-
-    const selectedWork = data.works.find(w => w.id === $('aWork').value);
-    const workLink = selectedWork ? selectedWork.link : '';
-
-    data.awards.push({
-      id: makeId(),
-      type,
-      designerId: designer.id,
-      designerName: designer.name,
-      period: $('aPeriod').value.trim() || 'فترة غير محددة',
-      workLink,
-      createdAt: new Date().toISOString()
-    });
-
-    if (await saveData()) {
-      event.target.reset();
-      toast('تم تسجيل الفائز في قاعدة البيانات المشتركة.');
-      openPage('awards');
-    }
-  });
-
-  async function optimizeImage(file) {
-    if (!file) return '';
-    if (!['image/jpeg','image/png','image/webp','image/gif'].includes(file.type) || file.size > 8 * 1024 * 1024) throw new Error('اختار صورة JPG أو PNG أو WebP أو GIF أقل من 8MB.');
-    const objectURL = URL.createObjectURL(file);
-    try {
-      const img = new Image();
-      img.src = objectURL;
-      await img.decode();
-      const scale = Math.min(1, 900 / Math.max(img.naturalWidth, img.naturalHeight));
-      const canvas = document.createElement('canvas');
-      canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
-      canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
-      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-      const result = canvas.toDataURL('image/jpeg', .75);
-      if (result.length > 850000) throw new Error('الصورة كبيرة على التخزين المحلي، اختار صورة أصغر.');
-      return result;
-    } finally { URL.revokeObjectURL(objectURL); }
-  }
-
-  $('giveawayForm').addEventListener('submit', async event => {
-    event.preventDefault();
-    const button = event.target.querySelector('[type="submit"]');
-    button.disabled = true;
-    try {
-      const image = await optimizeImage($('gImage').files[0]);
-      const giveaway = {
-        id: makeId(), title: $('gTitle').value.trim(), prize: $('gPrize').value.trim(),
-        end: $('gEnd').value, image, description: $('gDescription').value.trim(), type: $('gType').value,
-        createdAt: new Date().toISOString()
-      };
-      data.giveaways.push(giveaway);
-      if (await saveData()) {
-        event.target.reset();
-        toast('تمت إضافة المسابقة إلى قاعدة البيانات المشتركة.');
-        openPage('giveaway');
-      } else data.giveaways.pop();
-    } catch (error) { toast(error.message || 'تعذرت إضافة المسابقة.'); }
-    finally { button.disabled = false; }
-  });
-
   $('pollAdminForm').addEventListener('submit', async event => {
     event.preventDefault(); const button=event.target.querySelector('[type="submit"]'); button.disabled=true;
     try {
       const options=['pollOption1','pollOption2','pollOption3','pollOption4'].map(id=>$(id).value.trim()).filter(Boolean);
-      const endsRaw=$('pollEnds').value;
-      const poll=await apiRequest('/api/community/polls',{method:'POST',body:JSON.stringify({question:$('pollQuestion').value.trim(),options,ends_at:endsRaw?new Date(endsRaw).toISOString():null})});
+      const durationMinutes=Number($('pollDuration').value);
+      if (!Number.isInteger(durationMinutes) || durationMinutes < 1 || durationMinutes > 43200) throw new Error('مدة التصويت يجب أن تكون بين دقيقة واحدة و30 يوماً');
+      await apiRequest('/api/community/polls',{method:'POST',body:JSON.stringify({question:$('pollQuestion').value.trim(),options,duration_minutes:durationMinutes})});
       event.target.reset(); toast('تم نشر التصويت وإرسال إشعار للأعضاء'); await loadAdminPolls();
     } catch(error) { toast('تعذر نشر التصويت: '+error.message); }
     finally { button.disabled=false; }

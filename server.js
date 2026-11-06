@@ -1364,8 +1364,10 @@ app.post('/api/community/polls', auth, requireOwnerOrCoOwner, async (req, res, n
   try {
     const question = String(req.body?.question || '').trim().slice(0,240);
     const options = Array.isArray(req.body?.options) ? [...new Set(req.body.options.map(x => String(x || '').trim().slice(0,100)).filter(Boolean))].slice(0,8) : [];
-    const endsAt = req.body?.ends_at ? new Date(req.body.ends_at).toISOString() : null;
+    const durationMinutes = Number(req.body?.duration_minutes);
     if (!question || options.length < 2) return fail(res, 400, 'اكتب السؤال وخيارين على الأقل');
+    if (!Number.isInteger(durationMinutes) || durationMinutes < 1 || durationMinutes > 43200) return fail(res, 400, 'مدة التصويت يجب أن تكون بين دقيقة واحدة و30 يوماً');
+    const endsAt = new Date(Date.now() + durationMinutes * 60 * 1000).toISOString();
     const { data: poll, error } = await supabase.from('lz_polls').insert({ id: crypto.randomUUID(), title: question, question, ends_at: endsAt, created_by: req.user.id }).select('id,question,ends_at,active,created_at').single();
     if (error) throw error;
     const { error: optionError } = await supabase.from('lz_poll_options').insert(options.map(label => ({ poll_id: poll.id, label, option_text: label })));
