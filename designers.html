@@ -609,10 +609,6 @@ select.field option{background:#151020}
 }
 
 .designer-role-badges{display:flex;align-items:center;justify-content:center;gap:7px;flex-wrap:wrap;margin:8px 0}
-.designer-earned-badges{display:flex;align-items:center;justify-content:center;gap:7px;flex-wrap:wrap;margin:10px auto 12px;padding:9px 10px;max-width:100%;border:1px solid rgba(244,217,154,.22);border-radius:14px;background:linear-gradient(135deg,rgba(244,217,154,.09),rgba(155,92,255,.08));}
-.designer-earned-badges:empty{display:none}
-.designer-earned-badges .badge{font-size:10px;padding:6px 10px;white-space:normal;text-align:center;line-height:1.5;box-shadow:0 0 12px rgba(244,217,154,.08)}
-
 .designer-specialty{
   font-size:10px;
   color:var(--muted);
@@ -1889,36 +1885,16 @@ select.field option{background:#151020}
   }
   async function loadEarnedBadges(){
     try {
-      const response=await fetch('/api/community/badges/earned?ts='+Date.now(),{
-        method:'GET',cache:'no-store',headers:{'Accept':'application/json'}
-      });
-      if(!response.ok) throw new Error('badges API HTTP '+response.status);
-      const rows=await response.json();
-      earnedBadgesByUser={};
-      (Array.isArray(rows)?rows:[]).forEach(row=>{
-        const userId=String(row.user_id || '').trim();
-        const badge=row.badge || row.lz_badges || null;
-        if(!userId || !badge) return;
-        const name=String(badge.name || '').trim();
-        if(!name) return;
-        if(!earnedBadgesByUser[userId]) earnedBadgesByUser[userId]=[];
-        earnedBadgesByUser[userId].push({
-          name, icon:String(badge.icon || '🏅'),
-          description:String(badge.description || '')
-        });
-      });
-      // Refresh cards only after both profiles and awards are available.
+      const response=await fetch('/api/community/badges/earned',{cache:'no-store'});
+      if(!response.ok) throw new Error('badges API '+response.status);
+      const rows=await response.json(); earnedBadgesByUser={};
+      (rows||[]).forEach(row=>{ if(!earnedBadgesByUser[row.user_id]) earnedBadgesByUser[row.user_id]=[]; if(row.badge) earnedBadgesByUser[row.user_id].push(row.badge); });
       mergeDesigners();
-      console.info('LZ public earned badges loaded:',Object.values(earnedBadgesByUser).reduce((n,a)=>n+a.length,0));
-    } catch(error) {
-      console.error('LZ public earned badges could not load:',error);
-      earnedBadgesByUser={};
-      mergeDesigners();
-    }
+    } catch(error) { console.warn('Earned badges:',error); }
   }
   function mergeDesigners(){
     const roleNames = {member:'👤 Member',owner:'👑 LZ Owner',co_owner:'💎 LZ Co Owner',manager_admin:'𝐌𝐀𝐍𝐀𝐆𝐄𝐑 𝐀𝐃𝐌𝐈𝐍',admin:'🎭 LZ Admin',w_edit:'🥇 W EDIT'};
-    const remote = publicProfiles.map(p => ({id:p.id,name:p.discord_username || 'Discord Creator',image:p.discord_avatar_url,tiktok:p.tiktok_url,role:p.role || 'member',roleLabel:roleNames[p.role || 'member'],specialty:'مصمم',earnedBadges:earnedBadgesByUser[String(p.id)] || [],isRemote:true}));
+    const remote = publicProfiles.map(p => ({id:p.id,name:p.discord_username || 'Discord Creator',image:p.discord_avatar_url,tiktok:p.tiktok_url,role:p.role || 'member',roleLabel:roleNames[p.role || 'member'],specialty:'مصمم',earnedBadges:earnedBadgesByUser[p.id] || [],isRemote:true}));
     designers = [...data.designers.filter(d => !remote.some(r => String(r.id) === String(d.id))),...remote];
     updateStats(); updateSpecialties(); renderDesigners(); renderStreamers();
   }
@@ -1986,8 +1962,7 @@ select.field option{background:#151020}
   });
   async function startSupabase(){
     if(!db){toast('مكتبة Supabase ما تحمّلتش');return;}
-    await Promise.all([loadPublicProfiles(),loadPublicChat()]);
-    await loadEarnedBadges();
+    await Promise.all([loadPublicProfiles(),loadPublicChat(),loadEarnedBadges()]);
     await syncUser();
     db.auth.onAuthStateChange(()=>{setTimeout(()=>syncUser(),0);});
   }
@@ -2294,9 +2269,7 @@ window.addEventListener('hashchange', () => {
       <h3>${escapeHTML(designer.name || 'مصمم بدون اسم')}</h3>
       <div class="designer-role-badges">
         ${designer.roleLabel ? `<span class="designer-specialty">${escapeHTML(designer.roleLabel)}</span>` : ''}
-      </div>
-      <div class="designer-earned-badges" aria-label="شارات الإنجاز">
-        ${(Array.isArray(designer.earnedBadges) ? designer.earnedBadges : []).map(b=>`<span class="badge badge-gold" title="${escapeHTML(b.description || b.name || 'شارة إنجاز')}">${escapeHTML(b.icon || '🏅')} ${escapeHTML(b.name || 'شارة')}</span>`).join('')}
+        ${Array.isArray(designer.earnedBadges) ? designer.earnedBadges.slice(0,4).map(b=>`<span class="badge badge-gold">${escapeHTML(b.icon || '🏅')} ${escapeHTML(b.name || 'شارة')}</span>`).join('') : ''}
       </div>
 
       <div class="designer-specialty">
