@@ -46,17 +46,12 @@ const pages = [
   'login-dashboard.html',
   'login-designers.html',
   'dashboard.html',
-  'designers.html',
-  'banned.html'
+  'designers.html'
 ];
 
 app.get('/', (_req, res) => {
-  // الصفحة الرئيسية العامة تفتح تسجيل دخول المصممين مباشرة.
-  // لا نستخدم sendFile هنا حتى لا تظهر صفحة دخول لوحة الإدارة للزوار.
-  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-  res.set('Pragma', 'no-cache');
-  res.set('Expires', '0');
-  return res.redirect(302, '/login-designers.html');
+  res.set('Cache-Control', 'no-store, max-age=0');
+  res.sendFile(path.join(__dirname, 'login-dashboard.html'));
 });
 app.get('/login-dashboard.html', (_req, res) => {
   res.sendFile(path.join(__dirname, 'login-dashboard.html'));
@@ -71,13 +66,7 @@ pages.forEach(page => {
 
 // الشعار
 app.get('/logo.png', (_req, res) => {
-  res.set('Cache-Control', 'public, max-age=3600');
   res.sendFile(path.join(__dirname, 'logo.png'));
-});
-// شعار واجهة الحظر — ملف مستقل باسم logo.ban.png
-app.get('/logo.ban.png', (_req, res) => {
-  res.set('Cache-Control', 'no-store, max-age=0');
-  res.type('png').sendFile(path.join(__dirname, 'logo.ban.png'));
 });
 app.get('/manifest.webmanifest', (_req, res) => {
   res.type('application/manifest+json').sendFile(path.join(__dirname, 'manifest.webmanifest'));
@@ -87,8 +76,7 @@ app.get('/sw.js', (_req, res) => {
   res.set('Service-Worker-Allowed', '/').type('application/javascript').sendFile(path.join(__dirname, 'sw.js'));
 });
 
-// مسابقات Giveaway تحفظ صورة مضغوطة داخل محتوى الموقع؛ 32kb كانت تمنع حفظها.
-app.use(express.json({ limit: '6mb' }));
+app.use(express.json({ limit: '32kb' }));
 
 const origins = process.env.FRONTEND_ORIGIN
   .split(',')
@@ -109,7 +97,7 @@ app.use('/api', rateLimit({
   legacyHeaders: false
 }));
 
-const roles = ['member', 'owner', 'co_owner', 'manager_admin', 'admin', 'w_edit'];
+const roles = ['member', 'owner', 'co_owner', 'manager_admin', 'admin'];
 const adminRoles = new Set(['owner', 'co_owner', 'manager_admin']);
 
 const uuid = value =>
@@ -215,34 +203,6 @@ async function getValidTikTokToken(connection) {
   await saveTikTokConnection(connection.user_id, refreshed);
   return refreshed.access_token;
 }
-async function resolveTikTokVideoUrl(raw) {
-  let current;
-  try { current = new URL(String(raw || '').trim()); } catch { throw new Error('رابط TikTok غير صالح'); }
-  const allowed = host => host === 'tiktok.com' || host.endsWith('.tiktok.com');
-  if (current.protocol !== 'https:' || !allowed(current.hostname.toLowerCase())) throw new Error('يجب أن يكون الرابط من TikTok');
-  // Expand vm.tiktok.com / vt.tiktok.com safely so the video ID can be queried.
-  for (let hop = 0; hop < 6 && !/\/video\/\d+/.test(current.pathname); hop++) {
-    const response = await fetch(current.href, { method: 'GET', redirect: 'manual', headers: { 'User-Agent': 'Mozilla/5.0 (compatible; LZEditors/1.0)', 'Range': 'bytes=0-0' }, signal: AbortSignal.timeout(12000) });
-    if (response.status >= 300 && response.status < 400) {
-      const location = response.headers.get('location');
-      if (!location) break;
-      const next = new URL(location, current);
-      if (next.protocol !== 'https:' || !allowed(next.hostname.toLowerCase())) throw new Error('رابط التحويل لا ينتمي إلى TikTok');
-      current = next;
-      continue;
-    }
-    if (response.body) await response.body.cancel().catch(() => {});
-    if (response.url) {
-      const finalUrl = new URL(response.url);
-      if (finalUrl.protocol === 'https:' && allowed(finalUrl.hostname.toLowerCase())) current = finalUrl;
-    }
-    break;
-  }
-  current.hash = '';
-  if (!/\/video\/\d+/.test(current.pathname)) throw new Error('تعذر استخراج رقم الفيديو من الرابط القصير. أرسل رابط TikTok الكامل للفيديو');
-  return current.href;
-}
-
 async function queryTikTokVideos(accessToken, videoIds) {
   const response = await fetch('https://open.tiktokapis.com/v2/video/query/?fields=id,like_count', {
     method: 'POST', headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
@@ -252,10 +212,8 @@ async function queryTikTokVideos(accessToken, videoIds) {
   if (!response.ok || result.error?.code && result.error.code !== 'ok') throw new Error(result.error?.message || 'TikTok video query failed');
   return result.data?.videos || [];
 }
-let tikTokLikesSyncRunning = false;
 async function syncTikTokContestLikes() {
-  if (!tiktokConfigReady() || tikTokLikesSyncRunning) return;
-  tikTokLikesSyncRunning = true;
+  if (!tiktokConfigReady()) return;
   try {
     const { data: contentRow } = await supabase.from('lz_site_content').select('content').eq('id', 1).maybeSingle();
     const activeIds = new Set((contentRow?.content?.giveaways || []).filter(g => g.type === 'tiktok_contest' && (!g.end || g.end >= new Date().toISOString().slice(0,10))).map(g => String(g.id)));
@@ -268,21 +226,8 @@ async function syncTikTokContestLikes() {
       try {
         const connection = await getTikTokConnection(userId); if (!connection) continue;
         const token = await getValidTikTokToken(connection);
-        const normalizedEntries = [];
-        for (const entry of userEntries) {
-          try {
-            let videoUrl = entry.video_url;
-            let id = (String(videoUrl || '').match(/\/video\/(\d+)/) || [])[1];
-            if (!id) {
-              videoUrl = await resolveTikTokVideoUrl(videoUrl);
-              id = (videoUrl.match(/\/video\/(\d+)/) || [])[1];
-              if (id) await supabase.from('lz_contest_entries').update({ video_url: videoUrl }).eq('id', entry.id);
-            }
-            if (id) normalizedEntries.push({ entry, id });
-          } catch (resolveError) { console.warn('TikTok short video URL skipped:', resolveError.message); }
-        }
-        for (let i = 0; i < normalizedEntries.length; i += 20) {
-          const batch = normalizedEntries.slice(i, i + 20);
+        for (let i = 0; i < userEntries.length; i += 20) {
+          const batch = userEntries.slice(i, i + 20).map(entry => ({ entry, id: (entry.video_url.match(/\/video\/(\d+)/) || [])[1] })).filter(item => item.id);
           if (!batch.length) continue;
           const videos = await queryTikTokVideos(token, batch.map(item => item.id));
           const byId = new Map(videos.map(video => [String(video.id), video]));
@@ -296,7 +241,6 @@ async function syncTikTokContestLikes() {
       } catch (userError) { console.warn('TikTok like sync skipped for one participant:', userError.message); }
     }
   } catch (error) { console.error('TikTok likes sync:', error.message); }
-  finally { tikTokLikesSyncRunning = false; }
 }
 
 // التحقق من تسجيل الدخول
@@ -428,71 +372,54 @@ async function getKickToken() {
   return kickAccessToken;
 }
 
-async function getKickLiveInfo(handle) {
+async function isKickLive(handle) {
   const token = await getKickToken();
-  if (!token) return { isLive: null, viewerCount: null };
+  if (!token) return null; // Not configured; do not falsely mark offline.
   const headers = {
     Authorization: `Bearer ${token}`,
     'Client-Id': process.env.KICK_CLIENT_ID
   };
 
+  // Kick's Users endpoint accepts user IDs, not channel slugs.
+  // Resolve the channel slug first to get broadcaster_user_id.
   const channelUrl = new URL('https://api.kick.com/public/v1/channels');
   channelUrl.searchParams.set('slug', String(handle).toLowerCase());
-  const channelResponse = await fetch(channelUrl, { headers, signal: AbortSignal.timeout(10000) });
-  if (!channelResponse.ok) throw new Error(`Kick channels API failed (${channelResponse.status})`);
+  const channelResponse = await fetch(channelUrl, {
+    headers,
+    signal: AbortSignal.timeout(10000)
+  });
+  if (!channelResponse.ok) {
+    throw new Error(`Kick channels API failed (${channelResponse.status})`);
+  }
+
   const channelBody = await channelResponse.json();
   const channel = (channelBody.data || [])[0];
   const broadcasterUserId = channel?.broadcaster_user_id;
-  if (!broadcasterUserId) return { isLive: false, viewerCount: null };
+  if (!broadcasterUserId) return false;
 
-  // The channel payload includes stream.is_live and stream.viewer_count.
-  if (channel.stream && typeof channel.stream.is_live === 'boolean') {
-    return {
-      isLive: channel.stream.is_live,
-      viewerCount: channel.stream.is_live && Number.isFinite(Number(channel.stream.viewer_count))
-        ? Number(channel.stream.viewer_count) : null
-    };
-  }
-
+  // The documented /users/livestreams endpoint expects the query key "user_id".
   const liveUrl = new URL('https://api.kick.com/public/v1/users/livestreams');
   liveUrl.searchParams.set('user_id', String(broadcasterUserId));
-  const liveResponse = await fetch(liveUrl, { headers, signal: AbortSignal.timeout(10000) });
-  if (!liveResponse.ok) throw new Error(`Kick livestream API failed (${liveResponse.status})`);
+  const liveResponse = await fetch(liveUrl, {
+    headers,
+    signal: AbortSignal.timeout(10000)
+  });
+  if (!liveResponse.ok) {
+    throw new Error(`Kick livestream API failed (${liveResponse.status})`);
+  }
+
   const liveBody = await liveResponse.json();
-  const live = Array.isArray(liveBody.data) ? liveBody.data[0] : null;
-  return {
-    isLive: Boolean(live),
-    viewerCount: live && Number.isFinite(Number(live.viewer_count)) ? Number(live.viewer_count) : null
-  };
+  return Array.isArray(liveBody.data) && liveBody.data.length > 0;
 }
 
-async function getTikTokLiveInfo(handle) {
-  if (!handle) return { isLive: false, viewerCount: null };
+async function isTikTokLive(handle) {
+  if (!handle) return false;
   if (!tiktokConnectorModule) tiktokConnectorModule = await import('tiktok-live-connector');
-  const Client = tiktokConnectorModule.TikTokLiveConnection || tiktokConnectorModule.default?.TikTokLiveConnection;
-  if (typeof Client !== 'function') throw new Error('TikTok LIVE connector v2 is unavailable; check npm install');
-  const connection = new Client(String(handle).replace(/^@/, ''), {
-    processInitialData: false,
-    fetchRoomInfoOnConnect: false,
-    enableExtendedGiftInfo: false
-  });
-  try {
-    if (typeof connection.fetchIsLive !== 'function') throw new Error('TikTok connector v2 does not expose fetchIsLive()');
-    const isLive = Boolean(await connection.fetchIsLive());
-    if (!isLive) return { isLive: false, viewerCount: null };
-    // Room metadata exposes the current room user_count when TikTok returns it.
-    if (typeof connection.fetchRoomInfo === 'function') {
-      const info = await connection.fetchRoomInfo();
-      const data = info?.data || info;
-      const count = data?.stats?.user_count ?? data?.user_count ?? data?.room?.user_count;
-      return { isLive: true, viewerCount: Number.isFinite(Number(count)) ? Number(count) : null };
-    }
-    return { isLive: true, viewerCount: null };
-  } finally {
-    if (typeof connection.disconnect === 'function') {
-      try { await connection.disconnect(); } catch {}
-    }
-  }
+  const Client = tiktokConnectorModule.TikTokLiveConnection;
+  if (!Client) throw new Error('TikTok LIVE connector is unavailable');
+  const connection = new Client(handle);
+  try { return !!(await connection.fetchIsLive()); }
+  finally { try { await connection.disconnect(); } catch {} }
 }
 
 async function refreshStreamerLiveStatuses() {
@@ -510,21 +437,21 @@ async function refreshStreamerLiveStatuses() {
         const streamer = queue[index];
         const handle = streamerHandle(streamer);
         if (!handle || !['kick', 'tiktok'].includes(streamer.platform)) {
-          statuses[index] = { id: streamer.id, platform: streamer.platform || null, handle: handle || null, isLive: null, viewerCount: null };
+          statuses[index] = { id: streamer.id, isLive: null };
           continue;
         }
         try {
-          const liveInfo = streamer.platform === 'kick' ? await getKickLiveInfo(handle) : await getTikTokLiveInfo(handle);
-          statuses[index] = { id: String(streamer.id), platform: streamer.platform, handle: String(handle).toLowerCase(), isLive: liveInfo.isLive === true, viewerCount: liveInfo.viewerCount, checkedAt: new Date().toISOString() };
+          const isLive = streamer.platform === 'kick' ? await isKickLive(handle) : await isTikTokLive(handle);
+          statuses[index] = { id: streamer.id, isLive, checkedAt: new Date().toISOString() };
         } catch (error) {
           console.warn(`LIVE status check failed for ${streamer.platform} streamer ${handle}:`, error.message);
-          statuses[index] = { id: String(streamer.id), platform: streamer.platform, handle: String(handle).toLowerCase(), isLive: null, viewerCount: null, checkedAt: new Date().toISOString() };
+          statuses[index] = { id: streamer.id, isLive: null, checkedAt: new Date().toISOString() };
         }
       }
     };
     await Promise.all(Array.from({ length: Math.min(4, queue.length) }, worker));
     streamerLiveCache.value = { statuses, checkedAt: new Date().toISOString() };
-    streamerLiveCache.expiresAt = Date.now() + 20 * 1000;
+    streamerLiveCache.expiresAt = Date.now() + 60 * 1000;
     return streamerLiveCache.value;
   })();
   try { return await streamerLiveCache.pending; }
@@ -536,7 +463,7 @@ app.get('/api/streamers/live', async (_req, res, next) => {
     const result = streamerLiveCache.value && streamerLiveCache.expiresAt > Date.now()
       ? streamerLiveCache.value
       : await refreshStreamerLiveStatuses();
-    res.set('Cache-Control', 'no-store, no-cache, must-revalidate').json(result);
+    res.set('Cache-Control', 'public, max-age=30').json(result);
   } catch (error) { next(error); }
 });
 
@@ -567,75 +494,23 @@ app.get('/api/streamer-preview', async (req, res, next) => {
     const html = (await response.text()).slice(0, 3_000_000);
     const tags = html.match(/<meta\b[^>]*>/gi) || [];
     let image = '';
-    let banner = '';
     let title = '';
     for (const tag of tags) {
       const prop = (tag.match(/(?:property|name)=["']([^"']+)["']/i) || [])[1]?.toLowerCase();
       const content = (tag.match(/content=["']([^"']+)["']/i) || [])[1] || '';
       if (!image && ['og:image','twitter:image','og:image:secure_url'].includes(prop)) image = decodeMeta(content);
       if (!title && ['og:title','twitter:title'].includes(prop)) title = decodeMeta(content);
-      if (!banner && /(?:banner|cover).*(?:image|url)|(?:image|url).*(?:banner|cover)/i.test(prop || '')) banner = decodeMeta(content);
     }
-
-    // Kick's public channel API exposes the channel banner independently of its avatar.
-    if (profileUrl.includes('kick.com')) {
-      try {
-        const slug = new URL(profileUrl).pathname.split('/').filter(Boolean)[0];
-        const token = await getKickToken();
-        if (token && slug) {
-          const apiUrl = new URL('https://api.kick.com/public/v1/channels');
-          apiUrl.searchParams.set('slug', slug.toLowerCase());
-          const apiResponse = await fetch(apiUrl, {
-            headers: { Authorization: `Bearer ${token}`, 'Client-Id': process.env.KICK_CLIENT_ID },
-            signal: AbortSignal.timeout(9000)
-          });
-          if (apiResponse.ok) {
-            const apiBody = await apiResponse.json();
-            const channel = (apiBody.data || [])[0] || {};
-            banner = channel.banner_picture || channel.banner || banner;
-            title = title || channel.slug || slug;
-          }
-        }
-      } catch (error) { console.warn('Kick banner lookup:', error.message); }
-    }
-
-    // TikTok profile pages sometimes embed cover/banner URLs in their hydration JSON.
-    // Its official Display API does not expose a profile banner, so use an embedded cover only when present.
-    if (profileUrl.includes('tiktok.com')) {
-      const jsonBlocks = [...html.matchAll(/<script[^>]+id=["'](?:__UNIVERSAL_DATA_FOR_REHYDRATION__|SIGI_STATE)["'][^>]*>([\s\S]*?)<\/script>/gi)];
-      for (const block of jsonBlocks) {
-        try {
-          const parsed = JSON.parse(block[1]);
-          const scan = (node, depth = 0) => {
-            if (!node || typeof node !== 'object' || depth > 12 || banner) return;
-            for (const [key, value] of Object.entries(node)) {
-              if (/(banner|cover)/i.test(key)) {
-                if (typeof value === 'string' && /^https:\/\//i.test(value)) { banner = decodeMeta(value); return; }
-                if (value && typeof value === 'object') {
-                  const candidate = value.url_list?.[0] || value.urlList?.[0] || value.url || value.uri;
-                  if (typeof candidate === 'string' && /^https:\/\//i.test(candidate)) { banner = decodeMeta(candidate); return; }
-                }
-              }
-              if (value && typeof value === 'object') scan(value, depth + 1);
-              if (banner) return;
-            }
-          };
-          scan(parsed);
-        } catch {}
-        if (banner) break;
-      }
-      if (!image) {
-        const match = html.match(/"avatar(?:Larger|Medium|Thumb)"\s*:\s*"([^"]+)"/i);
-        if (match) image = decodeMeta(match[1]);
-      }
+    // TikTok embeds its profile avatar in page JSON on many profile responses.
+    if (!image && profileUrl.includes('tiktok.com')) {
+      const match = html.match(/"avatar(?:Larger|Medium|Thumb)"\s*:\s*"([^"]+)"/i);
+      if (match) image = decodeMeta(match[1]);
     }
     if (image && !/^https:\/\//i.test(image)) image = '';
-    if (banner && !/^https:\/\//i.test(banner)) banner = '';
     res.json({
       platform: profileUrl.includes('kick.com') ? 'kick' : 'tiktok',
       name: title.replace(/\s*[|·-]\s*(TikTok|Kick).*$/i, '').slice(0, 80),
-      image,
-      banner
+      image
     });
   } catch (error) {
     if (error.name === 'TimeoutError' || error.name === 'AbortError') return fail(res, 504, 'انتهت مهلة جلب صورة الحساب');
@@ -686,6 +561,25 @@ app.get('/api/community/tiktok/status', auth, async (req, res, next) => {
   } catch (error) { next(error); }
 });
 
+// سجل نشاط الموقع — يكتب الخادم فقط، ولا يعتمد على بيانات يرسلها المتصفح عن هوية المنفذ.
+async function writeAudit(req, action, entityType, entityId = null, details = {}) {
+  try {
+    const userId = req?.user?.id;
+    if (!uuid(userId)) return;
+    let actorName = String(req.user?.user_metadata?.full_name || req.user?.user_metadata?.name || req.user?.email || 'عضو إدارة').slice(0, 120);
+    const { data: profile } = await supabase.from('profiles').select('discord_username').eq('id', userId).maybeSingle();
+    if (profile?.discord_username) actorName = String(profile.discord_username).slice(0, 120);
+    const { error } = await supabase.from('lz_audit_logs').insert({
+      actor_id: userId, actor_name: actorName,
+      action: String(action || 'unknown').slice(0, 80),
+      entity_type: String(entityType || 'site').slice(0, 80),
+      entity_id: entityId == null ? null : String(entityId).slice(0, 120),
+      details: details && typeof details === 'object' ? details : { value: String(details) }
+    });
+    if (error) console.error('Audit log write failed (run migration.sql):', error.message);
+  } catch (error) { console.error('Audit log write failed:', error.message); }
+}
+
 // Shared site content: public read, Owner/Co Owner write. Never trust browser roles.
 const EMPTY_SITE_CONTENT = { designers: [], works: [], awards: [], giveaways: [], winners: [], videoLinks: {}, streamers: [] };
 app.get('/api/site-content', async (_req, res, next) => {
@@ -715,7 +609,6 @@ app.put('/api/site-content', auth, requireOwnerOrCoOwner, async (req, res, next)
         name: String(item?.name || '').slice(0, 80),
         url: validStreamerUrl(item?.url) || '',
         image: validUrl(item?.image) || '',
-        bannerUrl: validUrl(item?.bannerUrl || item?.banner_url || item?.banner) || '',
         addedAt: String(item?.addedAt || '').slice(0, 40)
       })).filter(item => item.id && item.platform && item.name && item.url) : []
     };
@@ -730,6 +623,7 @@ app.put('/api/site-content', auth, requireOwnerOrCoOwner, async (req, res, next)
 
     // عند حذف Giveaway من الموقع تكون مشاركاته ونقاط TikTok وسجلات السحب قد حُذفت ذرياً.
     for (const giveaway of removedGiveaways) {
+      await writeAudit(req, 'delete', 'giveaway', String(giveaway.id), { title: giveaway.title || '', related_records_deleted: true });
     }
 
     const collections = ['designers','works','awards','winners','streamers'];
@@ -743,8 +637,10 @@ app.put('/api/site-content', auth, requireOwnerOrCoOwner, async (req, res, next)
       const previousIds = new Set((Array.isArray(previous[collection]) ? previous[collection] : []).map(item => String(item?.id || '')).filter(Boolean));
       for (const item of (content[collection] || []).filter(item => item?.id && !previousIds.has(String(item.id)))) {
         const entityType = collection === 'streamers' ? 'streamer' : collection.slice(0, -1);
+        await writeAudit(req, 'create', entityType, item.id, { name: item.name || item.designerName || item.title || '' });
       }
     }
+    await writeAudit(req, 'update', 'site_content', 'main', { designers: content.designers.length, works: content.works.length, awards: content.awards.length, giveaways: content.giveaways.length, streamers: content.streamers.length });
     res.json({ ok: true, content, deleted_giveaways: removedGiveaways.length });
   } catch (error) { next(error); }
 });
@@ -755,17 +651,6 @@ app.get('/api/health', (_req, res) => {
     ok: true,
     service: 'LZ EDITORS API'
   });
-});
-
-// قائمة أعضاء الإدارة لاختيار أي عضو حتى لو لم يكمل ملف المصمم بعد.
-app.get('/api/admin/users', auth, requireOwnerOrCoOwner, async (_req, res, next) => {
-  try {
-    const { data, error } = await supabase.from('profiles')
-      .select('id,discord_username,discord_avatar_url,onboarding_completed')
-      .order('discord_username', { ascending: true }).limit(1000);
-    if (error) throw error;
-    res.json(data || []);
-  } catch (error) { next(error); }
 });
 
 // جلب المصممين
@@ -855,8 +740,7 @@ app.get('/api/me', auth, async (req, res, next) => {
     res.json({
       user_id: req.user.id,
       profile: data,
-      role: await getRole(req.user.id),
-      is_primary_owner: req.user.id === process.env.OWNER_USER_ID
+      role: await getRole(req.user.id)
     });
   } catch (error) {
     next(error);
@@ -917,9 +801,9 @@ app.put('/api/me/profile', auth, async (req, res, next) => {
 
     if (error) throw error;
     try {
-      const { data: firstBadge } = await supabase.from('lz_badges').select('id,code,name,icon').eq('code', 'first_steps').maybeSingle();
+      const { data: firstBadge } = await supabase.from('lz_badges').select('id,name,icon').eq('code', 'first_steps').maybeSingle();
       if (firstBadge) {
-        const { error: awardError } = await supabase.from('lz_user_badges').upsert({ user_id: req.user.id, badge_id: firstBadge.id, badge_key: firstBadge.code }, { onConflict: 'user_id,badge_id' });
+        const { error: awardError } = await supabase.from('lz_user_badges').upsert({ user_id: req.user.id, badge_id: firstBadge.id }, { onConflict: 'user_id,badge_id' });
         if (awardError) throw awardError;
         const { data: existingNotice } = await supabase.from('lz_notifications').select('id').eq('user_id', req.user.id).eq('type', 'welcome_badge').limit(1);
         if (!existingNotice?.length) await supabase.from('lz_notifications').insert({ user_id: req.user.id, title: 'أهلاً بك في LZ EDITORS!', body: `${firstBadge.icon} حصلت على شارة أول خطوة.`, type: 'welcome_badge' });
@@ -1038,6 +922,7 @@ app.delete('/api/messages/:id', auth, async (req, res, next) => {
       .eq('id', messageId);
 
     if (error) throw error;
+    await writeAudit(req, 'delete', 'community_message', messageId, { user_id: message.user_id });
     res.status(204).end();
   } catch (error) {
     next(error);
@@ -1094,6 +979,7 @@ app.put('/api/bans/:userId', auth, requireOwnerOrCoOwner, async (req, res, next)
       banned_by: req.user.id, created_at: new Date().toISOString()
     }, { onConflict: 'user_id' });
     if (error) throw error;
+    await writeAudit(req, 'ban', 'user', target, { reason, expires_at: expiresAt });
     res.json({ ok: true, user_id: target, reason, expires_at: expiresAt });
   } catch (error) { next(error); }
 });
@@ -1105,6 +991,7 @@ app.delete('/api/bans/:userId', auth, requireOwnerOrCoOwner, async (req, res, ne
     if (!uuid(target)) return fail(res, 400, 'Invalid user ID');
     const { error } = await supabase.from('lz_user_bans').delete().eq('user_id', target);
     if (error) throw error;
+    await writeAudit(req, 'unban', 'user', target, {});
     res.json({ ok: true, user_id: target });
   } catch (error) { next(error); }
 });
@@ -1123,18 +1010,11 @@ app.put(
         return fail(res, 400, 'Invalid user or role');
       }
 
-      // The primary Owner configured in OWNER_USER_ID is immutable.
-      if (target === process.env.OWNER_USER_ID) {
-        return fail(res, 403, 'لا يمكن تغيير رتبة المالك الأساسي المحدد في إعدادات السيرفر');
+      if (target === process.env.OWNER_USER_ID || role === 'owner') {
+        return fail(res, 403, 'Use the Discord ID Owner assignment endpoint; primary Owner is protected');
       }
 
       const requesterRole = await getRole(req.user.id);
-      const isPrimaryOwner = req.user.id === process.env.OWNER_USER_ID;
-      const isOwnerRole = (await getRole(target)) === 'owner';
-      // رتبة Owner محجوزة للمالك الأساسي فقط: لا يستطيع أي Owner مُعيّن منحها أو نزعها أو تعديلها.
-      if ((role === 'owner' || isOwnerRole) && !isPrimaryOwner) {
-        return fail(res, 403, 'فقط المالك الأساسي يستطيع منح رتبة Owner أو سحبها أو تعديلها');
-      }
 
       if (
         requesterRole !== 'owner' &&
@@ -1148,8 +1028,8 @@ app.put(
       }
 
       const existingTargetRole = await getRole(target);
-      if (requesterRole !== 'owner' && ['owner', 'co_owner', 'manager_admin'].includes(existingTargetRole)) {
-        return fail(res, 403, 'Only primary Owner may change this administrator role');
+      if (requesterRole !== 'owner' && ['co_owner', 'manager_admin'].includes(existingTargetRole)) {
+        return fail(res, 403, 'Only Owner may change this administrator role');
       }
 
       const { data: profile, error: profileError } = await supabase
@@ -1174,6 +1054,7 @@ app.put(
         });
 
       if (error) throw error;
+      await writeAudit(req, 'role_change', 'user', target, { role });
       res.json({
         user_id: target,
         role
@@ -1183,6 +1064,26 @@ app.put(
     }
   }
 );
+
+// تعيين رتبة Owner بواسطة Discord ID — المالك الحالي فقط
+app.post('/api/roles/by-discord/:discordId', auth, async (req, res, next) => {
+  try {
+    if (await getRole(req.user.id) !== 'owner') return fail(res, 403, 'Only Owner can assign Owner');
+    const discordId = String(req.params.discordId || '').trim();
+    if (!/^\d{17,20}$/.test(discordId)) return fail(res, 400, 'Discord ID غير صالح؛ يجب أن يكون 17 إلى 20 رقماً');
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles').select('id,discord_id,discord_username')
+      .eq('discord_id', discordId).maybeSingle();
+    if (profileError) throw profileError;
+    if (!profile) return fail(res, 404, 'لم يتم العثور على هذا Discord ID. يجب على العضو تسجيل الدخول للموقع مرة واحدة أولاً.');
+    if (profile.id === process.env.OWNER_USER_ID) return fail(res, 409, 'هذا الحساب هو المالك الأساسي بالفعل');
+    const { error } = await supabase.from('lz_user_roles').upsert({ user_id: profile.id, role: 'owner' }, { onConflict: 'user_id' });
+    if (error) throw error;
+    await writeAudit(req, 'role_change', 'user', profile.id, { role: 'owner', discord_id: discordId });
+    res.json({ ok: true, user_id: profile.id, discord_id: discordId, username: profile.discord_username, role: 'owner' });
+  } catch (error) { next(error); }
+});
+
 
 // Community features: badges, notifications, polls, giveaway entries and TikTok contests.
 async function notifyUser(userId, title, body, type = 'general') {
@@ -1222,40 +1123,21 @@ app.get('/api/community/badges', async (_req, res, next) => {
   } catch (error) { next(error); }
 });
 app.get('/api/community/badges/earned', async (_req, res, next) => {
-  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-  res.set('Pragma', 'no-cache');
-  res.set('Expires', '0');
   try {
-    // Fetch assignments and badge definitions separately. This avoids relying
-    // on a PostgREST foreign-key relationship that may be absent from schema cache.
-    const { data: awards, error: awardsError } = await supabase.from('lz_user_badges')
-      .select('id,user_id,badge_id,created_at').order('created_at', { ascending: false }).limit(2000);
-    if (awardsError) throw awardsError;
-    const badgeIds = [...new Set((awards || []).map(row => row.badge_id).filter(Boolean))];
-    let badgeMap = new Map();
-    if (badgeIds.length) {
-      const { data: definitions, error: definitionsError } = await supabase.from('lz_badges')
-        .select('id,code,name,icon,description').in('id', badgeIds);
-      if (definitionsError) throw definitionsError;
-      badgeMap = new Map((definitions || []).map(badge => [String(badge.id), badge]));
-    }
-    res.json((awards || []).map(row => ({ ...row, badge: badgeMap.get(String(row.badge_id)) || null })));
+    const { data, error } = await supabase.from('lz_user_badges')
+      .select('user_id,created_at,badge:lz_badges(name,icon,description)')
+      .order('created_at', { ascending: false }).limit(2000);
+    if (error) throw error;
+    res.json(data || []);
   } catch (error) { next(error); }
 });
 app.get('/api/community/me/badges', auth, async (req, res, next) => {
   try {
-    const { data: awards, error: awardsError } = await supabase.from('lz_user_badges')
-      .select('badge_id,created_at').eq('user_id', req.user.id).order('created_at', { ascending: false });
-    if (awardsError) throw awardsError;
-    const badgeIds = [...new Set((awards || []).map(row => row.badge_id).filter(Boolean))];
-    let badgeMap = new Map();
-    if (badgeIds.length) {
-      const { data: definitions, error: definitionsError } = await supabase.from('lz_badges')
-        .select('id,code,name,description,icon').in('id', badgeIds);
-      if (definitionsError) throw definitionsError;
-      badgeMap = new Map((definitions || []).map(badge => [String(badge.id), badge]));
-    }
-    res.json((awards || []).map(row => ({ created_at: row.created_at, badge: badgeMap.get(String(row.badge_id)) || null })).filter(row => row.badge));
+    const { data, error } = await supabase.from('lz_user_badges')
+      .select('created_at,badge:lz_badges(id,code,name,description,icon)')
+      .eq('user_id', req.user.id).order('created_at', { ascending: false });
+    if (error) throw error;
+    res.json(data || []);
   } catch (error) { next(error); }
 });
 app.post('/api/community/badges/award', auth, requireOwnerOrCoOwner, async (req, res, next) => {
@@ -1265,92 +1147,23 @@ app.post('/api/community/badges/award', auth, requireOwnerOrCoOwner, async (req,
     const description = String(req.body?.description || '').trim().slice(0,240);
     const icon = String(req.body?.icon || '🏅').slice(0,12);
     if (!uuid(target) || !name) return fail(res, 400, 'اختر عضواً واكتب اسم الشارة');
-    const code = 'custom_' + Buffer.from(name.toLowerCase(), 'utf8').toString('hex').slice(0,48);
-
-    // Avoid PostgREST ON CONFLICT inference problems on older databases that
-    // only have a partial unique index for lz_badges.code.
-    let { data: badge, error: lookupError } = await supabase.from('lz_badges')
-      .select('id,name,icon,description').eq('code', code).maybeSingle();
-    if (lookupError) throw lookupError;
-    if (badge) {
-      const { data: updatedBadge, error: updateBadgeError } = await supabase.from('lz_badges')
-        .update({ name, description, icon, active: true }).eq('id', badge.id)
-        .select('id,name,icon,description').single();
-      if (updateBadgeError) throw updateBadgeError;
-      badge = updatedBadge;
-    } else {
-      const { data: insertedBadge, error: insertBadgeError } = await supabase.from('lz_badges')
-        .insert({ code, name, description, icon, active: true })
-        .select('id,name,icon,description').single();
-      if (insertBadgeError) throw insertBadgeError;
-      badge = insertedBadge;
-    }
-
-    // Award idempotently. If an older schema lacks the expected unique index,
-    // fall back to an existence check followed by insert.
-    const { data: existingAward, error: awardLookupError } = await supabase.from('lz_user_badges')
-      .select('id').eq('user_id', target).eq('badge_id', badge.id).maybeSingle();
-    if (awardLookupError) throw awardLookupError;
-    if (!existingAward) {
-      const { error: awardInsertError } = await supabase.from('lz_user_badges')
-        .insert({ user_id: target, badge_id: badge.id, badge_key: code, awarded_by: req.user.id });
-      if (awardInsertError && awardInsertError.code !== '23505') throw awardInsertError;
-    }
-    try { await notifyUser(target, 'حصلت على شارة جديدة!', `${icon} ${name}${description ? ' — ' + description : ''}`, 'badge'); }
-    catch (noticeError) { console.error('Badge awarded, but notification was skipped:', noticeError); }
+    const code = 'custom_' + Buffer.from(name.toLowerCase()).toString('hex').slice(0,48);
+    const { data: badge, error: badgeError } = await supabase.from('lz_badges')
+      .upsert({ code, name, description, icon, active: true }, { onConflict: 'code' })
+      .select('id,name,icon,description').single();
+    if (badgeError) throw badgeError;
+    const { error } = await supabase.from('lz_user_badges').upsert({ user_id: target, badge_id: badge.id, awarded_by: req.user.id }, { onConflict: 'user_id,badge_id' });
+    if (error) throw error;
+    await notifyUser(target, 'حصلت على شارة جديدة!', `${icon} ${name}${description ? ' — ' + description : ''}`, 'badge');
+    await writeAudit(req, 'award_badge', 'badge', badge.id, { user_id: target, name });
     res.json({ ok: true, badge });
-  } catch (error) { next(error); }
-});
-
-app.delete('/api/community/badges/award', auth, requireOwnerOrCoOwner, async (req, res, next) => {
-  try {
-    const target = String(req.body?.user_id || '');
-    const awardId = Number(req.body?.award_id);
-    const badgeId = Number(req.body?.badge_id);
-    if (!uuid(target)) return fail(res, 400, 'اختر العضو بشكل صحيح');
-
-    // Delete the exact assignment row selected in the admin UI. This avoids
-    // confusing a badge definition id with the member's earned-badge row id.
-    let query = supabase.from('lz_user_badges').delete().eq('user_id', target);
-    if (Number.isSafeInteger(awardId) && awardId > 0) {
-      query = query.eq('id', awardId);
-    } else if (Number.isSafeInteger(badgeId) && badgeId > 0) {
-      query = query.eq('badge_id', badgeId);
-    } else {
-      return fail(res, 400, 'اختر الشارة المراد حذفها بشكل صحيح');
-    }
-    const { data, error } = await query.select('id,user_id,badge_id');
-    if (error) throw error;
-    if (!data?.length) return fail(res, 404, 'لم يتم العثور على الشارة المحددة لهذا العضو');
-    res.json({ ok: true, removed: data.length, deleted: data[0] });
-  } catch (error) { next(error); }
-});
-
-// Public portfolio feed: fetch entries and profiles separately so the feed
-// still works on Supabase projects where PostgREST has no cached FK relation.
-app.get('/api/community/contests/public-entries', async (_req, res, next) => {
-  try {
-    const { data: entries, error } = await supabase.from('lz_contest_entries')
-      .select('id,contest_id,user_id,video_url,likes_count,created_at')
-      .order('created_at', { ascending: false }).limit(500);
-    if (error) throw error;
-    const userIds = [...new Set((entries || []).map(row => row.user_id).filter(Boolean))];
-    let profiles = [];
-    if (userIds.length) {
-      const result = await supabase.from('profiles').select('id,discord_username,discord_avatar_url').in('id', userIds);
-      if (result.error) throw result.error;
-      profiles = result.data || [];
-    }
-    const profileById = new Map(profiles.map(profile => [String(profile.id), profile]));
-    res.set('Cache-Control', 'no-store');
-    res.json((entries || []).map(entry => ({ ...entry, profile: profileById.get(String(entry.user_id)) || null })));
   } catch (error) { next(error); }
 });
 
 app.get('/api/community/polls', async (_req, res, next) => {
   try {
     const { data: polls, error } = await supabase.from('lz_polls')
-      .select('id,question,ends_at,active,created_at,options:lz_poll_options(id,label,option_text)')
+      .select('id,question,ends_at,active,created_at,options:lz_poll_options(id,label)')
       .eq('active', true).order('created_at', { ascending: false }).limit(30);
     if (error) throw error;
     const ids = (polls || []).map(p => p.id);
@@ -1360,37 +1173,27 @@ app.get('/api/community/polls', async (_req, res, next) => {
       if (result.error) throw result.error;
       votes = result.data || [];
     }
-    res.json((polls || []).filter(p => !p.ends_at || new Date(p.ends_at) > new Date()).map(p => ({ ...p, options: (p.options || []).map(o => ({ ...o, label: o.label || o.option_text || '', votes: votes.filter(v => v.option_id === o.id).length })), total_votes: votes.filter(v => v.poll_id === p.id).length })));
+    res.json((polls || []).filter(p => !p.ends_at || new Date(p.ends_at) > new Date()).map(p => ({ ...p, options: (p.options || []).map(o => ({ ...o, votes: votes.filter(v => v.option_id === o.id).length })), total_votes: votes.filter(v => v.poll_id === p.id).length })));
   } catch (error) { next(error); }
 });
 app.post('/api/community/polls', auth, requireOwnerOrCoOwner, async (req, res, next) => {
   try {
     const question = String(req.body?.question || '').trim().slice(0,240);
     const options = Array.isArray(req.body?.options) ? [...new Set(req.body.options.map(x => String(x || '').trim().slice(0,100)).filter(Boolean))].slice(0,8) : [];
-    const durationMinutes = Number(req.body?.duration_minutes);
+    const endsAt = req.body?.ends_at ? new Date(req.body.ends_at).toISOString() : null;
     if (!question || options.length < 2) return fail(res, 400, 'اكتب السؤال وخيارين على الأقل');
-    if (!Number.isInteger(durationMinutes) || durationMinutes < 1 || durationMinutes > 43200) return fail(res, 400, 'مدة التصويت يجب أن تكون بين دقيقة واحدة و30 يوماً');
-    const endsAt = new Date(Date.now() + durationMinutes * 60 * 1000).toISOString();
-    const { data: poll, error } = await supabase.from('lz_polls').insert({ id: crypto.randomUUID(), title: question, question, ends_at: endsAt, created_by: req.user.id }).select('id,question,ends_at,active,created_at').single();
+    const { data: poll, error } = await supabase.from('lz_polls').insert({ question, ends_at: endsAt, created_by: req.user.id }).select('id,question,ends_at,active,created_at').single();
     if (error) throw error;
-    const { error: optionError } = await supabase.from('lz_poll_options').insert(options.map(label => ({ poll_id: poll.id, label, option_text: label })));
-    if (optionError) {
-      // Avoid leaving an empty poll if option insertion fails.
-      const { error: cleanupError } = await supabase.from('lz_polls').delete().eq('id', poll.id);
-      if (cleanupError) console.error('Poll cleanup failed:', cleanupError);
-      throw optionError;
+    const { error: optionError } = await supabase.from('lz_poll_options').insert(options.map(label => ({ poll_id: poll.id, label })));
+    if (optionError) throw optionError;
+    const { data: profiles, error: profilesError } = await supabase.from('profiles').select('id').eq('onboarding_completed', true).limit(1000);
+    if (profilesError) throw profilesError;
+    if ((profiles || []).length) {
+      const notices = profiles.map(profile => ({ user_id: profile.id, title: 'تصويت جديد في LZ EDITORS', body: question, type: 'poll' }));
+      const { error: noticeError } = await supabase.from('lz_notifications').insert(notices);
+      if (noticeError) throw noticeError;
     }
-    // Notifications are supplementary: a missing notification column/table must not
-    // make an otherwise successfully-created poll appear to fail.
-    try {
-      const { data: profiles, error: profilesError } = await supabase.from('profiles').select('id').eq('onboarding_completed', true).limit(1000);
-      if (profilesError) throw profilesError;
-      if ((profiles || []).length) {
-        const notices = profiles.map(profile => ({ user_id: profile.id, title: 'تصويت جديد في LZ EDITORS', body: question, type: 'poll' }));
-        const { error: noticeError } = await supabase.from('lz_notifications').insert(notices);
-        if (noticeError) throw noticeError;
-      }
-    } catch (noticeError) { console.error('Poll created, but notifications were skipped:', noticeError); }
+    await writeAudit(req, 'create', 'poll', poll.id, { question, options });
     res.status(201).json({ ...poll, options });
   } catch (error) { next(error); }
 });
@@ -1406,6 +1209,7 @@ app.post('/api/community/polls/:id/vote', auth, requireOnboarding, async (req, r
     const { error } = await supabase.from('lz_poll_votes').insert({ poll_id: poll.id, option_id: option.id, user_id: req.user.id });
     if (error?.code === '23505') return fail(res, 409, 'لقد صوتت في هذا الاستطلاع من قبل');
     if (error) throw error;
+    await writeAudit(req, 'vote', 'poll', poll.id, { option_id: option.id });
     res.json({ ok: true });
   } catch (error) { next(error); }
 });
@@ -1420,6 +1224,7 @@ app.post('/api/community/giveaways/:id/join', auth, requireOnboarding, async (re
     if (error?.code === '23505') return fail(res, 409, 'أنت مسجل في هذه المسابقة بالفعل');
     if (error) throw error;
     await notifyUser(req.user.id, 'تم تسجيل مشاركتك', `تم تسجيلك في ${giveaway.title}`, 'giveaway');
+    await writeAudit(req, 'join', 'giveaway', giveaway.id, { title: giveaway.title || '' });
     res.json({ ok: true });
   } catch (error) { next(error); }
 });
@@ -1450,9 +1255,10 @@ app.post('/api/community/giveaways/:id/draw', auth, requireOwnerOrCoOwner, async
     const { data: profile } = await supabase.from('profiles').select('discord_username').eq('id', winner.user_id).maybeSingle();
     const { error: drawError } = await supabase.from('lz_giveaway_draws').insert({ giveaway_id: String(req.params.id), winner_user_id: winner.user_id, drawn_by: req.user.id, entries_count: entries.length });
     if (drawError) throw drawError;
-    const { data: winnerBadge } = await supabase.from('lz_badges').select('id,code').eq('code', 'contest_winner').maybeSingle();
-    if (winnerBadge) await supabase.from('lz_user_badges').upsert({ user_id: winner.user_id, badge_id: winnerBadge.id, badge_key: winnerBadge.code, awarded_by: req.user.id }, { onConflict: 'user_id,badge_id' });
+    const { data: winnerBadge } = await supabase.from('lz_badges').select('id').eq('code', 'contest_winner').maybeSingle();
+    if (winnerBadge) await supabase.from('lz_user_badges').upsert({ user_id: winner.user_id, badge_id: winnerBadge.id, awarded_by: req.user.id }, { onConflict: 'user_id,badge_id' });
     await notifyUser(winner.user_id, 'مبروك! فزت في Giveaway', 'تم اختيارك فائزاً في إحدى مسابقات LZ EDITORS، وحصلت على شارة بطل المسابقة.', 'winner');
+    await writeAudit(req, 'draw_winner', 'giveaway', req.params.id, { winner_user_id: winner.user_id, entries_count: entries.length });
     res.json({ user_id: winner.user_id, username: profile?.discord_username || 'عضو', total_entries: entries.length });
   } catch (error) { next(error); }
 });
@@ -1462,40 +1268,33 @@ app.post('/api/community/contests/:id/entries', auth, requireOnboarding, async (
   try {
     const raw = String(req.body?.video_url || '').trim();
     let url;
-    try { url = new URL(await resolveTikTokVideoUrl(raw)); }
-    catch (resolveError) { return fail(res, 400, resolveError.message || 'أرسل رابط فيديو TikTok كاملاً وصحيحاً'); }
+    try { url = new URL(raw); } catch { return fail(res, 400, 'رابط فيديو TikTok غير صحيح'); }
+    if (url.protocol !== 'https:' || !['tiktok.com','www.tiktok.com','m.tiktok.com','vm.tiktok.com'].includes(url.hostname.toLowerCase()) || !/\/@[A-Za-z0-9._]+\/video\/\d+/.test(url.pathname)) return fail(res, 400, 'أرسل رابط فيديو TikTok عام');
     const { data: row, error: contentError } = await supabase.from('lz_site_content').select('content').eq('id', 1).maybeSingle();
     if (contentError) throw contentError;
     const contest = (row?.content?.giveaways || []).find(g => String(g.id) === String(req.params.id) && g.type === 'tiktok_contest');
     if (!contest || (contest.end && contest.end < new Date().toISOString().slice(0,10))) return fail(res, 404, 'مسابقة الفيديو غير متاحة');
-    // لا نفرض ربط TikTok OAuth لقبول رابط المشاركة؛ يكفي رابط TikTok عام.
-    // تبقى مزامنة الإعجابات الرسمية منفصلة وتتطلب ربط الحساب والصلاحيات المناسبة.
-    url.hash = '';
-    const { data, error } = await supabase.from('lz_contest_entries').insert({ contest_id: String(contest.id), user_id: req.user.id, video_url: url.href, likes_count: 0, baseline_likes_count: 0, last_observed_likes_count: 0, likes_updated_at: new Date().toISOString(), likes_source: 'pending_sync' }).select('id,video_url,likes_count,created_at').single();
+    if (!tiktokConfigReady()) return fail(res, 503, 'ربط TikTok الرسمي غير مفعّل بعد لدى إدارة الموقع');
+    const connection = await getTikTokConnection(req.user.id);
+    if (!connection) return fail(res, 409, 'اربط حساب TikTok أولاً قبل إرسال الفيديو');
+    const accessToken = await getValidTikTokToken(connection);
+    url.search = ''; url.hash = '';
+    const videoId = (url.pathname.match(/\/video\/(\d+)/) || [])[1];
+    const verifiedVideos = await queryTikTokVideos(accessToken, [videoId]);
+    const verified = verifiedVideos.find(video => String(video.id) === String(videoId));
+    if (!verified) return fail(res, 403, 'الفيديو غير موجود ضمن فيديوهات حساب TikTok المرتبط. يجب أن يكون الفيديو ملكاً للحساب الذي ربطته.');
+    const { data, error } = await supabase.from('lz_contest_entries').insert({ contest_id: String(contest.id), user_id: req.user.id, video_url: url.href, likes_count: 0, baseline_likes_count: Number(verified.like_count || 0), last_observed_likes_count: Number(verified.like_count || 0), likes_updated_at: new Date().toISOString(), likes_source: 'tiktok_api' }).select('id,video_url,likes_count,created_at').single();
     if (error?.code === '23505') return fail(res, 409, 'هذا الفيديو مسجل بالفعل في المسابقة');
     if (error) throw error;
+    await writeAudit(req, 'submit_video', 'tiktok_contest', contest.id, { video_url: url.href });
     res.status(201).json(data);
   } catch (error) { next(error); }
 });
 app.get('/api/community/contests/entries', auth, requireOwnerOrCoOwner, async (_req, res, next) => {
   try {
-    // Load entries and profiles separately: this avoids relying on a Supabase
-    // foreign-key relationship being present in PostgREST's schema cache.
-    const { data: entries, error } = await supabase.from('lz_contest_entries')
-      .select('id,contest_id,user_id,video_url,likes_count,likes_updated_at,likes_source,created_at')
-      .order('created_at', { ascending: false }).limit(500);
+    const { data, error } = await supabase.from('lz_contest_entries').select('id,contest_id,user_id,video_url,likes_count,likes_updated_at,created_at,profile:profiles(discord_username)').order('created_at', { ascending: false }).limit(500);
     if (error) throw error;
-    const userIds = [...new Set((entries || []).map(row => row.user_id).filter(Boolean))];
-    let profiles = [];
-    if (userIds.length) {
-      const result = await supabase.from('profiles')
-        .select('id,discord_username,discord_avatar_url').in('id', userIds);
-      if (result.error) throw result.error;
-      profiles = result.data || [];
-    }
-    const profileById = new Map(profiles.map(profile => [String(profile.id), profile]));
-    res.set('Cache-Control', 'no-store');
-    res.json((entries || []).map(entry => ({ ...entry, profile: profileById.get(String(entry.user_id)) || null })));
+    res.json(data || []);
   } catch (error) { next(error); }
 });
 app.get('/api/community/contests/:id/entries', async (req, res, next) => {
@@ -1515,17 +1314,27 @@ app.patch('/api/community/contests/entries/:entryId/likes', auth, requireOwnerOr
     const points = Math.max(0, observed - Number(existing.baseline_likes_count || 0));
     const { data, error } = await supabase.from('lz_contest_entries').update({ likes_count: points, last_observed_likes_count: observed, likes_updated_at: new Date().toISOString(), likes_source: 'admin_verified' }).eq('id', req.params.entryId).select('id,likes_count,likes_updated_at').single();
     if (error) throw error;
+    await writeAudit(req, 'update_likes', 'tiktok_entry', req.params.entryId, { likes_count: points, current_likes_count: observed });
     res.json(data);
   } catch (error) { next(error); }
 });
 
+// سجل النشاط للإدارة فقط
+app.get('/api/admin/logs', auth, requireOwnerOrCoOwner, async (req, res, next) => {
+  try {
+    const limit = Math.min(200, Math.max(1, Number(req.query.limit) || 100));
+    const { data, error } = await supabase.from('lz_audit_logs').select('id,actor_id,actor_name,action,entity_type,entity_id,details,created_at').order('created_at', { ascending: false }).limit(limit);
+    if (error) throw error;
+    res.json(data || []);
+  } catch (error) { next(error); }
+});
 
 // إدارة استطلاعات المجتمع: حذف الاستطلاع يحذف الخيارات والأصوات التابعة عبر ON DELETE CASCADE.
 app.get('/api/community/admin/polls', auth, requireOwnerOrCoOwner, async (_req, res, next) => {
   try {
-    const { data, error } = await supabase.from('lz_polls').select('id,question,ends_at,active,created_at,options:lz_poll_options(id,label,option_text)').order('created_at', { ascending: false }).limit(100);
+    const { data, error } = await supabase.from('lz_polls').select('id,question,ends_at,active,created_at,options:lz_poll_options(id,label)').order('created_at', { ascending: false }).limit(100);
     if (error) throw error;
-    res.json((data || []).map(poll => ({ ...poll, options: (poll.options || []).map(option => ({ ...option, label: option.label || option.option_text || '' })) })));
+    res.json(data || []);
   } catch (error) { next(error); }
 });
 app.delete('/api/community/polls/:id', auth, requireOwnerOrCoOwner, async (req, res, next) => {
@@ -1535,6 +1344,7 @@ app.delete('/api/community/polls/:id', auth, requireOwnerOrCoOwner, async (req, 
     if (!poll) return fail(res, 404, 'Poll not found');
     const { error } = await supabase.from('lz_polls').delete().eq('id', poll.id);
     if (error) throw error;
+    await writeAudit(req, 'delete', 'poll', poll.id, { question: poll.question, votes_and_options_deleted: true });
     res.json({ ok: true });
   } catch (error) { next(error); }
 });
@@ -1542,23 +1352,19 @@ app.delete('/api/community/polls/:id', auth, requireOwnerOrCoOwner, async (req, 
 // معالجة الأخطاء
 app.use((error, _req, res, _next) => {
   console.error('Backend error:', error);
-  if (error?.type === 'entity.too.large' || error?.status === 413) {
-    return res.status(413).json({ error: 'حجم البيانات كبير. قلّل حجم صورة المسابقة وحاول مجدداً.' });
-  }
   const code = error?.code;
-  if (code === '42703' || code === 'PGRST204' || code === 'PGRST200' || code === 'PGRST201') {
+  if (code === '42703' || code === 'PGRST204') {
     return res.status(500).json({ error: 'قاعدة البيانات ناقصها عمود أو تحديث. شغّل migration.sql في Supabase SQL Editor ثم أعد تشغيل السيرفر.' });
   }
   if (code === '23505') {
     return res.status(409).json({ error: 'يوجد سجل مكرر. راجع user_id في جداول lz_user_roles و lz_user_bans.' });
   }
-  const safeMessage = typeof error?.message === 'string' ? error.message.slice(0, 220) : 'Unknown backend error';
-  res.status(500).json({ error: `Server error: ${safeMessage}`, code: code || 'INTERNAL_ERROR' });
+  res.status(500).json({ error: 'Server error. Check backend logs.' });
 });
 
 const port = Number(process.env.PORT) || 3000;
 
 app.listen(port, () => {
   console.log(`LZ EDITORS API listening on port ${port}`);
-  if (tiktokConfigReady()) { setTimeout(syncTikTokContestLikes, 15000); setInterval(syncTikTokContestLikes, 60 * 1000); }
+  if (tiktokConfigReady()) { setTimeout(syncTikTokContestLikes, 15000); setInterval(syncTikTokContestLikes, 30 * 60 * 1000); }
 });
