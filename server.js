@@ -74,7 +74,7 @@ pages.forEach(page => {
 app.get('/og.svg', (_req, res) => res.type('image/svg+xml').sendFile(path.join(__dirname, 'og.svg')));
 app.get('/vip.svg', (_req, res) => res.type('image/svg+xml').sendFile(path.join(__dirname, 'vip.svg')));
 app.get('/lz-coins.png', (_req, res) => res.type('png').sendFile(path.join(__dirname, 'lz-coins.png')));
-app.get('/shop-logo.png', (_req, res) => { res.set('Cache-Control', 'public, max-age=86400'); res.type('png').sendFile(path.join(__dirname, 'shop-logo.png')); });
+app.get('/shop-logo.png', (_req, res) => res.type('png').sendFile(path.join(__dirname, 'shop-logo.png')));
 
 app.get('/logo.png', (_req, res) => {
   res.set('Cache-Control', 'public, max-age=3600');
@@ -94,7 +94,7 @@ app.get('/sw.js', (_req, res) => {
 });
 
 // مسابقات Giveaway تحفظ صورة مضغوطة داخل محتوى الموقع؛ 32kb كانت تمنع حفظها.
-app.use(express.json({ limit: '6mb' }));
+app.use(express.json({ limit: '8mb' }));
 
 const origins = process.env.FRONTEND_ORIGIN
   .split(',')
@@ -1213,7 +1213,7 @@ app.get('/api/shop/me', auth, async (req, res, next) => {
 app.post('/api/shop/purchase', auth, async (req, res, next) => {
   try {
     const code = String(req.body?.code || '').trim().toLowerCase();
-    if (!['og','vip'].includes(code)) return fail(res, 400, 'منتج غير صالح');
+    if (!/^[a-z0-9][a-z0-9_-]{1,39}$/.test(code)) return fail(res, 400, 'منتج غير صالح');
     const { data, error } = await supabase.rpc('lz_shop_purchase', { p_user_id: req.user.id, p_code: code });
     if (error) throw error;
     if (!data?.ok) return fail(res, data?.status === 'insufficient' ? 400 : data?.status === 'owned' ? 409 : 400, data?.message || 'تعذر إتمام الشراء');
@@ -1224,13 +1224,43 @@ app.get('/api/shop/admin/products', auth, requireOwnerOrCoOwner, async (_req, re
   try { const { data, error } = await supabase.from('lz_shop_products').select('*').order('id'); if (error) throw error; res.json(data || []); }
   catch (error) { next(error); }
 });
+// Admin order history (all successful purchases).
+app.get('/api/shop/admin/orders', auth, requireOwnerOrCoOwner, async (_req, res, next) => {
+  try {
+    const { data, error } = await supabase.from('lz_shop_purchases').select('id,user_id,product_code,product_name,price,created_at').order('created_at', { ascending: false }).limit(500);
+    if (error) throw error;
+    const ids = [...new Set((data || []).map(x => x.user_id))];
+    let profiles = [];
+    if (ids.length) { const q = await supabase.from('profiles').select('id,discord_username,discord_avatar_url').in('id', ids); if (q.error) throw q.error; profiles = q.data || []; }
+    const byId = new Map(profiles.map(x => [x.id, x]));
+    res.set('Cache-Control','no-store').json((data || []).map(x => ({...x, profile: byId.get(x.user_id) || null})));
+  } catch (error) { next(error); }
+});
+app.post('/api/shop/admin/products', auth, requireOwnerOrCoOwner, async (req, res, next) => {
+  try {
+    const code = String(req.body?.code || '').trim().toLowerCase();
+    const name = String(req.body?.name || '').trim().slice(0,70);
+    const description = String(req.body?.description || '').trim().slice(0,240);
+    const price = Number(req.body?.price);
+    const image = String(req.body?.image || '');
+    const product_type = String(req.body?.product_type || 'item').slice(0,30);
+    if (!/^[a-z0-9][a-z0-9_-]{1,39}$/.test(code) || !name || !Number.isSafeInteger(price) || price < 0 || price > 1000000000) return fail(res,400,'تحقق من رمز المنتج والاسم والسعر');
+    if (!/^data:image\/(png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]+$/.test(image) || image.length > 5_000_000) return fail(res,400,'اختر صورة PNG أو JPG أو WEBP أو GIF بحجم مناسب (أقل من 3.5MB)');
+    const { data, error } = await supabase.from('lz_shop_products').insert({code,name,description,price,image,product_type,active:true}).select('*').single();
+    if (error) throw error; res.status(201).json(data);
+  } catch (error) { next(error); }
+});
 app.put('/api/shop/admin/products/:code', auth, requireOwnerOrCoOwner, async (req, res, next) => {
   try {
     const code = String(req.params.code || '').toLowerCase();
-    if (!['og','vip'].includes(code)) return fail(res, 400, 'منتج غير صالح');
-    const price = Number(req.body?.price);
-    if (!Number.isSafeInteger(price) || price < 0 || price > 1000000000) return fail(res, 400, 'السعر يجب أن يكون رقماً صحيحاً موجباً');
-    const { data, error } = await supabase.from('lz_shop_products').update({ price, active: req.body?.active !== false, updated_at: new Date().toISOString() }).eq('code', code).select('*').single();
+    if (!/^[a-z0-9][a-z0-9_-]{1,39}$/.test(code)) return fail(res, 400, 'رمز منتج غير صالح');
+    const updates = { updated_at: new Date().toISOString() };
+    if (req.body?.price !== undefined) { const price = Number(req.body.price); if (!Number.isSafeInteger(price) || price < 0 || price > 1000000000) return fail(res,400,'السعر غير صالح'); updates.price = price; }
+    if (req.body?.name !== undefined) updates.name = String(req.body.name).trim().slice(0,70);
+    if (req.body?.description !== undefined) updates.description = String(req.body.description).trim().slice(0,240);
+    if (req.body?.active !== undefined) updates.active = req.body.active === true;
+    if (req.body?.image !== undefined) { const image=String(req.body.image); if (!/^data:image\/(png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]+$/.test(image) || image.length > 5_000_000) return fail(res,400,'الصورة غير صالحة أو كبيرة جداً'); updates.image=image; }
+    const { data, error } = await supabase.from('lz_shop_products').update(updates).eq('code', code).select('*').single();
     if (error) throw error; res.json(data);
   } catch (error) { next(error); }
 });

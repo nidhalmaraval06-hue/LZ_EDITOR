@@ -593,6 +593,17 @@ tbody tr:last-child td{border-bottom:none}
           <div class="form-group"><label for="shopVipPrice">سعر VIP بالعملات</label><input class="field" id="shopVipPrice" type="number" min="0" step="1"></div>
         </div><div class="form-actions"><button class="btn btn-primary" id="shopSavePrices" type="button">حفظ الأسعار</button></div><small id="shopPriceStatus" style="color:var(--muted)"></small>
       </div>
+      <div class="panel" style="margin-bottom:15px"><div class="panel-head"><h3>إضافة منتج جديد</h3><span>PRODUCT MANAGER</span></div>
+        <form id="shopProductForm"><div class="form-grid">
+          <div class="form-group"><label for="shopNewCode">رمز المنتج (إنجليزي)</label><input class="field" id="shopNewCode" required maxlength="40" pattern="[a-zA-Z0-9_-]+" placeholder="مثال: custom_role"></div>
+          <div class="form-group"><label for="shopNewName">اسم المنتج</label><input class="field" id="shopNewName" required maxlength="70" placeholder="اسم المنتج"></div>
+          <div class="form-group"><label for="shopNewPrice">السعر بعملات LZ</label><input class="field" id="shopNewPrice" type="number" min="0" step="1" required></div>
+          <div class="form-group"><label for="shopNewImage">صورة المنتج من الكمبيوتر أو الهاتف</label><input class="field" id="shopNewImage" type="file" accept="image/png,image/jpeg,image/webp,image/gif" required></div>
+          <div class="form-group full"><label for="shopNewDescription">وصف المنتج</label><input class="field" id="shopNewDescription" maxlength="240" placeholder="وصف قصير للمنتج"></div>
+        </div><div class="form-actions"><button class="btn btn-primary" type="submit">إضافة المنتج للمتجر</button></div><small id="shopProductStatus" style="color:var(--muted)"></small></form>
+      </div>
+      <div class="panel" style="margin-bottom:15px"><div class="panel-head"><h3>المنتجات الحالية</h3></div><div id="shopProductsAdmin" class="table-wrap">—</div></div>
+      <div class="panel" style="margin-bottom:15px"><div class="panel-head"><h3>طلبات ومشتريات الأعضاء</h3><button class="btn btn-secondary btn-small" id="shopOrdersRefresh" type="button">تحديث الطلبات</button></div><div id="shopOrdersAdmin" class="table-wrap">اضغط تحديث لعرض الطلبات.</div></div>
       <div class="panel"><div class="panel-head"><h3>منح أو خصم LZ COINS</h3><span>ADMIN WALLET</span></div>
         <form id="shopPointsForm"><div class="form-grid">
           <div class="form-group"><label for="shopPointsUser">العضو</label><select class="field" id="shopPointsUser" required><option value="">اختر العضو</option></select></div>
@@ -677,11 +688,32 @@ tbody tr:last-child td{border-bottom:none}
       const og = products.find(p => p.code === 'og'), vip = products.find(p => p.code === 'vip');
       if (og) $('shopOgPrice').value = og.price;
       if (vip) $('shopVipPrice').value = vip.price;
+      $('shopProductsAdmin').innerHTML = `<table class="data-table"><thead><tr><th>الصورة</th><th>المنتج</th><th>السعر</th><th>الحالة</th></tr></thead><tbody>${products.map(p=>`<tr><td><img src="${String(p.image).startsWith('data:image/')?p.image:escapeHTML(p.image)}" style="width:42px;height:42px;object-fit:contain"></td><td>${escapeHTML(p.name)} <small>${escapeHTML(p.code)}</small></td><td><input class="field" type="number" min="0" step="1" value="${Number(p.price)}" id="shopPrice-${escapeHTML(p.code)}" style="width:110px;display:inline-block"><button class="btn btn-secondary btn-small" type="button" data-save-product="${escapeHTML(p.code)}">حفظ</button></td><td><button class="btn btn-small ${p.active?'btn-secondary':'btn-primary'}" type="button" data-toggle-product="${escapeHTML(p.code)}" data-active="${p.active?'1':'0'}">${p.active?'إيقاف':'تفعيل'}</button></td></tr>`).join('')}</tbody></table>`;
       const members = await apiRequest('/api/admin/users');
       $('shopPointsUser').innerHTML = '<option value="">اختر العضو</option>' + members.map(p => `<option value="${escapeHTML(p.id)}">${escapeHTML(p.discord_username || p.id)}</option>`).join('');
-      $('shopPriceStatus').textContent = 'تم تحميل أسعار OG وVIP من قاعدة البيانات.';
+      $('shopPriceStatus').textContent = 'تم تحميل المنتجات والأسعار من قاعدة البيانات.';
     } catch (e) { $('shopPriceStatus').textContent = 'تعذر تحميل إدارة المتجر: ' + e.message; }
   }
+  async function loadShopOrders() {
+    const box=$('shopOrdersAdmin'); box.textContent='جاري تحميل الطلبات...';
+    try { const rows=await apiRequest('/api/shop/admin/orders');
+      box.innerHTML=rows.length?`<table class="data-table"><thead><tr><th>العضو</th><th>المنتج</th><th>السعر</th><th>التاريخ</th></tr></thead><tbody>${rows.map(o=>`<tr><td>${escapeHTML(o.profile?.discord_username||o.user_id)}</td><td>${escapeHTML(o.product_name)} <small>${escapeHTML(o.product_code)}</small></td><td>${Number(o.price).toLocaleString('ar')} LZ</td><td>${new Date(o.created_at).toLocaleString('ar')}</td></tr>`).join('')}</tbody></table>`:'لا توجد مشتريات حتى الآن.';
+    } catch(e) { box.textContent='تعذر تحميل الطلبات: '+e.message; }
+  }
+  $('shopProductForm')?.addEventListener('submit', async event=>{
+    event.preventDefault(); const status=$('shopProductStatus'), file=$('shopNewImage').files?.[0];
+    if(!file) return; if(file.size>3.5*1024*1024){status.textContent='حجم الصورة يجب ألا يتجاوز 3.5MB.';return;}
+    if(!['image/png','image/jpeg','image/webp','image/gif'].includes(file.type)){status.textContent='صيغة الصورة غير مدعومة.';return;}
+    const reader=new FileReader(); reader.onload=async()=>{try{await apiRequest('/api/shop/admin/products',{method:'POST',body:JSON.stringify({code:$('shopNewCode').value.trim().toLowerCase(),name:$('shopNewName').value.trim(),description:$('shopNewDescription').value.trim(),price:Number($('shopNewPrice').value),image:reader.result})});status.textContent='تمت إضافة المنتج بنجاح.';$('shopProductForm').reset();loadShopAdmin();}catch(e){status.textContent='فشلت الإضافة: '+e.message;}}; reader.onerror=()=>status.textContent='تعذرت قراءة الصورة.'; reader.readAsDataURL(file);
+  });
+  $('shopOrdersRefresh')?.addEventListener('click',loadShopOrders);
+  $('shopProductsAdmin')?.addEventListener('click', async event=>{
+    const save=event.target.closest('[data-save-product]'), toggle=event.target.closest('[data-toggle-product]');
+    try {
+      if(save){const code=save.dataset.saveProduct, price=Number($('shopPrice-'+code).value); await apiRequest('/api/shop/admin/products/'+encodeURIComponent(code),{method:'PUT',body:JSON.stringify({price})});toast('تم تحديث سعر المنتج');loadShopAdmin();}
+      if(toggle){const code=toggle.dataset.toggleProduct, active=toggle.dataset.active!=='1'; await apiRequest('/api/shop/admin/products/'+encodeURIComponent(code),{method:'PUT',body:JSON.stringify({active})});toast(active?'تم تفعيل المنتج':'تم إيقاف المنتج');loadShopAdmin();}
+    } catch(e){toast('تعذر تحديث المنتج: '+e.message);}
+  });
   $('shopRefresh')?.addEventListener('click', loadShopAdmin);
   $('shopSavePrices')?.addEventListener('click', async () => {
     const status = $('shopPriceStatus');
@@ -894,7 +926,7 @@ tbody tr:last-child td{border-bottom:none}
     if (name === 'communityLinks') loadDashboardChatLinks();
 
     if (name === 'manage') { loadAdminPolls(); loadContestEntriesAdmin(); }
-    if (name === 'shopAdmin') loadShopAdmin();
+    if (name === 'shopAdmin') { loadShopAdmin(); loadShopOrders(); }
     $('sidebar').classList.remove('open');
     window.scrollTo({ top:0, behavior:'smooth' });
   }
