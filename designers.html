@@ -1335,7 +1335,7 @@ select.field option{background:#151020}
       <a href="#works" data-page="works"><i class="fa-solid fa-images"></i> أعمال المصممين</a>
       <a href="#awards" data-page="awards"><i class="fa-solid fa-trophy"></i> الجوائز والشارات</a>
       <a href="#giveaway" data-page="giveaway"><i class="fa-solid fa-gift"></i> Giveaway</a>
-      <a href="shop.html"><i class="fa-solid fa-store"></i> متجر LZ COINS</a>
+      <a href="#shop" data-page="shop"><i class="fa-solid fa-store"></i> متجر LZ COINS</a>
       <a href="#polls" data-page="polls"><i class="fa-solid fa-square-poll-vertical"></i> التصويت</a>
       <a href="#notifications" data-page="notifications"><i class="fa-solid fa-bell"></i> إشعاراتي</a>
       <a href="#winners" data-page="winners"><i class="fa-solid fa-medal"></i> أرشيف الفائزين</a>
@@ -1833,6 +1833,31 @@ select.field option{background:#151020}
   <button class="btn btn-primary" id="onboardingSave" style="margin-top:12px;width:100%" type="submit">حفظ حسابي</button>
  </form>
 </div>
+
+    <!-- LZ STORE EMBEDDED IN DESIGNERS -->
+    <section class="page-view" id="page-shop">
+      <style>
+      .lz-store-shell{position:relative;overflow:hidden;border:1px solid rgba(190,139,255,.25);border-radius:28px;padding:clamp(18px,3vw,34px);background:radial-gradient(ellipse at 50% 0%,rgba(132,69,222,.28),transparent 58%),linear-gradient(145deg,#171027,#0c0914 72%);box-shadow:0 25px 80px #0008}
+      .lz-store-shell:before{content:"";position:absolute;inset:-2px;background:linear-gradient(110deg,transparent 20%,rgba(211,172,255,.12),transparent 58%);transform:translateX(-100%);animation:lzStoreShine 8s infinite;pointer-events:none}
+      @keyframes lzStoreShine{to{transform:translateX(100%)}}
+      .lz-store-head{position:relative;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:14px;margin-bottom:25px}
+      .lz-store-logo{width:min(210px,100%);max-height:155px;object-fit:contain;filter:drop-shadow(0 0 25px #a66cff88);justify-self:center}
+      .lz-store-wallet{justify-self:start;display:flex;align-items:center;gap:9px;border:1px solid #8960b7;background:#241735;padding:11px 16px;border-radius:16px;color:#ffe09a;font-weight:900;box-shadow:0 0 24px #9d5cff22}
+      .lz-store-wallet img{width:31px;height:31px;object-fit:contain}.lz-store-kicker{text-align:center;color:#c9a6ff;font:900 12px Orbitron;letter-spacing:2px}
+      .lz-store-title{text-align:center;font-size:clamp(28px,5vw,48px);font-weight:900;margin:8px 0;background:linear-gradient(90deg,#fff,#d6adff,#ffdf8a);color:transparent;background-clip:text}
+      .lz-store-sub{text-align:center;color:#b8a8ca;margin:0 auto 28px;max-width:650px}.lz-store-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,245px),1fr));gap:18px;position:relative}
+      .lz-store-product{position:relative;overflow:hidden;text-align:center;padding:24px 20px;border:1px solid rgba(190,139,255,.22);border-radius:23px;background:linear-gradient(150deg,rgba(43,29,62,.94),rgba(15,11,23,.98));box-shadow:0 14px 40px #0005;transition:.25s}
+      .lz-store-product:hover{transform:translateY(-6px);border-color:#bd8cff;box-shadow:0 18px 45px #9b5cff25}.lz-store-product img.product-art{width:132px;height:132px;object-fit:contain;filter:drop-shadow(0 0 20px #a45cff55)}
+      .lz-store-product h3{font-size:23px;margin:12px 0 4px}.lz-store-product p{font-size:13px;color:#bcaecc;min-height:42px}.lz-store-price{display:flex;align-items:center;justify-content:center;gap:7px;color:#ffdc83;font-weight:900;font-size:22px;margin:15px}.lz-store-price img{width:27px;height:27px;object-fit:contain}
+      .lz-store-buy{width:100%;border:0;border-radius:13px;padding:13px 18px;background:linear-gradient(100deg,#7540c9,#bd83ff 55%,#f0c879);color:#170d22;font-weight:900;box-shadow:0 8px 22px #9b5cff35}.lz-store-buy:disabled{opacity:.55;cursor:not-allowed}
+      .lz-store-owned{border:1px solid #3b9868;background:#153b2b;color:#a4f2c1;padding:12px;border-radius:13px;font-weight:900}.lz-store-status{text-align:center;color:#bba9ce;padding:18px 8px;min-height:30px}.lz-store-foot{text-align:center;color:#8f819f;font-size:12px;margin-top:25px}
+      @media(max-width:700px){.lz-store-head{grid-template-columns:1fr 1fr}.lz-store-logo{grid-column:1/-1;grid-row:1;width:155px}.lz-store-wallet{grid-column:1/-1;justify-self:center;grid-row:2}.lz-store-kicker{display:none}}
+      </style>
+      <div class="lz-store-shell"><div class="lz-store-head"><div class="lz-store-kicker">LZ EDITORS • EXCLUSIVE COLLECTION</div><img class="lz-store-logo" src="/shop-logo.png?v=3" alt="LZ EDITORS SHOP"><div class="lz-store-wallet"><img src="/lz-coins.png" alt=""><span id="lzStoreBalance">—</span><span>LZ COINS</span></div></div>
+      <div class="lz-store-kicker">THE ROYAL MARKETPLACE</div><h2 class="lz-store-title">متجر LZ الحصري</h2><p class="lz-store-sub">ارتقِ بحسابك. اقتنِ الرتب والعناصر النادرة بعملات LZ، ومشترياتك تبقى محفوظة في حسابك.</p>
+      <div class="lz-store-status" id="lzStoreStatus">جاري تجهيز المتجر...</div><div class="lz-store-grid" id="lzStoreProducts"></div><div class="lz-store-foot">LZ STORE • PREMIUM ITEMS • YOUR STATUS, YOUR STYLE</div></div>
+    </section>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
 <script>
@@ -2008,6 +2033,7 @@ select.field option{background:#151020}
         title: 'Giveaway',
         subtitle: 'السحوبات والفعاليات'
     },
+    shop: { title: 'متجر LZ COINS', subtitle: 'تسوّق الرتب والعناصر الحصرية داخل LZ EDITORS' },
     polls: { title: 'التصويت', subtitle: 'شارك في استطلاعات مجتمع LZ EDITORS' },
     notifications: { title: 'إشعاراتي', subtitle: 'الإشعارات والشارات الخاصة بك' },
     winners: {
@@ -2868,6 +2894,17 @@ renderChat();
   const initialPage = location.hash.replace('#', '');
   navigate(pageInfo[initialPage] ? initialPage : 'designers');
 
+})();
+</script>
+<script>
+(()=>{
+ const box=document.getElementById('lzStoreProducts');if(!box)return;const $=id=>document.getElementById(id);let accessToken='',owned=[];
+ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ async function api(path,opts={}){const r=await fetch(path,{...opts,headers:{...(opts.body?{'Content-Type':'application/json'}:{}),Authorization:'Bearer '+accessToken}});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||'تعذر الاتصال بالمتجر');return d;}
+ function draw(items){box.innerHTML=items.map(p=>{const has=owned.some(x=>x.product_code===p.code);return `<article class="lz-store-product"><img class="product-art" src="${esc(p.image||'')}" alt="${esc(p.name)}"><h3>${esc(p.name)}</h3><p>${esc(p.description||'عنصر حصري من LZ EDITORS')}</p><div class="lz-store-price"><img src="/lz-coins.png" alt="">${Number(p.price).toLocaleString('ar')} LZ</div>${has?'<div class="lz-store-owned">✓ تمت إضافته إلى حسابك</div>':`<button class="lz-store-buy" type="button" data-lz-buy="${esc(p.code)}">اقتناء الآن <i class="fa-solid fa-crown"></i></button>`}</article>`}).join('')||'<div class="panel empty-state">لا توجد منتجات متاحة حالياً.</div>';}
+ async function load(){ $('lzStoreStatus').textContent='جاري تحميل المنتجات والرصيد...';try{const client=window.supabase.createClient('https://gotgssqdkercujjzisdm.supabase.co','sb_publishable_4NyoLY_J46KA6Lt2T4PNBg_Bzy8bT3r');const {data:{session}}=await client.auth.getSession();if(!session?.access_token)throw Error('سجّل الدخول عبر Discord لعرض رصيدك والشراء.');accessToken=session.access_token;const [catalog,me]=await Promise.all([fetch('/api/shop/catalog',{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('تعذر تحميل المنتجات');return r.json()}),api('/api/shop/me')]);owned=me.purchases||[];$('lzStoreBalance').textContent=Number(me.balance||0).toLocaleString('ar');draw(catalog.filter(p=>p.active));$('lzStoreStatus').textContent='اختر العنصر الذي يناسبك واستمتع بمزايا LZ.';}catch(e){$('lzStoreStatus').textContent=e.message;box.innerHTML='';}}
+ box.addEventListener('click',async e=>{const b=e.target.closest('[data-lz-buy]');if(!b)return;if(!confirm('هل تريد تأكيد شراء هذا المنتج؟'))return;b.disabled=true;b.textContent='جارٍ تأكيد الشراء...';try{const result=await api('/api/shop/purchase',{method:'POST',body:JSON.stringify({code:b.dataset.lzBuy})});$('lzStoreBalance').textContent=Number(result.balance).toLocaleString('ar');$('lzStoreStatus').textContent='مبروك! تمت عملية الشراء بنجاح.';await load();}catch(err){alert(err.message);b.disabled=false;b.textContent='اقتناء الآن';}});
+ document.querySelectorAll('[data-page="shop"]').forEach(a=>a.addEventListener('click',()=>setTimeout(load,80)));if(location.hash==='#shop')load();
 })();
 </script>
 
