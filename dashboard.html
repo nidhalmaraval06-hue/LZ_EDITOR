@@ -366,6 +366,7 @@ tbody tr:last-child td{border-bottom:none}
       <button data-page="works"><i class="fa-solid fa-images"></i> أعمال المصممين</button>
       <button data-page="communityLinks"><i class="fa-solid fa-link"></i> ✓・𝐄𝐃𝐈𝐓𝐒・👑</button>
       <button data-page="giveaway"><i class="fa-solid fa-gift"></i> Giveaway</button>
+      <button data-page="shopAdmin"><i class="fa-solid fa-store"></i> متجر LZ COINS</button>
       <button data-page="manage"><i class="fa-solid fa-square-poll-vertical"></i> التصويت والشارات</button>
     </nav>
 
@@ -584,6 +585,23 @@ tbody tr:last-child td{border-bottom:none}
 
 
 
+    <section class="page" id="page-shopAdmin">
+      <div class="section-heading"><div><h3>إدارة متجر LZ COINS</h3><p>تعديل أسعار OG وVIP وإدارة أرصدة الأعضاء.</p></div><span class="badge badge-gold">LZ STORE</span></div>
+      <div class="panel" style="margin-bottom:15px"><div class="panel-head"><h3>أسعار المنتجات</h3><button class="btn btn-secondary btn-small" id="shopRefresh" type="button">تحديث</button></div>
+        <div class="form-grid">
+          <div class="form-group"><label for="shopOgPrice">سعر OG بالعملات</label><input class="field" id="shopOgPrice" type="number" min="0" step="1"></div>
+          <div class="form-group"><label for="shopVipPrice">سعر VIP بالعملات</label><input class="field" id="shopVipPrice" type="number" min="0" step="1"></div>
+        </div><div class="form-actions"><button class="btn btn-primary" id="shopSavePrices" type="button">حفظ الأسعار</button></div><small id="shopPriceStatus" style="color:var(--muted)"></small>
+      </div>
+      <div class="panel"><div class="panel-head"><h3>منح أو خصم LZ COINS</h3><span>ADMIN WALLET</span></div>
+        <form id="shopPointsForm"><div class="form-grid">
+          <div class="form-group"><label for="shopPointsUser">العضو</label><select class="field" id="shopPointsUser" required><option value="">اختر العضو</option></select></div>
+          <div class="form-group"><label for="shopPointsAmount">عدد العملات (+ منح / - خصم)</label><input class="field" id="shopPointsAmount" type="number" min="-1000000" max="1000000" step="1" required placeholder="مثال: 250 أو -50"></div>
+          <div class="form-group full"><label for="shopPointsReason">السبب</label><input class="field" id="shopPointsReason" maxlength="180" required placeholder="مكافأة نشاط / خصم مخالفة"></div>
+        </div><div class="form-actions"><button class="btn btn-primary" type="submit">تأكيد تعديل الرصيد</button></div></form>
+      </div>
+    </section>
+
     <footer class="footer"><span>© LZ EDITORS — Creative Community</span><span>CREATIVE HUB 1.4</span></footer>
   </main>
 </div>
@@ -653,6 +671,34 @@ tbody tr:last-child td{border-bottom:none}
     if (!response.ok) throw new Error(body.error || `HTTP ${response.status}`);
     return body;
   }
+  async function loadShopAdmin() {
+    try {
+      const products = await apiRequest('/api/shop/admin/products');
+      const og = products.find(p => p.code === 'og'), vip = products.find(p => p.code === 'vip');
+      if (og) $('shopOgPrice').value = og.price;
+      if (vip) $('shopVipPrice').value = vip.price;
+      const members = await apiRequest('/api/admin/users');
+      $('shopPointsUser').innerHTML = '<option value="">اختر العضو</option>' + members.map(p => `<option value="${escapeHTML(p.id)}">${escapeHTML(p.discord_username || p.id)}</option>`).join('');
+      $('shopPriceStatus').textContent = 'تم تحميل أسعار OG وVIP من قاعدة البيانات.';
+    } catch (e) { $('shopPriceStatus').textContent = 'تعذر تحميل إدارة المتجر: ' + e.message; }
+  }
+  $('shopRefresh')?.addEventListener('click', loadShopAdmin);
+  $('shopSavePrices')?.addEventListener('click', async () => {
+    const status = $('shopPriceStatus');
+    try {
+      await apiRequest('/api/shop/admin/products/og',{method:'PUT',body:JSON.stringify({price:Number($('shopOgPrice').value),active:true})});
+      await apiRequest('/api/shop/admin/products/vip',{method:'PUT',body:JSON.stringify({price:Number($('shopVipPrice').value),active:true})});
+      status.textContent = 'تم حفظ الأسعار بنجاح.'; toast('تم تحديث أسعار المتجر');
+    } catch(e) { status.textContent = 'فشل حفظ الأسعار: ' + e.message; }
+  });
+  $('shopPointsForm')?.addEventListener('submit', async event => {
+    event.preventDefault(); const amount = Number($('shopPointsAmount').value);
+    try {
+      const result = await apiRequest('/api/shop/admin/points',{method:'POST',body:JSON.stringify({user_id:$('shopPointsUser').value,amount,reason:$('shopPointsReason').value.trim()})});
+      toast('تم تعديل الرصيد. الرصيد الجديد: '+Number(result.balance).toLocaleString('ar')+' LZ COINS'); $('shopPointsForm').reset();
+    } catch(e) { toast('تعذر تعديل الرصيد: '+e.message); }
+  });
+
   async function loadRemoteDesigners() {
     const response = await fetch(API + '/api/designers');
     if (!response.ok) throw new Error('تعذر جلب المصممين من السيرفر');
@@ -774,7 +820,8 @@ tbody tr:last-child td{border-bottom:none}
     giveaway:'Giveaway',
     polls:'التصويت والشارات',
     streamers:'الستريمرز',
-    manage:'إدارة المحتوى'
+    manage:'إدارة المحتوى',
+    shopAdmin:'متجر LZ COINS'
   };
 
   function $(id) { return document.getElementById(id); }
@@ -847,6 +894,7 @@ tbody tr:last-child td{border-bottom:none}
     if (name === 'communityLinks') loadDashboardChatLinks();
 
     if (name === 'manage') { loadAdminPolls(); loadContestEntriesAdmin(); }
+    if (name === 'shopAdmin') loadShopAdmin();
     $('sidebar').classList.remove('open');
     window.scrollTo({ top:0, behavior:'smooth' });
   }

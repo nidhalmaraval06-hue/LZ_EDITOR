@@ -47,7 +47,8 @@ const pages = [
   'login-designers.html',
   'dashboard.html',
   'designers.html',
-  'banned.html'
+  'banned.html',
+  'shop.html'
 ];
 
 app.get('/', (_req, res) => {
@@ -70,6 +71,11 @@ pages.forEach(page => {
 });
 
 // الشعار
+app.get('/og.svg', (_req, res) => res.type('image/svg+xml').sendFile(path.join(__dirname, 'og.svg')));
+app.get('/vip.svg', (_req, res) => res.type('image/svg+xml').sendFile(path.join(__dirname, 'vip.svg')));
+app.get('/lz-coins.png', (_req, res) => res.type('png').sendFile(path.join(__dirname, 'lz-coins.png')));
+app.get('/shop-logo.png', (_req, res) => { res.set('Cache-Control', 'public, max-age=86400'); res.type('png').sendFile(path.join(__dirname, 'shop-logo.png')); });
+
 app.get('/logo.png', (_req, res) => {
   res.set('Cache-Control', 'public, max-age=3600');
   res.sendFile(path.join(__dirname, 'logo.png'));
@@ -1183,6 +1189,60 @@ app.put(
     }
   }
 );
+
+// LZ COINS shop — prices and purchases are always validated server-side.
+app.get('/api/shop/catalog', async (_req, res, next) => {
+  try {
+    const { data, error } = await supabase.from('lz_shop_products')
+      .select('id,code,name,description,price,image,product_type,active')
+      .eq('active', true).order('price', { ascending: true });
+    if (error) throw error;
+    res.set('Cache-Control', 'no-store'); res.json(data || []);
+  } catch (error) { next(error); }
+});
+app.get('/api/shop/me', auth, async (req, res, next) => {
+  try {
+    const [{ data: wallet, error: walletError }, { data: owned, error: ownedError }] = await Promise.all([
+      supabase.from('lz_coin_wallets').select('balance').eq('user_id', req.user.id).maybeSingle(),
+      supabase.from('lz_shop_purchases').select('product_id,product_code,product_name,price,created_at').eq('user_id', req.user.id).order('created_at', { ascending: false })
+    ]);
+    if (walletError) throw walletError; if (ownedError) throw ownedError;
+    res.json({ balance: Number(wallet?.balance || 0), purchases: owned || [] });
+  } catch (error) { next(error); }
+});
+app.post('/api/shop/purchase', auth, async (req, res, next) => {
+  try {
+    const code = String(req.body?.code || '').trim().toLowerCase();
+    if (!['og','vip'].includes(code)) return fail(res, 400, 'منتج غير صالح');
+    const { data, error } = await supabase.rpc('lz_shop_purchase', { p_user_id: req.user.id, p_code: code });
+    if (error) throw error;
+    if (!data?.ok) return fail(res, data?.status === 'insufficient' ? 400 : data?.status === 'owned' ? 409 : 400, data?.message || 'تعذر إتمام الشراء');
+    res.json(data);
+  } catch (error) { next(error); }
+});
+app.get('/api/shop/admin/products', auth, requireOwnerOrCoOwner, async (_req, res, next) => {
+  try { const { data, error } = await supabase.from('lz_shop_products').select('*').order('id'); if (error) throw error; res.json(data || []); }
+  catch (error) { next(error); }
+});
+app.put('/api/shop/admin/products/:code', auth, requireOwnerOrCoOwner, async (req, res, next) => {
+  try {
+    const code = String(req.params.code || '').toLowerCase();
+    if (!['og','vip'].includes(code)) return fail(res, 400, 'منتج غير صالح');
+    const price = Number(req.body?.price);
+    if (!Number.isSafeInteger(price) || price < 0 || price > 1000000000) return fail(res, 400, 'السعر يجب أن يكون رقماً صحيحاً موجباً');
+    const { data, error } = await supabase.from('lz_shop_products').update({ price, active: req.body?.active !== false, updated_at: new Date().toISOString() }).eq('code', code).select('*').single();
+    if (error) throw error; res.json(data);
+  } catch (error) { next(error); }
+});
+app.post('/api/shop/admin/points', auth, requireOwnerOrCoOwner, async (req, res, next) => {
+  try {
+    const target = String(req.body?.user_id || ''); const amount = Number(req.body?.amount);
+    const reason = String(req.body?.reason || '').trim().slice(0,180);
+    if (!uuid(target) || !Number.isSafeInteger(amount) || amount === 0 || Math.abs(amount) > 1000000 || !reason) return fail(res, 400, 'بيانات تعديل الرصيد غير صالحة');
+    const { data, error } = await supabase.rpc('lz_shop_adjust_points', { p_user_id: target, p_amount: amount, p_reason: reason, p_admin_id: req.user.id });
+    if (error) throw error; if (!data?.ok) return fail(res, 400, data?.message || 'تعذر تعديل الرصيد'); res.json(data);
+  } catch (error) { next(error); }
+});
 
 // Community features: badges, notifications, polls, giveaway entries and TikTok contests.
 async function notifyUser(userId, title, body, type = 'general') {
